@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/btnRotatePicture"
+        android:checked="true"
+        android:title="Xoay"
+        app:showAsAction="always"
+        android:icon="@drawable/ic_rotate_left_24"/>
+    <item
+        android:id="@+id/btnCutPicture"
+        android:checked="true"
+        android:title="Cắt"
+        app:showAsAction="always"
+        android:icon="@drawable/ic_content_cut_24"/>
+    <item
+        android:id="@+id/btnLightUp"
+        android:checked="true"
+        android:title="Độ sáng"
+        app:showAsAction="always"
+        android:icon="@drawable/ic_sunny_24"/>
+    <item
+        android:id="@+id/btnFilter"
+        android:checked="true"
+        android:title="Filter"
+        app:showAsAction="always"
+        android:icon="@drawable/ic_sunny_24"/>
+    <item
+        android:id="@+id/btnDraw"
+        android:checked="true"
+        android:title="Vẽ"
+        app:showAsAction="always"
+        android:icon="@drawable/ic_edit_24"/>
+</menu>

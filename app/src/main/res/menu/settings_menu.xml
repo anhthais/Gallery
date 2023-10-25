@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/btnTheme"
+        android:checked="true"
+        android:title="Đổi Theme">
+        <menu>
+            <item
+                android:id="@+id/btnThemeLight"
+                android:checked="true"
+                android:title="Sáng"/>
+            <item
+                android:id="@+id/btnThemeDark"
+                android:checked="true"
+                android:title="Tối"/>
+        </menu>
+    </item>
+    <item
+        android:id="@+id/btnBackup"
+        android:checked="true"
+        android:title="Sao lưu"/>
+    <item
+        android:id="@+id/btnTrashbin"
+        android:checked="true"
+        android:title="Thùng rác"/>
+</menu>

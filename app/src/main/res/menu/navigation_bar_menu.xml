@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/btnGallery"
+        android:title="Gallery"
+        android:checked="true"
+        app:showAsAction="always"
+        android:icon="@drawable/ic_image_24"
+        />
+    <item
+        android:id="@+id/btnAlbum"
+        android:title="Album"
+        android:checked="true"
+        app:showAsAction="always"
+        android:icon="@drawable/ic_album_24"
+        />
+    <item
+        android:id="@+id/btnSettings"
+        android:title="Settings"
+        android:checked="true"
+        app:showAsAction="always"
+        android:icon="@drawable/ic_settings_24"
+        />
+</menu>

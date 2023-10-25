@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/btnViewInfor"
+        android:checked="true"
+        android:title="Thông tin"
+        />
+    <item
+        android:id="@+id/btnCompress"
+        android:checked="true"
+        android:title="Nén ảnh"
+        />
+    <item
+        android:id="@+id/btnAddToAlbum"
+        android:checked="true"
+        android:title="Thêm vào Album"
+        />
+    <item
+        android:id="@+id/btnChangeDescription"
+        android:checked="true"
+        android:title="Mô tả"
+        />
+    <item
+        android:id="@+id/btnSetAsWall"
+        android:checked="true"
+        android:title="Đặt làm hình nền"
+        />
+    <item
+        android:id="@+id/btnReadTextInImage"
+        android:checked="true"
+        android:title="Đọc ký tự"
+        />
+</menu>

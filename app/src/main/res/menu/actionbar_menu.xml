@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/btnFind"
+        android:checked="true"
+        android:icon="@drawable/ic_search_24"
+        app:showAsAction="always"
+        android:title="Find" />
+    <item
+        android:id="@+id/btnAddImageAcTion"
+        android:checked="true"
+        app:showAsAction="never"
+        android:title="Thêm ảnh"/>
+    <item
+        android:id="@+id/btnStatistic"
+        android:checked="true"
+        app:showAsAction="never"
+        android:title="Thống kê"/>
+</menu>
