@@ -19,5 +19,7 @@
         android:id="@+id/navigationBar"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
+        app:itemIconTint="@drawable/navigation_item_selector"
+        app:itemTextColor="@drawable/navigation_item_selector"
         app:menu="@menu/navigation_bar_menu"/>
 </RelativeLayout>
