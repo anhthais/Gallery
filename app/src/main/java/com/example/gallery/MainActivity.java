@@ -3,6 +3,7 @@ package com.example.gallery;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.PopupMenu;
+import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.database.Cursor;
@@ -18,6 +19,7 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
+    FragmentTransaction ft;
 
     BottomNavigationView btnv;
     DatabaseHelper galleryDB;
@@ -33,7 +35,16 @@ public class MainActivity extends AppCompatActivity {
 
             }
             else if (R.id.btnAlbum==id){
-
+                ft=getSupportFragmentManager().beginTransaction();
+                ArrayList<Album> al=new ArrayList<Album>();
+                al.add(new Album("Album 1"));
+                al.add(new Album("Album 2"));
+                al.add(new Album("Album 3"));
+                al.add(new Album("Album 4"));
+                al.add(new Album("Album 5"));
+                AlbumFragment album=new AlbumFragment(this,al);
+                ft.replace(R.id.mainFragment,album);
+                ft.commit();
             }
             else if (R.id.btnSettings==id){
                 View v=findViewById(R.id.btnSettings);
