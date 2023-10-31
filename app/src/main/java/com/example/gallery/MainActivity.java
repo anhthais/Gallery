@@ -23,6 +23,9 @@ public class MainActivity extends AppCompatActivity {
     FragmentTransaction ft;
 
     BottomNavigationView btnv;
+    public BottomNavigationView getNavigationBar(){
+        return this.btnv;
+    }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -44,6 +47,7 @@ public class MainActivity extends AppCompatActivity {
                 AlbumFragment album=new AlbumFragment(this,al);
                 ft.replace(R.id.mainFragment,album);
                 ft.commit();
+
             }
             else if (R.id.btnSettings==id){
                 View v=findViewById(R.id.btnSettings);
