@@ -61,9 +61,10 @@ public class AlbumAdapter extends RecyclerView.Adapter<AlbumAdapter.ViewHolder> 
                                 selectedItemsIds.delete(position);
                             }
                         }
+                        Toast.makeText(context,"aa"+position+selectedItemsIds.size(),Toast.LENGTH_SHORT).show();
+
                     }
                     else{
-
                         //show all picture in album
                     }
                 }
@@ -126,6 +127,20 @@ public class AlbumAdapter extends RecyclerView.Adapter<AlbumAdapter.ViewHolder> 
             holder.checkBox.setVisibility(View.INVISIBLE);
             holder.checkBox.setChecked(false);
         }
+        holder.checkBox.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                    int position=holder.getAdapterPosition();
+                    if (holder.checkBox.isChecked()) {
+                        selectedItemsIds.put(position,true);
+                    }
+                    else{
+                        if(selectedItemsIds.get(position)==true) {
+                            selectedItemsIds.delete(position);
+                        }
+                }
+            }
+        });
     }
     public SparseBooleanArray getSelectedItemsIds(){
         return this.selectedItemsIds;
