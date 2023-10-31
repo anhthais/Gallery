@@ -8,6 +8,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import android.database.Cursor;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -22,8 +23,6 @@ public class MainActivity extends AppCompatActivity {
     FragmentTransaction ft;
 
     BottomNavigationView btnv;
-    DatabaseHelper galleryDB;
-    ArrayList<String> image_id, image_name, image_address, album_name, image_status, image_timeRemaining;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -60,16 +59,6 @@ public class MainActivity extends AppCompatActivity {
             return true;
         });
 
-        galleryDB = new DatabaseHelper(MainActivity.this);
-
-        image_id = new ArrayList<>();
-        image_name = new ArrayList<>();
-        image_address = new ArrayList<>();
-        album_name = new ArrayList<>();
-        image_status = new ArrayList<>();
-        image_timeRemaining = new ArrayList<>();
-        storeDataInArrays();
-
     }
 
     @Override
@@ -78,24 +67,7 @@ public class MainActivity extends AppCompatActivity {
         return super.onCreateOptionsMenu(menu);
     }
 
-    void storeDataInArrays(){
-        Cursor cursor = galleryDB.readAllData();
 
-        if(cursor.getCount() ==0 ){
-            Toast.makeText(this, "No data",Toast.LENGTH_SHORT).show();
-        }
-        else{
-            while(cursor.moveToNext()){
-                image_id.add(cursor.getString(0));
-                image_name.add(cursor.getString(1));
-                image_address.add(cursor.getString(2));
-                album_name.add(cursor.getString(3));
-                image_status.add(cursor.getString(4));
-                image_timeRemaining.add(cursor.getString(5));
-
-            }
-        }
-    }
 
 
 

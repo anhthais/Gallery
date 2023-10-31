@@ -6,6 +6,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
@@ -24,8 +25,6 @@ public class AlbumAdapter extends RecyclerView.Adapter<AlbumAdapter.ViewHolder> 
     public class ViewHolder extends RecyclerView.ViewHolder{
         private ImageView itemImageView;
         private TextView albumNameTxtView;
-
-
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
             itemImageView=itemView.findViewById(R.id.imageAlbumItem);
@@ -35,10 +34,9 @@ public class AlbumAdapter extends RecyclerView.Adapter<AlbumAdapter.ViewHolder> 
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        LayoutInflater inflater=LayoutInflater.from(context);
-        View albumView=inflater.inflate(R.layout.album_item,parent);
-        ViewHolder album_holder=new ViewHolder(albumView);
-        return album_holder;
+        LayoutInflater inflater=LayoutInflater.from(parent.getContext());
+        View albumView=inflater.inflate(R.layout.album_item,parent,false);
+        return new ViewHolder(albumView);
     }
 
     @Override
