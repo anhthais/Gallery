@@ -28,12 +28,14 @@ public class AlbumAdapter extends RecyclerView.Adapter<AlbumAdapter.ViewHolder> 
     private Context context;
     private ArrayList<Album> albums;
     private SparseBooleanArray selectedItemsIds;
+    private AlbumFragment albumFragment;
 
     private boolean checkBoxEnable=false;
 
-    public AlbumAdapter(Context context,ArrayList<Album> albums_list ){
+    public AlbumAdapter(Context context,ArrayList<Album> albums_list, AlbumFragment frag ){
         this.albums=albums_list;
         this.context=context;
+        this.albumFragment=frag;
         selectedItemsIds=new SparseBooleanArray();
     }
     public class ViewHolder extends RecyclerView.ViewHolder{
@@ -61,11 +63,12 @@ public class AlbumAdapter extends RecyclerView.Adapter<AlbumAdapter.ViewHolder> 
                                 selectedItemsIds.delete(position);
                             }
                         }
-                        Toast.makeText(context,"aa"+position+selectedItemsIds.size(),Toast.LENGTH_SHORT).show();
 
                     }
                     else{
                         //show all picture in album
+                        albumFragment.onMsgFromMainToFragment(albums.get(getAdapterPosition()).getName());
+                        Toast.makeText(context,albums.get(getAdapterPosition()).getName() , Toast.LENGTH_SHORT).show();
                     }
                 }
             });
@@ -77,6 +80,7 @@ public class AlbumAdapter extends RecyclerView.Adapter<AlbumAdapter.ViewHolder> 
                         ActionMode mode=ma.startSupportActionMode(new ActionMode.Callback() {
                             @Override
                             public boolean onCreateActionMode(ActionMode mode, Menu menu) {
+                                //
                                 return true;
                             }
 

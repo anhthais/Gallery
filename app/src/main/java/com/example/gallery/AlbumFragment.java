@@ -35,7 +35,7 @@ public class AlbumFragment extends Fragment implements FragmentCallBacks {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View albumFragment=inflater.inflate(R.layout.album_fragment,container,false);
-        album_adapter=new AlbumAdapter(context,albums);
+        album_adapter=new AlbumAdapter(context,albums,this);
         album_recyclerView=albumFragment.findViewById(R.id.albumFragmentRecyclerView);
         album_recyclerView.setAdapter(album_adapter);
         album_recyclerView.setLayoutManager(new GridLayoutManager(context,2));
