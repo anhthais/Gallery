@@ -1,24 +1,35 @@
 package com.example.gallery;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.PopupMenu;
+import androidx.core.app.ActivityCompat;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.Manifest;
+import android.app.Activity;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.StrictMode;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
 
 import com.example.gallery.Database.DatabaseHelper;
+import com.example.gallery.fragment.GalleryFragment;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import java.util.ArrayList;
 
-public class MainActivity extends AppCompatActivity {
 
+public class MainActivity extends AppCompatActivity {
+    private static final int PERMISSION_REQUEST_READ_CODE = 1;
     BottomNavigationView btnv;
     DatabaseHelper galleryDB;
     ArrayList<String> image_id, image_name, image_address, album_name, image_status, image_timeRemaining;
@@ -26,6 +37,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        // set widget view
         btnv=findViewById(R.id.navigationBar);
         btnv.setOnNavigationItemSelectedListener(item -> {
             int id=item.getItemId();
@@ -49,16 +61,56 @@ public class MainActivity extends AppCompatActivity {
             return true;
         });
 
-        galleryDB = new DatabaseHelper(MainActivity.this);
+        // request permission
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU){
+            ActivityCompat.requestPermissions(MainActivity.this,
+                    new String[]{
+                            Manifest.permission.READ_MEDIA_IMAGES,
+                            Manifest.permission.INTERNET},
+                    PERMISSION_REQUEST_READ_CODE);
+        } else {
+            ActivityCompat.requestPermissions(MainActivity.this,
+                    new String[]{
+                            android.Manifest.permission.READ_EXTERNAL_STORAGE,
+                            Manifest.permission.INTERNET},
+                    PERMISSION_REQUEST_READ_CODE);
+        }
 
-        image_id = new ArrayList<>();
-        image_name = new ArrayList<>();
-        image_address = new ArrayList<>();
-        album_name = new ArrayList<>();
-        image_status = new ArrayList<>();
-        image_timeRemaining = new ArrayList<>();
-        storeDataInArrays();
 
+        // init DB
+//        galleryDB = new DatabaseHelper(MainActivity.this);
+//
+//        image_id = new ArrayList<>();
+//        image_name = new ArrayList<>();
+//        image_address = new ArrayList<>();
+//        album_name = new ArrayList<>();
+//        image_status = new ArrayList<>();
+//        image_timeRemaining = new ArrayList<>();
+//        storeDataInArrays();
+
+    }
+
+    private void initApp(){
+        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+        GalleryFragment galleryFragment = new GalleryFragment(MainActivity.this);
+        ft.replace(R.id.mainFragment, galleryFragment); ft.commit();
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == PERMISSION_REQUEST_READ_CODE) {
+            // If request is cancelled, the result arrays are empty.
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                // permission was granted, yay! Do the contacts-related task you need to do.
+                // => transacting fragments here.
+                Toast.makeText(MainActivity.this, "Permission granted!", Toast.LENGTH_SHORT).show();
+                initApp();
+            } else {
+                // permission denied, boo! Disable the functionality that depends on this permission.
+                Toast.makeText(MainActivity.this, "Permission denied!", Toast.LENGTH_SHORT).show();
+            }
+        }
     }
 
     @Override
@@ -85,7 +137,6 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     }
-
 
 
 }
