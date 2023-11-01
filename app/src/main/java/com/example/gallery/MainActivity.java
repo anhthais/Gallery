@@ -139,4 +139,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
+    public void onMsgFromFragToMain(String album, String name) {
+    }
 }
