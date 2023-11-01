@@ -17,4 +17,9 @@
         android:checked="true"
         app:showAsAction="never"
         android:title="Thống kê"/>
+    <item
+        android:id="@+id/btnAddNewAlbum"
+        android:checked="true"
+        app:showAsAction="never"
+        android:title="Thêm Album"/>
 </menu>
