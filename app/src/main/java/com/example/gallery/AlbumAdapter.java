@@ -28,14 +28,12 @@ public class AlbumAdapter extends RecyclerView.Adapter<AlbumAdapter.ViewHolder> 
     private Context context;
     private ArrayList<Album> albums;
     private SparseBooleanArray selectedItemsIds;
-    private AlbumFragment albumFragment;
 
     private boolean checkBoxEnable=false;
 
-    public AlbumAdapter(Context context,ArrayList<Album> albums_list, AlbumFragment frag ){
+    public AlbumAdapter(Context context,ArrayList<Album> albums_list){
         this.albums=albums_list;
         this.context=context;
-        this.albumFragment=frag;
         selectedItemsIds=new SparseBooleanArray();
     }
     public class ViewHolder extends RecyclerView.ViewHolder{
@@ -67,8 +65,7 @@ public class AlbumAdapter extends RecyclerView.Adapter<AlbumAdapter.ViewHolder> 
                     }
                     else{
                         //show all picture in album
-                        albumFragment.onMsgFromMainToFragment(albums.get(getAdapterPosition()).getName());
-                        Toast.makeText(context,albums.get(getAdapterPosition()).getName() , Toast.LENGTH_SHORT).show();
+                        ((MainActivity)context).onMsgFromFragToMain("ALBUM",albums.get(getAdapterPosition()).getName());
                     }
                 }
             });
@@ -80,7 +77,7 @@ public class AlbumAdapter extends RecyclerView.Adapter<AlbumAdapter.ViewHolder> 
                         ActionMode mode=ma.startSupportActionMode(new ActionMode.Callback() {
                             @Override
                             public boolean onCreateActionMode(ActionMode mode, Menu menu) {
-                                //
+                                //update navìation/action bar here
                                 return true;
                             }
 

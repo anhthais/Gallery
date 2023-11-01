@@ -1,11 +1,13 @@
 package com.example.gallery;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.PopupMenu;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.app.ActionBar;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.util.Log;
@@ -19,10 +21,12 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import java.util.ArrayList;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements MainCallBacks {
     FragmentTransaction ft;
-
+    Menu menu;
+    AlbumFragment album_fragment;
     BottomNavigationView btnv;
+    ActionBar action_bar;
     public BottomNavigationView getNavigationBar(){
         return this.btnv;
     }
@@ -34,9 +38,9 @@ public class MainActivity extends AppCompatActivity {
         btnv.setOnNavigationItemSelectedListener(item -> {
             int id=item.getItemId();
             if(id==R.id.btnGallery){
-
             }
             else if (R.id.btnAlbum==id){
+                menu.findItem(R.id.btnAddNewAlbum).setVisible(true);
                 ft=getSupportFragmentManager().beginTransaction();
                 ArrayList<Album> al=new ArrayList<Album>();
                 al.add(new Album("Album 1"));
@@ -45,6 +49,7 @@ public class MainActivity extends AppCompatActivity {
                 al.add(new Album("Album 4"));
                 al.add(new Album("Album 5"));
                 AlbumFragment album=new AlbumFragment(this,al);
+                album_fragment=album;
                 ft.replace(R.id.mainFragment,album);
                 ft.commit();
 
@@ -53,6 +58,7 @@ public class MainActivity extends AppCompatActivity {
                 View v=findViewById(R.id.btnSettings);
                 PopupMenu pm = new PopupMenu(this, v);
                 pm.getMenuInflater().inflate(R.menu.settings_menu, pm.getMenu());
+
                 pm.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
                     @Override
                     public boolean onMenuItemClick(MenuItem item) {
@@ -68,11 +74,24 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.actionbar_menu,menu);
+        menu.findItem(R.id.btnAddNewAlbum).setVisible(false);
+        this.menu=menu;
         return super.onCreateOptionsMenu(menu);
     }
 
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        int id=item.getItemId();
+        if(id==R.id.btnAddNewAlbum){
+            album_fragment.addNewAlbum();
+        }else if(id==R.id.btnAddImage){
 
+        }
+        return super.onOptionsItemSelected(item);
+    }
 
+    @Override
+    public void onMsgFromFragToMain(String sender, String strValue) {
 
-
+    }
 }
