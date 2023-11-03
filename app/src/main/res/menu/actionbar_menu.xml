@@ -1,12 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
+
     <item
         android:id="@+id/btnFind"
         android:checked="true"
         android:icon="@drawable/ic_search_24"
         app:showAsAction="always"
+
         android:title="Find" />
+    <item
+        android:id="@+id/btnChooseMulti"
+        android:checked="true"
+        app:showAsAction="never"
+        android:title="Chọn nhiều ảnh"/>
     <item
         android:id="@+id/btnAddImageAcTion"
         android:checked="true"
@@ -22,4 +29,9 @@
         android:checked="true"
         app:showAsAction="never"
         android:title="Thêm Album"/>
+    <item
+        android:id="@+id/btnRenameAlbum"
+        android:checked="true"
+        app:showAsAction="never"
+        android:title="Đổi tên Album"/>
 </menu>

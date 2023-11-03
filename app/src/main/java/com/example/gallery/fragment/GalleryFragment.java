@@ -31,20 +31,21 @@ public class GalleryFragment extends Fragment {
     private Context context;
     private MainActivity main;
 
-    public GalleryFragment(Context context) {
-        this.context = context;
+
+    public static GalleryFragment getInstance(){
+        return new GalleryFragment();
     }
 
-//    @Override
-//    public void onCreate(Bundle savedInstanceState) {
-//        super.onCreate(savedInstanceState);
-//        try {
-//            context = getActivity(); // use this reference to invoke main callbacks
-//            main = (MainActivity) getActivity();
-//        } catch (IllegalStateException e) {
-//            throw new IllegalStateException("MainActivity must implement callbacks");
-//        }
-//    }
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        try {
+            context = getActivity(); // use this reference to invoke main callbacks
+            main = (MainActivity) getActivity();
+        } catch (IllegalStateException e) {
+            throw new IllegalStateException("MainActivity must implement callbacks");
+        }
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -86,6 +87,10 @@ public class GalleryFragment extends Fragment {
             return null;
         }
 
+    }
+    public void changeOnMultiChooseMode()
+    {
+        imageGroupAdapter.changeOnMultiChooseMode();
     }
 
 }
