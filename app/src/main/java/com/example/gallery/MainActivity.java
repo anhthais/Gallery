@@ -24,7 +24,6 @@ import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity implements MainCallBacks {
 
-
     private static final int PERMISSION_REQUEST_READ_CODE = 1;
 
     FragmentTransaction ft;
@@ -90,6 +89,7 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks {
             }
             return true;
         });
+
         // request permission
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU){
             ActivityCompat.requestPermissions(MainActivity.this,

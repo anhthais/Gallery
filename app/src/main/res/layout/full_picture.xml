@@ -4,15 +4,11 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
+
     <ImageView
-        android:id="@+id/imageViewPicture"
+        android:id="@+id/full_image_view"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_above="@id/navigationBarPicture"/>
-    <com.google.android.material.bottomnavigation.BottomNavigationView
-        android:layout_width="match_parent"
-        android:id="@+id/navigationBarPicture"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        app:menu="@menu/navigation_bar_picture_menu"/>
+        android:layout_height="match_parent"
+        android:adjustViewBounds="true" />
+
 </RelativeLayout>

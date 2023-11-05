@@ -55,19 +55,19 @@ public class ImageGroupAdapter extends RecyclerView.Adapter<ImageGroupAdapter.Im
             return;
 
         holder.txtId.setText(group.getId());
-
         holder.imgList.setLayoutManager(new GridLayoutManager(context, COL_SPAN_VIEW));
 
-        ImageAdapter imgList = new ImageAdapter(context.getApplicationContext(), group.getList());
+        ImageAdapter imgList = new ImageAdapter(context, group.getList());
+        imgList.setListGroups(listGroups);
+        imgList.setGroupPos(position);
+
         holder.imgList.setAdapter(imgList);
+
     }
 
     @Override
     public int getItemCount() {
-        if (listGroups != null){
-            return listGroups.size();
-        }
-        return 0;
+        return listGroups.size();
     }
 
 }

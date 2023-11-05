@@ -1,10 +1,7 @@
 package com.example.gallery.fragment;
 
 import android.content.Context;
-import android.database.Cursor;
-import android.net.Uri;
 import android.os.Bundle;
-import android.provider.MediaStore;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -22,7 +19,6 @@ import com.example.gallery.object.Image;
 import com.example.gallery.object.ImageGroup;
 
 import java.util.ArrayList;
-import java.util.List;
 
 public class GalleryFragment extends Fragment {
     private RecyclerView recyclerView;
@@ -57,13 +53,14 @@ public class GalleryFragment extends Fragment {
         recyclerView.setAdapter(imageGroupAdapter);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext(), RecyclerView.VERTICAL, false));
 
+
         return view;
     }
 
     private ArrayList<ImageGroup> getListImageGroup() {
         ArrayList<ImageGroup> groupList = new ArrayList<>();
         int count = 0;
-        List<Image> imageList = LocalStorageReader.getImagesFromLocal(getContext());
+        ArrayList<Image> imageList = LocalStorageReader.getImagesFromLocal(getContext());
 
         try {
             // group images by taken date, imageList contains images ordered by date DESC

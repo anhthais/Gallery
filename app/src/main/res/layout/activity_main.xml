@@ -6,8 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".MainActivity"
-    android:orientation="vertical"
-    >
+    android:orientation="vertical">
     <FrameLayout
         android:id="@+id/mainFragment"
         android:layout_width="match_parent"
@@ -22,4 +21,5 @@
         app:itemIconTint="@drawable/navigation_item_selector"
         app:itemTextColor="@drawable/navigation_item_selector"
         app:menu="@menu/navigation_bar_menu"/>
+
 </RelativeLayout>
