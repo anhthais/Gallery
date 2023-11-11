@@ -218,6 +218,7 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
 
 
             builder.show();
+        }
         else if(id==R.id.btnRenameAlbum){
             imageFragment.RenameAlbum();
         }
