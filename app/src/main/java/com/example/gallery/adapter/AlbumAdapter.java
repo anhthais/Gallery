@@ -34,6 +34,21 @@ public class AlbumAdapter extends RecyclerView.Adapter<AlbumAdapter.ViewHolder> 
         this.context=context;
         selectedItemsIds=new SparseBooleanArray();
     }
+    @Override
+    public void onViewRecycled(@NonNull ViewHolder holder) {
+        super.onViewRecycled(holder);
+        int position = holder.getAdapterPosition();
+        holder.checkBox.setChecked(selectedItemsIds.get(position));
+    }
+
+
+    @Override
+    public void onViewAttachedToWindow(@NonNull ViewHolder holder) {
+        super.onViewAttachedToWindow(holder);
+        int position = holder.getAdapterPosition();
+        holder.checkBox.setChecked(selectedItemsIds.get(position));
+    }
+
     public class ViewHolder extends RecyclerView.ViewHolder{
         private ImageView itemImageView;
         private TextView albumNameTxtView;
@@ -122,11 +137,15 @@ public class AlbumAdapter extends RecyclerView.Adapter<AlbumAdapter.ViewHolder> 
         holder.itemImageView.setImageResource(R.drawable.ic_folder_24);
         holder.albumNameTxtView.setText(album.getName());
         if(checkBoxEnable==true){
+            //holder.setIsRecyclable(false);
             holder.checkBox.setVisibility(View.VISIBLE);
         }else{
             holder.checkBox.setVisibility(View.INVISIBLE);
             holder.checkBox.setChecked(false);
         }
+        //if(selectedItemsIds.get(position)){
+        //    holder.checkBox.setChecked(true);
+        //}
         holder.checkBox.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
