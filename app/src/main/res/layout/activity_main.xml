@@ -20,6 +20,7 @@
         android:layout_alignParentBottom="true"
         app:itemIconTint="@drawable/navigation_item_selector"
         app:itemTextColor="@drawable/navigation_item_selector"
-        app:menu="@menu/navigation_bar_menu"/>
+        app:menu="@menu/navigation_bar_menu"
+        style="@style/BottomNavigationViewNight"/>
 
 </RelativeLayout>

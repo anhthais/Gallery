@@ -145,8 +145,6 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
         });
     }
 
-
-
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
@@ -190,7 +188,7 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
 
         }
         // choose Statistic in ItemSelected
-        else if(id == R.id.btnStatistic){
+        else if(id == R.id.btnStatistic) {
 
             // Build alert dialog
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -204,20 +202,21 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
             final ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(this, R.layout.custom_dialog_view);
 
             // Convert each element of statisticListImage to String and set it to arrayAdapter
-            for(int i=0;i<statisticListImage.size();i++){
-                String temp ="Date: "+ statisticListImage.get(i).getId()+" "+statisticListImage.get(i).getCount().toString()+ " ảnh "+ "Dung lượng : "+statisticListImage.get(i).getWeight().toString();
+            for (int i = 0; i < statisticListImage.size(); i++) {
+                String temp = "Date: " + statisticListImage.get(i).getId() + " " + statisticListImage.get(i).getCount().toString() + " ảnh " + "Dung lượng : " + statisticListImage.get(i).getWeight().toString();
                 arrayAdapter.add(temp);
             }
 
-           builder.setAdapter(arrayAdapter, new DialogInterface.OnClickListener() {
-               @Override
-               public void onClick(DialogInterface dialogInterface, int i) {
+            builder.setAdapter(arrayAdapter, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialogInterface, int i) {
 
-               }
-           });
+                }
+            });
 
 
             builder.show();
+        }
         else if(id==R.id.btnRenameAlbum){
             imageFragment.RenameAlbum();
         }

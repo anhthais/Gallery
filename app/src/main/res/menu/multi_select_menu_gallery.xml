@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/btnSelectAll"
+        android:checked="true"
+        app:showAsAction="never"
+        android:title="Chọn tất cả"/>
+    <item
+        android:id="@+id/btnAddMultiFromGalleryToAlbum"
+        android:checked="true"
+        app:showAsAction="never"
+        android:title="Thêm vào album" />
+    <item
+        android:id="@+id/btnDeleteMultiFromGallery"
+        android:checked="true"
+        app:showAsAction="never"
+        android:title="Xóa"/>
+</menu>

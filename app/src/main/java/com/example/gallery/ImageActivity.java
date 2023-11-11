@@ -30,7 +30,7 @@ public class ImageActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        // TODO: display cutouts
+        // TODO: display cutouts [backlog]
         setContentView(R.layout.activity_image);
         getSupportActionBar().hide();
 

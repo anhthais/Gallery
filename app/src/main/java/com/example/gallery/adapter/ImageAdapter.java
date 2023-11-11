@@ -3,6 +3,7 @@ package com.example.gallery.adapter;
 import static androidx.core.content.ContextCompat.startActivity;
 
 import android.content.Context;
+import android.util.Log;
 import android.util.SparseBooleanArray;
 import android.content.Intent;
 import android.os.Bundle;
@@ -15,6 +16,7 @@ import android.widget.ImageView;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.gallery.ImageActivity;
+import com.example.gallery.MultiSelectCallbacks;
 import com.example.gallery.R;
 import com.example.gallery.object.Image;
 
@@ -29,10 +31,8 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHol
     private ArrayList<Image> listImages;
     private Context context;
     private SparseBooleanArray selectedItemsIds;
-
-    private boolean checkBoxEnable=false;
-
-    // TODO: adjust later, start ImageActivity with extended list of images
+    private MultiSelectCallbacks multiSelectCallbacks;
+    private boolean checkBoxEnable = false;
     private ArrayList<ImageGroup> listGroups = null; // contains listImages
     private int groupPos = 0; // position of listImages in listGroups
 
@@ -43,74 +43,15 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHol
     public class ImageViewHolder extends RecyclerView.ViewHolder {
         private ImageView image;
         private CheckBox checkBox;
+
         public ImageViewHolder(View view) {
             super(view);
             // Define click listener for the ViewHolder's View
-            image = (ImageView)view.findViewById(R.id.picture_item);
-            checkBox=itemView.findViewById(R.id.checkBoxImageItem);
-            image.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    if(checkBoxEnable==true){
-                        checkBox.setChecked(!checkBox.isChecked());
-                        int position=getAdapterPosition();
-                        if (checkBox.isChecked()) {
-                            selectedItemsIds.put(position,true);
-                        }
-                        else{
-                            if(selectedItemsIds.get(position)==true) {
-                                selectedItemsIds.delete(position);
-                            }
-                        }
-                    }
-                    else{
-                        //show all picture in album
-                        //((MainActivity)context).onMsgFromFragToMain("ALBUM",listImages.get(getAdapterPosition()));
-                    }
-                }
-            });
-
-            image.setOnLongClickListener(new View.OnLongClickListener() {
-                @Override
-                public boolean onLongClick(View v) {
-
-                    if(!checkBoxEnable) {
-                        /*
-                        AppCompatActivity ma=(AppCompatActivity) context;
-                        ActionMode mode=ma.startSupportActionMode(new ActionMode.Callback() {
-                            @Override
-                            public boolean onCreateActionMode(ActionMode mode, Menu menu) {
-                                //update navìation/action bar here
-                                return true;
-                            }
-
-                            @Override
-                            public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
-                                return true;
-                            }
-
-                            @Override
-                            public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
-                                return true;
-                            }
-
-                            @Override
-                            public void onDestroyActionMode(ActionMode mode) {
-                                selectedItemsIds.clear();
-                                notifyDataSetChanged();
-                                checkBoxEnable=false;
-                                notifyDataSetChanged();
-
-                            }
-                        });*/
-                        checkBoxEnable = true;
-                        notifyDataSetChanged();
-                    }
-                    return true;
-                }
-            });
+            image = (ImageView) view.findViewById(R.id.picture_item);
+            checkBox = itemView.findViewById(R.id.checkBoxImageItem);
         }
-        public ImageView getImageView(){
+
+        public ImageView getImageView() {
             return image;
         }
     }
@@ -121,15 +62,20 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHol
     public ImageAdapter(Context context, ArrayList<Image> listImages) {
         this.context = context;
         this.listImages = listImages;
-        selectedItemsIds=new SparseBooleanArray();
+        selectedItemsIds = new SparseBooleanArray();
     }
 
     // setters
-    public void setListGroups(ArrayList<ImageGroup> listGroups){
+    public void setListGroups(ArrayList<ImageGroup> listGroups) {
         this.listGroups = listGroups;
     }
-    public void setGroupPos(int groupPos){
+
+    public void setGroupPos(int groupPos) {
         this.groupPos = groupPos;
+    }
+
+    public void setMultiSelectCallbacks(MultiSelectCallbacks multiSelectCallbacks){
+        this.multiSelectCallbacks = multiSelectCallbacks;
     }
 
     // Create new views (invoked by the layout manager)
@@ -137,6 +83,7 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHol
         View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_picture, parent, false);
         return new ImageViewHolder(view);
     }
+
 
     // Replace the contents of a view (invoked by the layout manager)
     @Override
@@ -148,53 +95,104 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHol
         //set image
         File file = new File(image.getPath());
         Glide.with(context).load(file).into(holder.image);
-        if(checkBoxEnable==true){
+
+        // set check visibility
+        if (checkBoxEnable) {
             holder.checkBox.setVisibility(View.VISIBLE);
-        }else{
+            // set check status
+            if(multiSelectCallbacks != null){
+                if(multiSelectCallbacks.isSelectedItem(position, groupPos)){
+                    holder.checkBox.setChecked(true);
+                } else{
+                    holder.checkBox.setChecked(false);
+                }
+            }
+            else{
+                if(selectedItemsIds.get(position)){
+                    holder.checkBox.setChecked(true);
+                } else{
+                    holder.checkBox.setChecked(false);
+                }
+            }
+        } else {
             holder.checkBox.setVisibility(View.INVISIBLE);
             holder.checkBox.setChecked(false);
         }
+
         holder.image.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-        //TODO: set onClickListener for holder
-
-        holder.checkBox.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                int position=holder.getAdapterPosition();
-                if (holder.checkBox.isChecked()) {
-                    selectedItemsIds.put(position,true);
+                if (!checkBoxEnable) {
+                    if (listGroups != null) {
+                        ArrayList<Image> images = new ArrayList<>();
+                        int newPosition = 0;
+                        for (int i = 0; i < listGroups.size(); ++i) {
+                            images.addAll(listGroups.get(i).getList());
+                            if (i < groupPos) {
+                                newPosition += listGroups.get(i).getList().size();
+                            }
+                        }
+                        newPosition += position;
+                        Intent intent = new Intent(context, ImageActivity.class);
+                        intent.putParcelableArrayListExtra("images", images);
+                        intent.putExtra("curPos", newPosition);
+                        context.startActivity(intent);
+                    } else {
+                        Intent intent = new Intent(context, ImageActivity.class);
+                        intent.putParcelableArrayListExtra("images", listImages);
+                        intent.putExtra("curPos", position);
+                        context.startActivity(intent);
+                    }
                 }
-                else{
-                    if(selectedItemsIds.get(position)==true) {
-                        selectedItemsIds.delete(position);
+                else {
+                    // nested adapter --> use callbacks implemented in parent adapter
+                    if(multiSelectCallbacks != null){
+                        holder.checkBox.setChecked(!holder.checkBox.isChecked());
+                        multiSelectCallbacks.onItemClick(position, groupPos);
+                    }
+                    // no nested adapter
+                    else{
+                        holder.checkBox.setChecked(!holder.checkBox.isChecked());
+                        if(selectedItemsIds.get(position)){
+                            selectedItemsIds.put(position, true);
+                        }else{
+                            selectedItemsIds.delete(position);
+                        }
                     }
                 }
             }
         });
 
-        if(listGroups != null){
-            ArrayList<Image> images = new ArrayList<>();
-            int newPosition = 0;
-            for(int i = 0; i < listGroups.size(); ++i){
-                images.addAll(listGroups.get(i).getList());
-                if(i < groupPos){
-                    newPosition += listGroups.get(i).getList().size();
+        holder.image.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View view) {
+                if(multiSelectCallbacks != null){
+                    multiSelectCallbacks.setMultiSelect(holder.getAdapterPosition(), groupPos);
+                }else{
+                    // TODO: call actionmode, like ImageGroupAdapter
+
                 }
+                holder.checkBox.setChecked(true);
+                return true;
             }
-            newPosition += position;
-            Intent intent = new Intent(context, ImageActivity.class);
-            intent.putParcelableArrayListExtra("images", images);
-            intent.putExtra("curPos", newPosition);
-            context.startActivity(intent);
-        }
-        else{
-            Intent intent = new Intent(context, ImageActivity.class);
-            intent.putParcelableArrayListExtra("images", listImages);
-            intent.putExtra("curPos", position);
-            context.startActivity(intent);
+        });
+
+        holder.checkBox.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                // nested adapter --> use callbacks implemented in parent adapter
+                if(multiSelectCallbacks != null){
+                    multiSelectCallbacks.onItemClick(holder.getAdapterPosition(), groupPos);
                 }
+                // no nested adapter
+                else{
+                    if(selectedItemsIds.get(position)){
+                        selectedItemsIds.put(position, true);
+                    }else{
+                        selectedItemsIds.delete(position);
+                    }
+                }
+
             }
         });
     }
@@ -202,22 +200,19 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHol
     // Return the size of your dataset (invoked by the layout manager)
     @Override
     public int getItemCount() {
-        if(listImages==null){
+        if (listImages == null) {
             return 0;
         }
         return listImages.size();
     }
-    public boolean changeMultiMode(boolean isMultichoose)
-    {
-        if (true == isMultichoose)
-        {
+
+    public boolean changeMultiMode(boolean onMultiSelect) {
+        if(onMultiSelect) {
             checkBoxEnable = true;
-            notifyDataSetChanged();
-        }
-        else {
+        } else {
             checkBoxEnable = false;
-            notifyDataSetChanged();
         }
+        notifyDataSetChanged();
         return true;
     }
 }
