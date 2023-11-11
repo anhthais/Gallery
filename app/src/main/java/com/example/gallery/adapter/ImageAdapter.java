@@ -192,19 +192,57 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHol
             intent.putExtra("curPos", newPosition);
             //đưa danh sách tên các album qua imageactivity
             ArrayList<String> album_name=new ArrayList<String>();
+            ArrayList<String> fav_img_name=new ArrayList<String>();
             ArrayList<Album> albums=((MainActivity)context).getAlbum_list();
-            for(int i=0;i<albums.size();i++){
+            ArrayList<Image> favImg = ((MainActivity)context).getFavourite_img_list();
+            for(int i=0;i<albums.size();i++)
+            {
                 album_name.add(albums.get(i).getName());
             }
+
             Gson gson=new Gson();
             String albu_arr=gson.toJson(album_name);
+            if (favImg != null)
+            {
+                for (int i=0 ; i < favImg.size();i++)
+                {
+                    fav_img_name.add(favImg.get(i).getPath());
+                }
+            }
+            gson=new Gson();
+
+            String fav = gson.toJson(fav_img_name);
             intent.putExtra("ALBUM-LIST",albu_arr);
+            intent.putExtra("FAV-IMG-LIST",fav);
             ((MainActivity) context).startActivityForResult(intent,1122);
         }
         else{
             Intent intent = new Intent(context, ImageActivity.class);
             intent.putParcelableArrayListExtra("images", listImages);
             intent.putExtra("curPos", position);
+            ArrayList<String> album_name=new ArrayList<String>();
+            ArrayList<String> fav_img_name=new ArrayList<String>();
+            ArrayList<Album> albums=((MainActivity)context).getAlbum_list();
+            ArrayList<Image> favImg = ((MainActivity)context).getFavourite_img_list();
+            for(int i=0;i<albums.size();i++)
+            {
+                album_name.add(albums.get(i).getName());
+            }
+
+            Gson gson=new Gson();
+            String albu_arr=gson.toJson(album_name);
+            if (favImg != null)
+            {
+                for (int i=0 ; i < favImg.size();i++)
+                {
+                    fav_img_name.add(favImg.get(i).getPath());
+                }
+            }
+            gson=new Gson();
+
+            String fav = gson.toJson(fav_img_name);
+            intent.putExtra("ALBUM-LIST",albu_arr);
+            intent.putExtra("FAV-IMG-LIST",fav);
             ((MainActivity) context).startActivityForResult(intent,1122);
                 }
             }
@@ -232,5 +270,15 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHol
             notifyDataSetChanged();
         }
         return true;
+    }
+    public void removeFavImage(String path)
+    {
+        for(int i=0;i<listImages.size();i++){
+            if(listImages.get(i).getPath().equals(path)){
+                listImages.remove(i);
+                return;
+            }
+        }
+        notifyDataSetChanged();
     }
 }

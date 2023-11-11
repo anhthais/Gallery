@@ -3,6 +3,7 @@ package com.example.gallery.fragment;
 import android.app.WallpaperManager;
 import android.app.AlertDialog;
 import android.content.Context;
+import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
@@ -17,6 +18,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.viewpager2.widget.MarginPageTransformer;
@@ -43,16 +46,19 @@ public class ImageViewFragment extends Fragment implements ToolbarCallbacks {
     private ImageViewPagerAdapter viewPagerAdapter;
     private BottomNavigationView btnv;
     private ArrayList<String> albums;
+    private ArrayList<String> favImg;
     private Menu menu;
     private Toolbar topBar;
     private boolean isSystemUiVisible = true;
+    private boolean isFavourite = false;
     private ArrayList<Image> images;
     private int curPos = 0;
 
-    public ImageViewFragment(Context context, ArrayList<Image> images,ArrayList<String> albums, int curPos) {
+    public ImageViewFragment(Context context, ArrayList<Image> images,ArrayList<String> albums,ArrayList<String> favImg, int curPos) {
         this.context = context;
         this.albums=albums;
         this.images = images;
+        this.favImg = favImg;
         this.curPos = curPos;
     }
 
@@ -76,6 +82,29 @@ public class ImageViewFragment extends Fragment implements ToolbarCallbacks {
         imageViewPager2.setCurrentItem(curPos, false);
         imageViewPager2.setPageTransformer(new MarginPageTransformer(Math.round(32*(getResources().getDisplayMetrics().xdpi / DisplayMetrics.DENSITY_DEFAULT))));
 
+        String path2=images.get(imageViewPager2.getCurrentItem()).getPath();
+        if (favImg != null)
+        {
+            for (int i =0  ; i < favImg.size(); i++)
+            {
+                if(favImg.get(i).equals(path2)==true){
+                    isFavourite = true;
+                    break;
+                }
+                isFavourite = false;
+            }
+        }
+        else {
+            //isFavourite = true;
+        }
+
+        if (isFavourite==true)
+        {
+            btnv.getMenu().getItem(0).setIcon(R.drawable.baseline_favorite_24);
+        }
+        else {
+            btnv.getMenu().getItem(0).setIcon(R.drawable.baseline_favorite_border_24);
+        }
         // handle topBar
         topBar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
@@ -178,7 +207,42 @@ public class ImageViewFragment extends Fragment implements ToolbarCallbacks {
             int id = item.getItemId();
             if (id == R.id.btnLovePicture) {
                 // TODO: check favorite
-                item.setIcon(R.drawable.baseline_favorite_24);
+                if (isFavourite == true)
+                {
+                    item.setIcon(R.drawable.baseline_favorite_border_24);
+                    String delFavpath = images.get(imageViewPager2.getCurrentItem()).getPath();
+                    Intent intent=((ImageActivity)context).getIntent();
+                    Gson gson=new Gson();
+                    String json=intent.getStringExtra("FAV-DEL");
+                    ArrayList<String> Fav_image_del;
+                    if(json==null){
+                        Fav_image_del=new ArrayList<String>();
+                    }else{
+                        Fav_image_del=gson.fromJson(json,new TypeToken<ArrayList<String>>(){}.getType());
+                    }
+                    Fav_image_del.add(delFavpath);
+                    intent.putExtra("FAV-DEL",gson.toJson(Fav_image_del));
+                    ((ImageActivity)context).setResult(AppCompatActivity.RESULT_OK,intent);
+                    isFavourite = false;
+                }
+                else {
+                    item.setIcon(R.drawable.baseline_favorite_24);
+                    String addFavpath = images.get(imageViewPager2.getCurrentItem()).getPath();
+                    Intent intent=((ImageActivity)context).getIntent();
+                    Gson gson=new Gson();
+                    String json=intent.getStringExtra("FAV-ADD");
+                    ArrayList<String> Fav_image;
+                    if(json==null){
+                        Fav_image=new ArrayList<String>();
+                    }else{
+                        Fav_image=gson.fromJson(json,new TypeToken<ArrayList<String>>(){}.getType());
+                    }
+                    Fav_image.add(addFavpath);
+                    intent.putExtra("FAV-ADD",gson.toJson(Fav_image));
+                    ((ImageActivity)context).setResult(AppCompatActivity.RESULT_OK,intent);
+                    isFavourite = true;
+
+                }
             } else if (id == R.id.btnEditPicture) {
 
             } else if (id == R.id.btnSharePicture) {
@@ -250,4 +314,7 @@ public class ImageViewFragment extends Fragment implements ToolbarCallbacks {
             btnv.setVisibility(View.INVISIBLE);
         }
     }
+
+
+
 }

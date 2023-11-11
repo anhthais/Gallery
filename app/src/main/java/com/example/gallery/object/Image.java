@@ -13,7 +13,10 @@ public class Image implements Parcelable {
         this.path = path;
         this.takenDate = takenDate;
     }
+    public Image(String path) {
+        this.path = path;
 
+    }
     protected Image(Parcel in) {
         path = in.readString();
         takenDate = in.readString();

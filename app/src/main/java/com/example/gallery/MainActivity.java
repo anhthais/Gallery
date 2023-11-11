@@ -17,6 +17,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -25,6 +26,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Toast;
 
 import com.example.gallery.fragment.AlbumFragment;
+import com.example.gallery.fragment.FavouriteImageFragment;
 import com.example.gallery.fragment.GalleryFragment;
 import com.example.gallery.fragment.ImageFragment;
 import com.example.gallery.object.Album;
@@ -47,10 +49,14 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
     GalleryFragment gallery_fragment=null;
     AlbumFragment album_fragment=null;
     ImageFragment imageFragment=null;
+    FavouriteImageFragment favouriteImageFragment = null;
+
     BottomNavigationView btnv;
     ActionBar action_bar;
     ArrayList<Statistic> statisticListImage;
     ArrayList<Album> album_list;
+    ArrayList<Image> favourite_img_list;
+
     String onChooseAlbum = "";
     public ArrayList<Album> getAlbum_list(){
         return album_list;
@@ -58,6 +64,10 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
     public BottomNavigationView getNavigationBar(){
         return this.btnv;
     }
+    public ArrayList<Image> getFavourite_img_list() {
+        return favourite_img_list;
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -113,6 +123,8 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
         this.album_list=al;
         AlbumFragment album = AlbumFragment.getInstance();
         album_fragment = album;
+        favouriteImageFragment = FavouriteImageFragment.getInstance();
+        favourite_img_list = new ArrayList<Image>();
         btnv=findViewById(R.id.navigationBar);
         btnv.setOnNavigationItemSelectedListener(item -> {
             int id=item.getItemId();
@@ -140,6 +152,13 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
                                 AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
                         }else if (id==R.id.btnThemeLight){
                                 AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+                        }else if (id == R.id.btnFavouriteImg)
+                        {
+
+                            FragmentTransaction ft=getSupportFragmentManager().beginTransaction();
+                            ft.replace(R.id.mainFragment,favouriteImageFragment);
+                            ft.addToBackStack("FRAG");
+                            ft.commit();
                         }
                         return true;
                     }
@@ -309,7 +328,34 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
                         }
                     }
                 }
+                String addFav = data.getStringExtra("FAV-ADD");
 
+                if(addFav!=null&&!addFav.isEmpty()) {
+
+                    ArrayList<String> paths=gson.fromJson(addFav,new TypeToken<ArrayList<String>>(){}.getType());
+                    for(int j=0;j<paths.size();j++){
+                        Image image=gallery_fragment.findImageByPath(paths.get(0));
+                        if(image!=null){
+                            favourite_img_list.add(image);
+                            favouriteImageFragment.addFavImage(paths.get(0));
+                        }
+                    }
+                }
+                String delFav = data.getStringExtra("FAV-DEL");
+
+                if(delFav!=null&&!delFav.isEmpty()) {
+
+                    ArrayList<String> paths=gson.fromJson(delFav,new TypeToken<ArrayList<String>>(){}.getType());
+                    for(int j=0;j<paths.size();j++){
+
+                        Image image=gallery_fragment.findImageByPath(paths.get(0));
+                        if(image!=null){
+                            favourite_img_list.remove(image);
+                            favouriteImageFragment.removeFavImage(paths.get(0));
+                        }
+                    }
+
+                }
             }
             catch (Exception e){
 

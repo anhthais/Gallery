@@ -24,4 +24,8 @@
         android:id="@+id/btnTrashbin"
         android:checked="true"
         android:title="Thùng rác"/>
+    <item
+        android:id="@+id/btnFavouriteImg"
+        android:checked="true"
+        android:title="Yêu thích"/>
 </menu>
