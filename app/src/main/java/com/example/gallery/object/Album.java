@@ -21,12 +21,29 @@ public class Album {
 
     }
     //remove an item from Album list (set Album=null in database)
-    public void deleteImageFromAlbum(){
-
+    public void deleteImageFromAlbum(String path){
+        for(int i=0;i<all_album_pictures.size();i++){
+            if(all_album_pictures.get(i).getPath().equals(path)){
+                all_album_pictures.remove(i);
+                return;
+            }
+        }
     }
     //add an image to database (set Album=Album name)
-    public void addImageToAlbum(){
-
+    public void addImageToAlbum(Image image){
+        for(int i=0;i<all_album_pictures.size();i++){
+            if(all_album_pictures.get(i).getPath().equals(image.getPath()))
+                return;
+        }
+        all_album_pictures.add(image);
+    }
+    public void removeImageFromAlbum(String path){
+        for(int i=0;i<all_album_pictures.size();i++){
+            if(all_album_pictures.get(i).getPath().equals(path)){
+                all_album_pictures.remove(i);
+                return;
+            }
+        }
     }
     public void Rename(String name){
         this.name=name;

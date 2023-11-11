@@ -1,19 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
-<menu xmlns:android="http://schemas.android.com/apk/res/android">
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
         android:title="Yêu thích"
         android:icon="@drawable/baseline_favorite_border_24"
+        app:showAsAction="always"
         android:id="@+id/btnLovePicture"/>
     <item
         android:id="@+id/btnEditPicture"
         android:icon="@drawable/ic_edit_24"
+        app:showAsAction="always"
         android:title="Chỉnh sửa"/>
     <item
         android:id="@+id/btnSharePicture"
         android:title="Chia sẻ"
+        app:showAsAction="always"
         android:icon="@drawable/ic_share_24"/>
     <item
         android:id="@+id/btnDeletePicture"
         android:title="Xoá"
+        app:showAsAction="always"
         android:icon="@drawable/ic_trash_24"/>
 </menu>

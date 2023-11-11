@@ -1,6 +1,7 @@
 package com.example.gallery;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
@@ -8,6 +9,7 @@ import androidx.appcompat.widget.PopupMenu;
 import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.FragmentTransaction;
 import android.Manifest;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
@@ -22,6 +24,8 @@ import com.example.gallery.fragment.ImageFragment;
 import com.example.gallery.object.Album;
 import com.example.gallery.object.Image;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
 import java.util.ArrayList;
 
@@ -31,6 +35,8 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks {
 
     FragmentTransaction ft;
     Menu menu;
+    Album Trash;
+    Album Favorite;
     GalleryFragment gallery_fragment=null;
     AlbumFragment album_fragment=null;
     ImageFragment imageFragment=null;
@@ -47,7 +53,6 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Toast.makeText(this, "onCreate"+Build.VERSION.SDK_INT+AppCompatDelegate.getDefaultNightMode(), Toast.LENGTH_SHORT).show();
         setContentView(R.layout.activity_main);
         // set widget view
         action_bar=getSupportActionBar();
@@ -232,4 +237,45 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks {
         }
     }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if(requestCode==1122 && resultCode==AppCompatActivity.RESULT_OK){
+            try{
+                //lấy danh sách ảnh bị xoá từ intent data
+                String delete=data.getStringExtra("Trash");
+                Gson gson=new Gson();
+                //kiểm tra có danh sách ảnh bị xoá hay không
+                if(delete!=null&&!delete.isEmpty()){
+                    ArrayList<String> delete_paths=gson.fromJson(delete,new TypeToken<ArrayList<String>>(){}.getType());
+                    //xoá các ảnh cần xoá
+                    for(int i=0;i<delete_paths.size();i++){
+                        gallery_fragment.deleteImage(delete_paths.get(i));
+                        //xoá trong các album
+                        for(int j=0;j<album_list.size();j++){
+                            album_list.get(j).removeImageFromAlbum(delete_paths.get(i));
+                        }
+                    }
+                }
+                for(int i=0;i<album_list.size();i++){
+                    //lấy danh sách ảnh được thêm vào album
+                    String add_paths=data.getStringExtra(album_list.get(i).getName());
+                    if(add_paths!=null&&!add_paths.isEmpty()){
+                        ArrayList<String> paths=gson.fromJson(add_paths,new TypeToken<ArrayList<String>>(){}.getType());
+                        for(int j=0;j<paths.size();j++){
+                            //tìm ảnh cùng path và thêm vào album
+                            Image image=gallery_fragment.findImageByPath(paths.get(i));
+                            if(image!=null){
+                                album_list.get(i).addImageToAlbum(image);
+                            }
+                        }
+                    }
+                }
+
+            }
+            catch (Exception e){
+
+            }
+        }
+    }
 }

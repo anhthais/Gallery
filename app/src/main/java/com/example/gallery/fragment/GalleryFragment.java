@@ -6,6 +6,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -85,9 +86,23 @@ public class GalleryFragment extends Fragment {
         }
 
     }
+    //xoá 1 ảnh gallery fragment---> image adapter--->image group
+    public void deleteImage(String path){
+        imageGroupAdapter.deleteImage(path);
+    }
     public void changeOnMultiChooseMode()
     {
         imageGroupAdapter.changeOnMultiChooseMode();
+    }
+
+    public Image findImageByPath(String path){
+        for(int i=0;i<groupList.size();i++){
+            Image image=groupList.get(i).findImageByPath(path);
+            if(image!=null){
+                return image;
+            }
+        }
+        return null;
     }
 
 }
