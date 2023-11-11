@@ -4,6 +4,7 @@
         android:title="Yêu thích"
         android:icon="@drawable/baseline_favorite_border_24"
         android:id="@+id/btnLovePicture"/>
+
     <item
         android:id="@+id/btnEditPicture"
         android:icon="@drawable/ic_edit_24"

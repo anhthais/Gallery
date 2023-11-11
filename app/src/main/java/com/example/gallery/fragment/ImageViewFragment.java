@@ -1,6 +1,10 @@
 package com.example.gallery.fragment;
 
+import android.app.WallpaperManager;
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
 import android.view.LayoutInflater;
@@ -8,6 +12,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import androidx.fragment.app.Fragment;
 import androidx.viewpager2.widget.MarginPageTransformer;
@@ -20,6 +25,7 @@ import com.example.gallery.adapter.ImageViewPagerAdapter;
 import com.example.gallery.object.Image;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
+import java.io.IOException;
 import java.util.ArrayList;
 
 public class ImageViewFragment extends Fragment implements ToolbarCallbacks {
@@ -66,12 +72,24 @@ public class ImageViewFragment extends Fragment implements ToolbarCallbacks {
                 getActivity().finish();
             }
         });
+        // Top menu cua view full Image
         topBar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
             @Override
             public boolean onMenuItemClick(MenuItem item) {
                 int id = item.getItemId();
-                switch (id) {
-                    //TODO: set events
+                // Set current view image to be phone's wallpaper
+                if(id == R.id.btnSetAsWall) {
+                    Bitmap bitmap = BitmapFactory.decodeFile(images.get(curPos).getPath());
+                    WallpaperManager wallpaperManager = WallpaperManager.getInstance(context);
+
+                    try {
+                        wallpaperManager.setBitmap(bitmap);
+                        Toast.makeText(context, "Wallpaper Set Successfully!!", Toast.LENGTH_SHORT).show();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        Toast.makeText(context, "Setting WallPaper Failed!!", Toast.LENGTH_SHORT).show();
+                    }
+
                 }
                 return true;
             }
@@ -84,6 +102,7 @@ public class ImageViewFragment extends Fragment implements ToolbarCallbacks {
                 // TODO: check favorite
                 item.setIcon(R.drawable.baseline_favorite_24);
             } else if (id == R.id.btnEditPicture) {
+
 
             } else if (id == R.id.btnSharePicture) {
 

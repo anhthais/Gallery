@@ -1,6 +1,7 @@
 package com.example.gallery;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
@@ -8,24 +9,31 @@ import androidx.appcompat.widget.PopupMenu;
 import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.FragmentTransaction;
 import android.Manifest;
+import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.Toast;
 
 import com.example.gallery.fragment.AlbumFragment;
 import com.example.gallery.fragment.GalleryFragment;
 import com.example.gallery.fragment.ImageFragment;
 import com.example.gallery.object.Album;
+import com.example.gallery.object.Statistic;
 import com.example.gallery.object.Image;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import java.util.ArrayList;
 
-public class MainActivity extends AppCompatActivity implements MainCallBacks {
+public class MainActivity extends AppCompatActivity implements MainCallBacks,MainCallBackObjectData {
 
     private static final int PERMISSION_REQUEST_READ_CODE = 1;
 
@@ -36,6 +44,7 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks {
     ImageFragment imageFragment=null;
     BottomNavigationView btnv;
     ActionBar action_bar;
+    ArrayList<Statistic> statisticListImage;
     ArrayList<Album> album_list;
     String onChooseAlbum = "";
     public ArrayList<Album> getAlbum_list(){
@@ -136,6 +145,8 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks {
         });
     }
 
+
+
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
@@ -178,6 +189,35 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks {
         }else if(id==R.id.btnAddImage){
 
         }
+        // choose Statistic in ItemSelected
+        else if(id == R.id.btnStatistic){
+
+            // Build alert dialog
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setTitle("Statistic");
+            // User titlebar_dialog layout to be title layout
+            LayoutInflater inflater = getLayoutInflater();
+            View view = inflater.inflate(R.layout.titlebar_dialog, null);
+            builder.setCustomTitle(view);
+
+            // ArrayAdapter with custom_dialog_view layout
+            final ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(this, R.layout.custom_dialog_view);
+
+            // Convert each element of statisticListImage to String and set it to arrayAdapter
+            for(int i=0;i<statisticListImage.size();i++){
+                String temp ="Date: "+ statisticListImage.get(i).getId()+" "+statisticListImage.get(i).getCount().toString()+ " ảnh "+ "Dung lượng : "+statisticListImage.get(i).getWeight().toString();
+                arrayAdapter.add(temp);
+            }
+
+           builder.setAdapter(arrayAdapter, new DialogInterface.OnClickListener() {
+               @Override
+               public void onClick(DialogInterface dialogInterface, int i) {
+
+               }
+           });
+
+
+            builder.show();
         else if(id==R.id.btnRenameAlbum){
             imageFragment.RenameAlbum();
         }
@@ -232,4 +272,9 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks {
         }
     }
 
+    // receive statisticListImage fragment GalleryFragment
+    @Override
+    public void onObjectPassed(ArrayList<Statistic> statisticList) {
+        statisticListImage = statisticList;
+    }
 }
