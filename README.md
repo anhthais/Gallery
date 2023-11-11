@@ -1,4 +1,4 @@
-#Note
+# Note
 Sử dụng theme tối để thấy chữ của dialog nha :)))
 # Gallery Databse 
 Như tui có đề cập trong tài liệu trên **Trello** thì cấu trúc của Database tương tự như vậy.
