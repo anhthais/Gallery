@@ -3,10 +3,14 @@ package com.example.gallery.adapter;
 import android.content.Context;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.view.ActionMode;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -19,6 +23,7 @@ public class ImageGroupAdapter extends RecyclerView.Adapter<ImageGroupAdapter.Im
     private final int COL_SPAN_VIEW = 3;
     private Context context;
     private ArrayList<ImageGroup> listGroups;
+    private boolean onChooseMulti = false;
 
     public class ImageGroupViewHolder extends RecyclerView.ViewHolder{
         private TextView txtId;
@@ -61,13 +66,45 @@ public class ImageGroupAdapter extends RecyclerView.Adapter<ImageGroupAdapter.Im
         imgList.setListGroups(listGroups);
         imgList.setGroupPos(position);
 
+        imgList.changeMultiMode(onChooseMulti);
         holder.imgList.setAdapter(imgList);
-
     }
 
     @Override
     public int getItemCount() {
-        return listGroups.size();
+        if (listGroups != null){
+            return listGroups.size();
+        }
+        return 0;
     }
+    public void changeOnMultiChooseMode()
+    {
+        this.onChooseMulti = true;
 
+        AppCompatActivity ma=(AppCompatActivity) context;
+        ActionMode mode=ma.startSupportActionMode(new ActionMode.Callback() {
+            @Override
+            public boolean onCreateActionMode(ActionMode mode, Menu menu) {
+                //update navìation/action bar here
+                return true;
+            }
+
+            @Override
+            public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
+                return true;
+            }
+
+            @Override
+            public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
+                return true;
+            }
+
+            @Override
+            public void onDestroyActionMode(ActionMode mode) {
+                onChooseMulti = false;
+                notifyDataSetChanged();
+            }
+        });
+        notifyDataSetChanged();
+    }
 }

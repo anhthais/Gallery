@@ -118,7 +118,8 @@ public class AlbumAdapter extends RecyclerView.Adapter<AlbumAdapter.ViewHolder> 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         Album album=albums.get(position);
-        holder.itemImageView.setImageResource(R.drawable.meomeo);
+
+        holder.itemImageView.setImageResource(R.drawable.ic_folder_24);
         holder.albumNameTxtView.setText(album.getName());
         if(checkBoxEnable==true){
             holder.checkBox.setVisibility(View.VISIBLE);
@@ -146,6 +147,8 @@ public class AlbumAdapter extends RecyclerView.Adapter<AlbumAdapter.ViewHolder> 
     }
     @Override
     public int getItemCount() {
+        if(albums==null)
+            return 0;
         return albums.size();
     }
 }
