@@ -6,6 +6,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
@@ -68,8 +69,10 @@ public class GalleryFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.gallery_fragment, container, false);
         recyclerView = view.findViewById(R.id.recycleImages);
+
         groupList = getListImageGroup();
         imageGroupAdapter = new ImageGroupAdapter(context, groupList);
+
         recyclerView.setAdapter(imageGroupAdapter);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext(), RecyclerView.VERTICAL, false));
 
@@ -139,10 +142,23 @@ public class GalleryFragment extends Fragment {
         }
 
     }
+    //xoá 1 ảnh gallery fragment---> image adapter--->image group
+    public void deleteImage(String path){
+        imageGroupAdapter.deleteImage(path);
+    }
     public void changeOnMultiChooseMode()
     {
         imageGroupAdapter.changeOnMultiChooseMode();
     }
 
+    public Image findImageByPath(String path){
+        for(int i=0;i<groupList.size();i++){
+            Image image=groupList.get(i).findImageByPath(path);
+            if(image!=null){
+                return image;
+            }
+        }
+        return null;
+    }
 
 }

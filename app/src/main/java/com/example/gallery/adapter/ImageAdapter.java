@@ -17,11 +17,14 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.gallery.ImageActivity;
 import com.example.gallery.MultiSelectCallbacks;
+import com.example.gallery.MainActivity;
 import com.example.gallery.R;
+import com.example.gallery.object.Album;
 import com.example.gallery.object.Image;
 
 import com.bumptech.glide.Glide;
 import com.example.gallery.object.ImageGroup;
+import com.google.gson.Gson;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -137,11 +140,21 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHol
                         intent.putParcelableArrayListExtra("images", images);
                         intent.putExtra("curPos", newPosition);
                         context.startActivity(intent);
+                        //đưa danh sách tên các album qua imageactivity
+                        ArrayList<String> album_name = new ArrayList<String>();
+                        ArrayList<Album> albums = ((MainActivity)context).getAlbum_list();
+                        for(int i = 0; i < albums.size(); i++){
+                            album_name.add(albums.get(i).getName());
+                        }
+                        Gson gson = new Gson();
+                        String albu_arr = gson.toJson(album_name);
+                        intent.putExtra("ALBUM-LIST",albu_arr);
+                        ((MainActivity) context).startActivityForResult(intent,1122);
                     } else {
                         Intent intent = new Intent(context, ImageActivity.class);
                         intent.putParcelableArrayListExtra("images", listImages);
                         intent.putExtra("curPos", position);
-                        context.startActivity(intent);
+                        ((MainActivity) context).startActivityForResult(intent,1122);
                     }
                 }
                 else {

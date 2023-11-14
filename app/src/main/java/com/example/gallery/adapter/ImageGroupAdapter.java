@@ -10,6 +10,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.view.ActionMode;
@@ -94,7 +95,6 @@ public class ImageGroupAdapter extends RecyclerView.Adapter<ImageGroupAdapter.Im
         holder.checkBox.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-//                holder.checkBox.setChecked(!holder.checkBox.isChecked());
                 if(holder.checkBox.isChecked()){
                     for(int i = 0; i < listGroups.get(position).getList().size(); ++i){
                         if(!selectedItemsIds.get(position).get(i)){
@@ -114,6 +114,10 @@ public class ImageGroupAdapter extends RecyclerView.Adapter<ImageGroupAdapter.Im
                 notifyDataSetChanged();
             }
         });
+      
+        if(holder.imgList.getAdapter().getItemCount()==0){
+            holder.txtId.setVisibility(View.GONE);
+        }
     }
 
     @Override
@@ -232,5 +236,14 @@ public class ImageGroupAdapter extends RecyclerView.Adapter<ImageGroupAdapter.Im
 
         Log.d("selected", selected.toString());
         return selected;
+    }
+    //find & delete an image
+    public void deleteImage(String path){
+        for(int i=0;i<listGroups.size();i++){
+            if(listGroups.get(i).deleteImage(path)){
+                notifyItemChanged(i);
+                return;
+            }
+        }
     }
 }

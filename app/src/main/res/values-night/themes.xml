@@ -18,4 +18,7 @@
     <style name="BottomNavigationViewNight" parent="Widget.MaterialComponents.BottomNavigationView">
         <item name="itemBackground">@color/black</item>
     </style>
+    <style name="MyDialogTheme" parent="Theme.AppCompat.Light.Dialog.Alert">
+        <item name="colorPrimary">@color/white</item>
+    </style>
 </resources>

@@ -19,4 +19,22 @@ public class ImageGroup {
     public void addImg(Image img){
         imgList.add(img);
     }
+    //delete Image by path
+    public boolean deleteImage(String path){
+        for(int i=0;i<imgList.size();i++){
+            if(imgList.get(i).getPath().equals(path)){
+                imgList.remove(i);
+                return true;
+            }
+        }
+        return false;
+    }
+    //find image by path
+    public Image findImageByPath(String path){
+        for(int i=0;i<imgList.size();i++){
+            if(imgList.get(i).getPath().equals(path))
+                return imgList.get(i);
+        }
+        return null;
+    }
 }
