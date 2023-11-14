@@ -139,7 +139,6 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHol
                         Intent intent = new Intent(context, ImageActivity.class);
                         intent.putParcelableArrayListExtra("images", images);
                         intent.putExtra("curPos", newPosition);
-                        context.startActivity(intent);
                         //đưa danh sách tên các album qua imageactivity
                         ArrayList<String> album_name = new ArrayList<String>();
                         ArrayList<Album> albums = ((MainActivity)context).getAlbum_list();
