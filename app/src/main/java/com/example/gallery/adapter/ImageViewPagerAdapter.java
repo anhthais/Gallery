@@ -76,8 +76,6 @@ public class ImageViewPagerAdapter extends RecyclerView.Adapter<ImageViewPagerAd
                 toolbarCallbacks.showOrHideToolbars(isSystemUiVisible);
             }
         });
-
-        // TODO: set margin while sliding
     }
 
     @Override
