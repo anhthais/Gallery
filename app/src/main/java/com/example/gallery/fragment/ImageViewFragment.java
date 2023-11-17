@@ -110,7 +110,7 @@ public class ImageViewFragment extends Fragment implements ToolbarCallbacks {
                         Toast.makeText(context, "No album found", Toast.LENGTH_SHORT).show();
                     }
                     else{
-                    AlertDialog.Builder builder = new AlertDialog.Builder(context);
+                    AlertDialog.Builder builder = new AlertDialog.Builder(context,R.style.MyDialogTheme);
 
                     // Set Title.
                     builder.setTitle("Thêm vào album");
