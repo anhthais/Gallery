@@ -1,8 +1,10 @@
 package com.example.gallery.fragment;
 
+import android.app.Activity;
 import android.app.WallpaperManager;
 import android.app.AlertDialog;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
@@ -28,6 +30,7 @@ import com.example.gallery.ImageActivity;
 import com.example.gallery.R;
 import com.example.gallery.ToolbarCallbacks;
 import com.example.gallery.adapter.ImageViewPagerAdapter;
+import com.example.gallery.object.Album;
 import com.example.gallery.object.Image;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.gson.Gson;
@@ -157,7 +160,8 @@ public class ImageViewFragment extends Fragment implements ToolbarCallbacks {
                             intent.putExtra(album_name,gson.toJson(album_image));
                             //setResult để mainActivity xử lý khi ImageActivity kết thúc
                             ((ImageActivity)context).setResult(AppCompatActivity.RESULT_OK,intent);
-
+                            //update in sharedprefence
+                            updateAddImageToAlbum(album_name,images.get(imageViewPager2.getCurrentItem()).getPath());
                             // Close Dialog
                             dialog.dismiss();
 
@@ -223,16 +227,29 @@ public class ImageViewFragment extends Fragment implements ToolbarCallbacks {
                         Intent intent=((ImageActivity)context).getIntent();
                         Gson gson=new Gson();
                         String json=intent.getStringExtra("Trash");
-                        ArrayList<String> album_image;
+                        ArrayList<String> delete_image_paths;
                         if(json==null){
-                            album_image=new ArrayList<String>();
+                            delete_image_paths=new ArrayList<String>();
                         }else{
-                            album_image=gson.fromJson(json,new TypeToken<ArrayList<String>>(){}.getType());
+                            delete_image_paths=gson.fromJson(json,new TypeToken<ArrayList<String>>(){}.getType());
                         }
-                        album_image.add(delete_path);
-                        intent.putExtra("Trash",gson.toJson(album_image));
+                        delete_image_paths.add(delete_path);
+                        intent.putExtra("Trash",gson.toJson(delete_image_paths));
                         ((ImageActivity)context).setResult(AppCompatActivity.RESULT_OK,intent);
+                        updateDeleteImage(delete_path);
+
                         //update in database
+                        SharedPreferences albumPref= context.getSharedPreferences("GALLERY", Activity.MODE_PRIVATE);
+                        SharedPreferences.Editor editor=albumPref.edit();
+                        String allTrash=albumPref.getString("TRASH","");
+                        ArrayList<String>allTrashPath=gson.fromJson(allTrash,new TypeToken<ArrayList<String>>(){}.getType());
+                        if(allTrashPath==null){
+                            allTrashPath=new ArrayList<>();
+                        }
+                        allTrashPath.add(delete_path);
+                        String tobesaved=gson.toJson(allTrashPath);
+                        editor.putString("TRASH",tobesaved);
+                        editor.commit();
                     }
                 });
                 builder.setNegativeButton("Thoát", new DialogInterface.OnClickListener() {
@@ -261,6 +278,39 @@ public class ImageViewFragment extends Fragment implements ToolbarCallbacks {
         else {
             topBar.setVisibility(View.INVISIBLE);
             btnv.setVisibility(View.INVISIBLE);
+        }
+    }
+    //update sharepreference after adding an image to an album
+    public void updateAddImageToAlbum(String album,String path){
+        Gson gson=new Gson();
+        SharedPreferences albumPref= context.getSharedPreferences("GALLERY", Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor=albumPref.edit();
+        String all_path=albumPref.getString(album,"");
+        ArrayList<String> album_save=gson.fromJson(all_path,new TypeToken<ArrayList<String>>(){}.getType());
+        if(album_save==null ){
+            album_save=new ArrayList<>();
+        }
+        album_save.add(path);
+        String albumjson=gson.toJson(album_save);
+        editor.putString(album,albumjson);
+        editor.commit();
+    }
+    //update sharepreference after delete an image
+    public void updateDeleteImage(String path){
+        for(int i=0;i<albums.size();i++){
+            String album_name=albums.get(i);
+            Gson gson=new Gson();
+            SharedPreferences albumPref= context.getSharedPreferences("GALLERY", Context.MODE_PRIVATE);
+            SharedPreferences.Editor editor=albumPref.edit();
+            String all_path=albumPref.getString(album_name,"");
+            ArrayList<String> album_save=gson.fromJson(all_path,new TypeToken<ArrayList<String>>(){}.getType());
+            if(album_save==null ){
+                album_save=new ArrayList<>();
+            }
+            album_save.remove(path);
+            String albumjson=gson.toJson(album_save);
+            editor.putString(album_name,albumjson);
+            editor.commit();
         }
     }
 }

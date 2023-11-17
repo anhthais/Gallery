@@ -29,9 +29,11 @@ import android.widget.Toast;
 import com.example.gallery.fragment.AlbumFragment;
 import com.example.gallery.fragment.GalleryFragment;
 import com.example.gallery.fragment.ImageFragment;
+import com.example.gallery.fragment.TrashFragment;
 import com.example.gallery.object.Album;
 import com.example.gallery.object.Image;
 import com.example.gallery.object.Statistic;
+import com.example.gallery.object.TrashItem;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -48,6 +50,8 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
     Album Favorite;
     GalleryFragment gallery_fragment=null;
     AlbumFragment album_fragment=null;
+    ArrayList<TrashItem> trash_item_lists;
+    TrashFragment trashFragment;
     ImageFragment imageFragment=null;
     BottomNavigationView btnv;
     ActionBar action_bar;
@@ -56,6 +60,9 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
     String onChooseAlbum = "";
     public ArrayList<Album> getAlbum_list(){
         return album_list;
+    }
+    public ArrayList<TrashItem> getTrashItem_list(){
+        return trash_item_lists;
     }
     public BottomNavigationView getNavigationBar(){
         return this.btnv;
@@ -99,13 +106,11 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
     private void initApp(){
         menu.findItem(R.id.btnRenameAlbum).setVisible(false);
         menu.findItem(R.id.btnDeleteAlbum).setVisible(false);
-
+        loadAllAlbum();
         FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
         GalleryFragment galleryFragment = GalleryFragment.getInstance();
         this.gallery_fragment=galleryFragment;
         ft.replace(R.id.mainFragment, galleryFragment); ft.commit();
-
-        loadAllAlbum();
         AlbumFragment album = AlbumFragment.getInstance();
         album_fragment = album;
         btnv=findViewById(R.id.navigationBar);
@@ -135,6 +140,13 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
                                 AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
                         }else if (id==R.id.btnThemeLight){
                                 AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+                        }else if (id == R.id.btnTrashbin)
+                        {
+                            TrashFragment trash_frag = TrashFragment.getInstance();
+                            trashFragment = trash_frag;
+                            menu.findItem(R.id.btnAddNewAlbum).setVisible(false);
+                            menu.findItem(R.id.btnChooseMulti).setVisible(true);
+                            getSupportFragmentManager().beginTransaction().replace(R.id.mainFragment,trashFragment).commit();
                         }
                         return true;
                     }
@@ -280,8 +292,8 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
                         //xoá trong các album
                         for(int j=0;j<album_list.size();j++){
                             album_list.get(j).removeImageFromAlbum(delete_paths.get(i));
-                            saveChangeToAlbum(album_list.get(i));
                         }
+                        trash_item_lists.add(new TrashItem(delete_paths.get(i)));
                     }
                 }
                 for(int i=0;i<album_list.size();i++){
@@ -294,7 +306,6 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
                             Image image=gallery_fragment.findImageByPath(paths.get(i));
                             if(image!=null){
                                 album_list.get(i).addImageToAlbum(image);
-                                saveChangeToAlbum(album_list.get(i));
                             }
                         }
                     }
@@ -330,6 +341,15 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
                 }
             }
             album_list.add(a);
+        }
+        //get all image in trash bin
+        String allTrash=albumPref.getString("TRASH","");
+        ArrayList<String>allTrashPath=gson.fromJson(allTrash,new TypeToken<ArrayList<String>>(){}.getType());
+        trash_item_lists=new ArrayList<>();
+        if(allTrashPath!=null){
+            for(int i=0;i<allTrashPath.size();i++){
+                trash_item_lists.add(new TrashItem(allTrashPath.get(i)));
+            }
         }
     }
     public void saveChangeToAlbum(Album album){
