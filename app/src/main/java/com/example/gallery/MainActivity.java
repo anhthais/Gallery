@@ -9,11 +9,13 @@ import androidx.appcompat.widget.PopupMenu;
 import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.FragmentTransaction;
 import android.Manifest;
+import android.content.Context;
 import android.content.Intent;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
@@ -103,14 +105,7 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
         this.gallery_fragment=galleryFragment;
         ft.replace(R.id.mainFragment, galleryFragment); ft.commit();
 
-        ArrayList<Album> al = new ArrayList<Album>();
-        al.add(new Album("Album 1"));
-        al.add(new Album("Album 2"));
-        al.add(new Album("Album 3"));
-        al.add(new Album("Album 4"));
-        al.add(new Album("Album 5"));
-
-        this.album_list=al;
+        loadAllAlbum();
         AlbumFragment album = AlbumFragment.getInstance();
         album_fragment = album;
         btnv=findViewById(R.id.navigationBar);
@@ -227,9 +222,6 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
         else if (id == R.id.btnDeleteAlbum)
         {
             boolean checkDeleteAlbum = album_fragment.deleteAlbum(onChooseAlbum);
-
-
-
         }
         //special case: back-arrow on action bar
         else{
@@ -264,14 +256,10 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
             ft.addToBackStack("ALBUM-FRAG");
             ft.commit();
             this.onChooseAlbum= strValue;
-
-
-
         }
         else if (sender.equals("DELETE-ALBUM"))
         {
-            getSupportFragmentManager().beginTransaction().replace(R.id.mainFragment,this.album_fragment).commit();
-
+            getSupportFragmentManager().popBackStackImmediate();
         }
     }
 
@@ -292,6 +280,7 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
                         //xoá trong các album
                         for(int j=0;j<album_list.size();j++){
                             album_list.get(j).removeImageFromAlbum(delete_paths.get(i));
+                            saveChangeToAlbum(album_list.get(i));
                         }
                     }
                 }
@@ -305,6 +294,7 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
                             Image image=gallery_fragment.findImageByPath(paths.get(i));
                             if(image!=null){
                                 album_list.get(i).addImageToAlbum(image);
+                                saveChangeToAlbum(album_list.get(i));
                             }
                         }
                     }
@@ -320,5 +310,38 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
     @Override
     public void onObjectPassed(ArrayList<Statistic> statisticList) {
         statisticListImage = statisticList;
+    }
+    public void loadAllAlbum(){
+        album_list=new ArrayList<Album>();
+        Gson gson=new Gson();
+        SharedPreferences albumPref= getSharedPreferences("GALLERY",Activity.MODE_PRIVATE);
+        String album_name=albumPref.getString("ALBUM",null);
+        if(album_name==null || album_name.isEmpty()){
+            return;
+        }
+        ArrayList<String> albums=gson.fromJson(album_name,new TypeToken<ArrayList<String>>(){}.getType());
+        for(int i=0;i<albums.size();i++){
+            Album a=new Album(albums.get(i));
+            String album_image=albumPref.getString(albums.get(i),null);
+            ArrayList<String> all_album_imagepath=gson.fromJson(album_image,new TypeToken<ArrayList<String>>(){}.getType());
+            if(all_album_imagepath!=null){
+                for(int j=0;j<all_album_imagepath.size();j++){
+                    a.addImageToAlbum(new Image(all_album_imagepath.get(j)));
+                }
+            }
+            album_list.add(a);
+        }
+    }
+    public void saveChangeToAlbum(Album album){
+        Gson gson=new Gson();
+        SharedPreferences albumPref= getSharedPreferences("GALLERY", Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor=albumPref.edit();
+        ArrayList<String> album_save=new ArrayList<>();
+        for(int i=0;i<album.getAll_album_pictures().size();i++){
+            album_save.add(album.getAll_album_pictures().get(i).getPath());
+        }
+        String albumjson=gson.toJson(album_save);
+        editor.putString(album.getName(),albumjson);
+        editor.commit();
     }
 }

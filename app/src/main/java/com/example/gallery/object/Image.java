@@ -9,6 +9,9 @@ public class Image implements Parcelable {
 
     public Image() {
     }
+    public Image(String path) {
+        this.path=path;
+    }
     public Image(String path, String takenDate) {
         this.path = path;
         this.takenDate = takenDate;

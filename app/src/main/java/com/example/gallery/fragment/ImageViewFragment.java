@@ -8,6 +8,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
 import android.view.LayoutInflater;
@@ -32,6 +33,7 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -101,6 +103,10 @@ public class ImageViewFragment extends Fragment implements ToolbarCallbacks {
 
                 }
                 else if(id==R.id.btnAddToAlbum){
+                    if(albums==null || albums.size()==0){
+                        Toast.makeText(context, "No album found", Toast.LENGTH_SHORT).show();
+                    }
+                    else{
                     AlertDialog.Builder builder = new AlertDialog.Builder(context);
 
                     // Set Title.
@@ -169,6 +175,7 @@ public class ImageViewFragment extends Fragment implements ToolbarCallbacks {
                     AlertDialog alert = builder.create();
                     alert.show();
                 }
+                }
                 return true;
             }
         });
@@ -182,6 +189,12 @@ public class ImageViewFragment extends Fragment implements ToolbarCallbacks {
             } else if (id == R.id.btnEditPicture) {
 
             } else if (id == R.id.btnSharePicture) {
+                Intent shareIntent = new Intent();
+                shareIntent.setAction(Intent.ACTION_SEND);
+                Uri uriToImage= Uri.parse(new File(images.get(imageViewPager2.getCurrentItem()).getPath()).toString());
+                shareIntent.putExtra(Intent.EXTRA_STREAM, uriToImage);
+                shareIntent.setType("image/jpeg");
+                startActivity(Intent.createChooser(shareIntent, null));
 
             } else if (id == R.id.btnDeletePicture) {
                 AlertDialog.Builder builder =new AlertDialog.Builder(context,R.style.MyDialogTheme);

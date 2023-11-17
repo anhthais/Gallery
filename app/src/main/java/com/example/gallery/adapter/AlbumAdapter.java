@@ -91,6 +91,7 @@ public class AlbumAdapter extends RecyclerView.Adapter<AlbumAdapter.ViewHolder> 
                             @Override
                             public boolean onCreateActionMode(ActionMode mode, Menu menu) {
                                 //update navìation/action bar here
+                                ((MainActivity)context).getMenuInflater().inflate(R.menu.settings_menu,menu);
                                 return true;
                             }
 

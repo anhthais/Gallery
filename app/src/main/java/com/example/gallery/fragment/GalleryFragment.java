@@ -86,7 +86,11 @@ public class GalleryFragment extends Fragment {
 
     private  ArrayList<Statistic> getStatisticGroupList(ArrayList<ImageGroup> groupList) {
         ArrayList<Statistic> result = new ArrayList<Statistic>();
-        for(int i=0;i< groupList.size();i++){
+        int count=0;
+        if(groupList!=null){
+            count=groupList.size();
+        }
+        for(int i=0;i< count;i++){
             Statistic temp = new Statistic();
             Float sizeInDisk = 0f;
             temp.setId(groupList.get(i).getId());

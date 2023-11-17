@@ -23,6 +23,7 @@ import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowInsets;
 import android.view.WindowManager;
+import android.widget.Toast;
 
 import com.example.gallery.fragment.ImageViewFragment;
 import com.example.gallery.object.Image;

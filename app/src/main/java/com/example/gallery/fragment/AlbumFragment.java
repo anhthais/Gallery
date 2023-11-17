@@ -2,6 +2,7 @@ package com.example.gallery.fragment;
 
 import android.app.Dialog;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -21,6 +22,7 @@ import com.example.gallery.MainActivity;
 import com.example.gallery.R;
 import com.example.gallery.adapter.AlbumAdapter;
 import com.example.gallery.object.Album;
+import com.google.gson.Gson;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -73,8 +75,19 @@ public class AlbumFragment extends Fragment implements FragmentCallBacks {
                     Toast.makeText(context, "Nhập tên Album", Toast.LENGTH_SHORT).show();
                 }
                 else{
+                    Gson gson=new Gson();
                     Album a=new Album(editText.getText().toString());
                     albums.add(a);
+                    album_adapter.notifyItemInserted(albums.size()-1);
+                    SharedPreferences albumPref= context.getSharedPreferences("GALLERY",Context.MODE_PRIVATE);
+                    SharedPreferences.Editor editor=albumPref.edit();
+                    ArrayList<String> album_save=new ArrayList<>();
+                    for(int i=0;i<albums.size();i++){
+                        album_save.add(albums.get(i).getName());
+                    }
+                    String albumjson=gson.toJson(album_save);
+                    editor.putString("ALBUM",albumjson);
+                    editor.commit();
                     addDialog.cancel();
                 }
             }
@@ -88,10 +101,7 @@ public class AlbumFragment extends Fragment implements FragmentCallBacks {
     }
 
     public boolean deleteAlbum(String strValue)
-    {
-
-
-        for(int i=0;i<albums.size();i++){
+    {        for(int i=0;i<albums.size();i++){
             if(albums.get(i).getName().equals(strValue)){
                 index=i;
                 break;
@@ -117,9 +127,22 @@ public class AlbumFragment extends Fragment implements FragmentCallBacks {
                     addDialog.cancel();
 
                 }*/
+                String album_deleted=albums.get(index).getName();
                 albums.remove(albums.get(index));
                 isDel = true;
                 addDialog.cancel();
+                //save in local
+                Gson gson=new Gson();
+                SharedPreferences albumPref= context.getSharedPreferences("GALLERY", Context.MODE_PRIVATE);
+                SharedPreferences.Editor editor=albumPref.edit();
+                ArrayList<String> album_save=new ArrayList<>();
+                for(int i=0;i<albums.size();i++){
+                    album_save.add(albums.get(i).getName());
+                }
+                String albumjson=gson.toJson(album_save);
+                editor.putString("ALBUM",albumjson);
+                editor.putString(album_deleted,"");
+                editor.commit();
                 ((MainActivity)context).onMsgFromFragToMain("DELETE-ALBUM", "yes");
             }
         });
