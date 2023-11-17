@@ -50,11 +50,6 @@ public class FavouriteImageFragment extends Fragment implements FragmentCallBack
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-//        View view=inflater.inflate(R.layout.favourite_image_fragment,container,false);
-//        favouriteImageAdapter=new FavouriteImageAdapter(context,images);
-//        recyclerView=view.findViewById(R.id.recycleFavouriteImages);
-//        recyclerView.setAdapter(favouriteImageAdapter);
-//        recyclerView.setLayoutManager(new GridLayoutManager(context,3));
         View view=inflater.inflate(R.layout.favourite_image_fragment,container,false);
         imageAdapter = new ImageAdapter(context,images);
         recyclerView=view.findViewById(R.id.recycleFavouriteImages);
@@ -76,33 +71,10 @@ public class FavouriteImageFragment extends Fragment implements FragmentCallBack
 
     }
 
-    public void addFavImage(String path)
+    public void removeFavImage()
     {
-        Image a = new Image(path);
-        for(int i=0;i<images.size();i++){
-            if(images.get(i).getPath().equals(path))
-                return;
-        }
-        images.add(a);
-        notify();
+          imageAdapter.removeFavImage();
     }
-    public void removeFavImage(String path)
-    {
-        for(int i=0;i<images.size();i++){
-            if(images.get(i).getPath().equals(path)){
-                images.remove(i);
-                return;
-            }
-        }
-        imageAdapter.removeFavImage(path);
-        notify();
-
-    }
-
-    public ArrayList<Image> getImages() {
-        return images;
-    }
-
     @Override
     public void onMsgFromMainToFragment(String strValue) {
 

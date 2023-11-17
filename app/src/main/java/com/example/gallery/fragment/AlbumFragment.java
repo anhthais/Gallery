@@ -89,8 +89,6 @@ public class AlbumFragment extends Fragment implements FragmentCallBacks {
 
     public boolean deleteAlbum(String strValue)
     {
-
-
         for(int i=0;i<albums.size();i++){
             if(albums.get(i).getName().equals(strValue)){
                 index=i;
@@ -106,17 +104,6 @@ public class AlbumFragment extends Fragment implements FragmentCallBacks {
         ok.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                /*
-                if(editText.getText().toString().length()==0){
-
-                    Toast.makeText(context, "Nhập tên Album", Toast.LENGTH_SHORT).show();
-                }
-                else{
-                    Album a=new Album(editText.getText().toString());
-                    albums.add(a);
-                    addDialog.cancel();
-
-                }*/
                 albums.remove(albums.get(index));
                 isDel = true;
                 addDialog.cancel();
@@ -126,12 +113,8 @@ public class AlbumFragment extends Fragment implements FragmentCallBacks {
         cancel.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-               // addDialog.cancel();
                 isDel= false;
                 addDialog.cancel();
-                //((MainActivity)context).onMsgFromFragToMain("DELETE-ALBUM", "no");
-
-
             }
 
         });

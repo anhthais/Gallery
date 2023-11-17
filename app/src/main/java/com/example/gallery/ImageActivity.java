@@ -56,7 +56,11 @@ public class ImageActivity extends AppCompatActivity {
         String album_arr=intent.getStringExtra("ALBUM-LIST");
         album_names=gson.fromJson(album_arr, new TypeToken<ArrayList<String>>(){}.getType());
         gson = new Gson();
+        fav_img_names = new ArrayList<>();
         String fav_arr= intent.getStringExtra("FAV-IMG-LIST");
+
+
+
         fav_img_names = gson.fromJson(fav_arr,new TypeToken<ArrayList<String>>(){}.getType());
         FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
         //getApplicationContext--> imageActivity.this

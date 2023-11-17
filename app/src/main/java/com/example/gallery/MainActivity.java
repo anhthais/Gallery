@@ -111,7 +111,9 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
         FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
         GalleryFragment galleryFragment = GalleryFragment.getInstance();
         this.gallery_fragment=galleryFragment;
-        ft.replace(R.id.mainFragment, galleryFragment); ft.commit();
+
+        ft.replace(R.id.mainFragment, galleryFragment);
+        ft.commit();
 
         ArrayList<Album> al = new ArrayList<Album>();
         al.add(new Album("Album 1"));
@@ -123,8 +125,12 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
         this.album_list=al;
         AlbumFragment album = AlbumFragment.getInstance();
         album_fragment = album;
-        favouriteImageFragment = FavouriteImageFragment.getInstance();
-        favourite_img_list = new ArrayList<Image>();
+        this.favourite_img_list = new ArrayList<Image>();
+
+        FavouriteImageFragment favourite_image_fragment= FavouriteImageFragment.getInstance();
+        this.favouriteImageFragment = favourite_image_fragment;
+
+
         btnv=findViewById(R.id.navigationBar);
         btnv.setOnNavigationItemSelectedListener(item -> {
             int id=item.getItemId();
@@ -156,7 +162,7 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
                         {
 
                             FragmentTransaction ft=getSupportFragmentManager().beginTransaction();
-                            ft.replace(R.id.mainFragment,favouriteImageFragment);
+                            ft.replace(R.id.mainFragment,favourite_image_fragment);
                             ft.addToBackStack("FRAG");
                             ft.commit();
                         }
@@ -289,7 +295,7 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
         }
         else if (sender.equals("DELETE-ALBUM"))
         {
-            getSupportFragmentManager().beginTransaction().replace(R.id.mainFragment,this.album_fragment).commit();
+            getSupportFragmentManager().popBackStackImmediate();
 
         }
     }
@@ -333,11 +339,25 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
                 if(addFav!=null&&!addFav.isEmpty()) {
 
                     ArrayList<String> paths=gson.fromJson(addFav,new TypeToken<ArrayList<String>>(){}.getType());
+
+
                     for(int j=0;j<paths.size();j++){
-                        Image image=gallery_fragment.findImageByPath(paths.get(0));
+
+                        Image image=gallery_fragment.findImageByPath(paths.get(j));
                         if(image!=null){
-                            favourite_img_list.add(image);
-                            favouriteImageFragment.addFavImage(paths.get(0));
+                            boolean check = false;
+                            for (int i =0 ; i < favourite_img_list.size();i++)
+                            {
+                                if (image.getPath().equals(favourite_img_list.get(i).getPath())== true)
+                                    check = true;
+                            }
+                            if (check == false)
+                            {
+                                favourite_img_list.add(image);
+
+                            }
+
+
                         }
                     }
                 }
@@ -347,11 +367,11 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
 
                     ArrayList<String> paths=gson.fromJson(delFav,new TypeToken<ArrayList<String>>(){}.getType());
                     for(int j=0;j<paths.size();j++){
-
-                        Image image=gallery_fragment.findImageByPath(paths.get(0));
+                        Log.d("CheckImg3",paths.get(j));
+                        Image image=gallery_fragment.findImageByPath(paths.get(j));
                         if(image!=null){
                             favourite_img_list.remove(image);
-                            favouriteImageFragment.removeFavImage(paths.get(0));
+                            favouriteImageFragment.removeFavImage();
                         }
                     }
 

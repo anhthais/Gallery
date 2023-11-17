@@ -3,6 +3,7 @@ package com.example.gallery.adapter;
 import static androidx.core.content.ContextCompat.startActivity;
 
 import android.content.Context;
+import android.util.Log;
 import android.util.SparseBooleanArray;
 import android.content.Intent;
 import android.os.Bundle;
@@ -67,8 +68,7 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHol
                         }
                     }
                     else{
-                        //show all picture in album
-                        //((MainActivity)context).onMsgFromFragToMain("ALBUM",listImages.get(getAdapterPosition()));
+
                     }
                 }
             });
@@ -78,34 +78,7 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHol
                 public boolean onLongClick(View v) {
 
                     if(!checkBoxEnable) {
-                        /*
-                        AppCompatActivity ma=(AppCompatActivity) context;
-                        ActionMode mode=ma.startSupportActionMode(new ActionMode.Callback() {
-                            @Override
-                            public boolean onCreateActionMode(ActionMode mode, Menu menu) {
-                                //update navìation/action bar here
-                                return true;
-                            }
 
-                            @Override
-                            public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
-                                return true;
-                            }
-
-                            @Override
-                            public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
-                                return true;
-                            }
-
-                            @Override
-                            public void onDestroyActionMode(ActionMode mode) {
-                                selectedItemsIds.clear();
-                                notifyDataSetChanged();
-                                checkBoxEnable=false;
-                                notifyDataSetChanged();
-
-                            }
-                        });*/
                         checkBoxEnable = true;
                         notifyDataSetChanged();
                     }
@@ -212,6 +185,7 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHol
             gson=new Gson();
 
             String fav = gson.toJson(fav_img_name);
+            Log.d("CheckImgAl",fav);
             intent.putExtra("ALBUM-LIST",albu_arr);
             intent.putExtra("FAV-IMG-LIST",fav);
             ((MainActivity) context).startActivityForResult(intent,1122);
@@ -271,14 +245,8 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHol
         }
         return true;
     }
-    public void removeFavImage(String path)
+    public void removeFavImage()
     {
-        for(int i=0;i<listImages.size();i++){
-            if(listImages.get(i).getPath().equals(path)){
-                listImages.remove(i);
-                return;
-            }
-        }
         notifyDataSetChanged();
     }
 }
