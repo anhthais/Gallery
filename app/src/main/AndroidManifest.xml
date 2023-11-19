@@ -23,6 +23,9 @@
             android:name=".ImageActivity"
             android:exported="false" />
         <activity
+            android:name=".SlideShowActivity"
+            android:exported="false" />
+        <activity
             android:name=".MainActivity"
             android:exported="true">
             <intent-filter>

@@ -2,6 +2,7 @@ package com.example.gallery.fragment;
 
 import android.app.Dialog;
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -17,11 +18,14 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.gallery.ImageActivity;
 import com.example.gallery.MainActivity;
 import com.example.gallery.R;
+import com.example.gallery.SlideShowActivity;
 import com.example.gallery.adapter.ImageAdapter;
 import com.example.gallery.object.Album;
 import com.example.gallery.object.Image;
+import com.google.gson.Gson;
 
 import java.util.ArrayList;
 
@@ -92,5 +96,15 @@ public class ImageFragment extends Fragment {
         ((MainActivity)context).getSupportActionBar().setDisplayHomeAsUpEnabled(false);
         ((MainActivity)context).getMenu().findItem(R.id.btnRenameAlbum).setVisible(false);
         ((MainActivity)context).getMenu().findItem(R.id.btnAddNewAlbum).setVisible(true);
+    }
+    public void beginSlideShow(){
+        if(album.getAll_album_pictures()==null||album.getAll_album_pictures().size()==0){
+            Toast.makeText(context, "Nothing to slide show", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        Intent intent = new Intent(getActivity(), SlideShowActivity.class);
+        intent.putParcelableArrayListExtra("images", album.getAll_album_pictures());
+        startActivity(intent);
+
     }
 }

@@ -106,6 +106,7 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
     private void initApp(){
         menu.findItem(R.id.btnRenameAlbum).setVisible(false);
         menu.findItem(R.id.btnDeleteAlbum).setVisible(false);
+        menu.findItem(R.id.btnSlideShow).setVisible(false);
         loadAllAlbum();
         FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
         GalleryFragment galleryFragment = GalleryFragment.getInstance();
@@ -235,8 +236,11 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
         {
             boolean checkDeleteAlbum = album_fragment.deleteAlbum(onChooseAlbum);
         }
+        else if(id==R.id.btnSlideShow){
+            imageFragment.beginSlideShow();
+        }
         //special case: back-arrow on action bar
-        else{
+        else {
             getSupportFragmentManager().popBackStackImmediate();
         }
         return super.onOptionsItemSelected(item);
@@ -253,6 +257,7 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
             menu.findItem(R.id.btnAddNewAlbum).setVisible(false);
             menu.findItem(R.id.btnRenameAlbum).setVisible(true);
             menu.findItem(R.id.btnDeleteAlbum).setVisible(true);
+            menu.findItem(R.id.btnSlideShow).setVisible(true);
             //2nd argument is album
             int index=0;
             for(int i=0;i<album_list.size();i++){
