@@ -32,6 +32,7 @@ import androidx.appcompat.widget.Toolbar;
 
 import com.example.gallery.Animation.ViewPagerTransformAnimation;
 import com.example.gallery.ImageActivity;
+import com.example.gallery.MainCallBacks;
 import com.example.gallery.R;
 import com.example.gallery.ToolbarCallbacks;
 import com.example.gallery.adapter.ImageViewPagerAdapter;
@@ -62,6 +63,8 @@ public class ImageViewFragment extends Fragment implements ToolbarCallbacks {
     private boolean isFavourite = false;
     private ArrayList<Image> images;
     private int curPos = 0;
+    private MainCallBacks callback;
+
 
     public ImageViewFragment(Context context, ArrayList<Image> images,ArrayList<String> albums,ArrayList<String> favImg, int curPos) {
         this.context = context;
@@ -77,7 +80,15 @@ public class ImageViewFragment extends Fragment implements ToolbarCallbacks {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
     }
-
+    @Override
+    public void onAttach(@NonNull Context context) {
+        super.onAttach(context);
+        if (context instanceof MainCallBacks) {
+            callback = (MainCallBacks) context;
+        } else {
+            throw new ClassCastException(context.toString() + " must implement MainCallBack");
+        }
+    }
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         // set views
@@ -360,7 +371,9 @@ public class ImageViewFragment extends Fragment implements ToolbarCallbacks {
 
                 }
             } else if (id == R.id.btnEditPicture) {
-
+                if (callback != null) {
+                    callback.onMsgFromFragToMain("EDIT-PHOTO",String.valueOf(imageViewPager2.getCurrentItem()));
+                }
             } else if (id == R.id.btnSharePicture) {
                 Intent shareIntent = new Intent();
                 shareIntent.setAction(Intent.ACTION_SEND);
