@@ -308,7 +308,7 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
                         ArrayList<String> paths=gson.fromJson(add_paths,new TypeToken<ArrayList<String>>(){}.getType());
                         for(int j=0;j<paths.size();j++){
                             //tìm ảnh cùng path và thêm vào album
-                            Image image=gallery_fragment.findImageByPath(paths.get(i));
+                            Image image=gallery_fragment.findImageByPath(paths.get(j));
                             if(image!=null){
                                 album_list.get(i).addImageToAlbum(image);
                             }
