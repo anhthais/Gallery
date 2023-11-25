@@ -12,6 +12,8 @@ android {
         targetSdk = 33
         versionCode = 1
         versionName = "1.0"
+        renderscriptTargetApi = 21
+        renderscriptSupportModeEnabled = true
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -42,6 +44,9 @@ dependencies {
     implementation ("com.google.android.material:material:1.11.0-beta01")
     implementation ("com.github.bumptech.glide:glide:4.12.0")
     implementation ("com.google.code.gson:gson:2.8.5")
+    implementation ("com.github.yalantis:ucrop:2.2.6-native")
+
+
 
 
 }

@@ -1,5 +1,6 @@
 package com.example.gallery.fragment;
 
+import android.app.Dialog;
 import android.app.WallpaperManager;
 import android.app.AlertDialog;
 import android.content.Context;
@@ -9,22 +10,31 @@ import android.graphics.drawable.BitmapDrawable;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.text.Html;
 import android.util.DisplayMetrics;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.viewpager2.widget.MarginPageTransformer;
 import androidx.viewpager2.widget.ViewPager2;
 import androidx.appcompat.widget.Toolbar;
 
 import com.example.gallery.ImageActivity;
+import com.example.gallery.MainCallBackObjectData;
+import com.example.gallery.MainCallBacks;
 import com.example.gallery.R;
 import com.example.gallery.ToolbarCallbacks;
 import com.example.gallery.adapter.ImageViewPagerAdapter;
@@ -50,6 +60,7 @@ public class ImageViewFragment extends Fragment implements ToolbarCallbacks {
     private boolean isSystemUiVisible = true;
     private ArrayList<Image> images;
     private int curPos = 0;
+    private MainCallBacks callback;
 
     public ImageViewFragment(Context context, ArrayList<Image> images,ArrayList<String> albums, int curPos) {
         this.context = context;
@@ -63,6 +74,15 @@ public class ImageViewFragment extends Fragment implements ToolbarCallbacks {
         super.onCreate(savedInstanceState);
     }
 
+    @Override
+    public void onAttach(@NonNull Context context) {
+        super.onAttach(context);
+        if (context instanceof MainCallBacks) {
+            callback = (MainCallBacks) context;
+        } else {
+            throw new ClassCastException(context.toString() + " must implement MainCallBack");
+        }
+    }
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         // set views
@@ -93,13 +113,68 @@ public class ImageViewFragment extends Fragment implements ToolbarCallbacks {
                     Bitmap bitmap = BitmapFactory.decodeFile(images.get(curPos).getPath());
                     WallpaperManager wallpaperManager = WallpaperManager.getInstance(context);
 
-                    try {
-                        wallpaperManager.setBitmap(bitmap);
-                        Toast.makeText(context, "Wallpaper Set Successfully!!", Toast.LENGTH_SHORT).show();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                        Toast.makeText(context, "Setting WallPaper Failed!!", Toast.LENGTH_SHORT).show();
-                    }
+                    AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+                    builder.setTitle("--   Đặt làm hình nền   -- ");
+                    builder.setMessage("Lựa chọn nơi để đặt ảnh làm hình nền");
+
+                    RadioButton homeScreenRadioButton = new RadioButton(getActivity());
+                    homeScreenRadioButton.setText("Màn hình chính");
+
+                    RadioButton lockScreenRadioButton = new RadioButton(getActivity());
+                    lockScreenRadioButton.setText("Màn hình khóa");
+
+                    RadioGroup radioGroup = new RadioGroup(getActivity());
+                    radioGroup.addView(homeScreenRadioButton);
+                    radioGroup.addView(lockScreenRadioButton);
+
+
+                    homeScreenRadioButton.setChecked(true);
+
+
+                    builder.setView(radioGroup);
+                    builder.setPositiveButton("YES", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            if (homeScreenRadioButton.isChecked()) {
+                                try {
+                                    wallpaperManager.setBitmap(bitmap);
+                                    Toast.makeText(context, "Setting HomeScreen's Wallpaper Successfully!!", Toast.LENGTH_SHORT).show();
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                    Toast.makeText(context, "Setting HomeScreen's Wallpaper Failed!!", Toast.LENGTH_SHORT).show();
+                                }
+                            } else if (lockScreenRadioButton.isChecked()) {
+                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                                    try {
+                                        wallpaperManager.setBitmap(bitmap, null, true, WallpaperManager.FLAG_LOCK);
+                                    } catch (IOException e) {
+                                        throw new RuntimeException(e);
+                                    }
+                                    Toast.makeText(context, "Setting Lockscreen's Wallpaper Successfully!!", Toast.LENGTH_SHORT).show();
+                                } else {
+                                    Toast.makeText(context, "Lock screen wallpaper not supported", Toast.LENGTH_SHORT).show();
+                                }
+                            }
+                        }
+                    });
+                    builder.setNegativeButton("CANCEL", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    dialog.dismiss();
+                                    Toast.makeText(context, "Cancel", Toast.LENGTH_SHORT).show();
+                                }
+                            }
+                    );
+
+
+// Create and show the AlertDialog
+                    AlertDialog dialog = builder.create();
+                    dialog.show();
+                    Button buttonPositive = dialog.getButton(DialogInterface.BUTTON_POSITIVE);
+                    buttonPositive.setTextColor(ContextCompat.getColor(context, R.color.black));
+                    Button buttonNegative = dialog.getButton(DialogInterface.BUTTON_NEGATIVE);
+                    buttonNegative.setTextColor(ContextCompat.getColor(context, R.color.black));
+
 
                 }
                 else if(id==R.id.btnAddToAlbum){
@@ -187,6 +262,10 @@ public class ImageViewFragment extends Fragment implements ToolbarCallbacks {
                 // TODO: check favorite
                 item.setIcon(R.drawable.baseline_favorite_24);
             } else if (id == R.id.btnEditPicture) {
+
+                if (callback != null) {
+                    callback.onMsgFromFragToMain("EDIT-PHOTO",String.valueOf(imageViewPager2.getCurrentItem()));
+                }
 
             } else if (id == R.id.btnSharePicture) {
                 Intent shareIntent = new Intent();
