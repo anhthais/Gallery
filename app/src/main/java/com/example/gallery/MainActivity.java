@@ -19,6 +19,7 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -27,6 +28,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Toast;
 
 import com.example.gallery.fragment.AlbumFragment;
+import com.example.gallery.fragment.FavouriteImageFragment;
 import com.example.gallery.fragment.GalleryFragment;
 import com.example.gallery.fragment.ImageFragment;
 import com.example.gallery.fragment.TrashFragment;
@@ -53,10 +55,14 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
     ArrayList<TrashItem> trash_item_lists;
     TrashFragment trashFragment;
     ImageFragment imageFragment=null;
+    FavouriteImageFragment favouriteImageFragment = null;
+
     BottomNavigationView btnv;
     ActionBar action_bar;
     ArrayList<Statistic> statisticListImage;
     ArrayList<Album> album_list;
+    ArrayList<Image> favourite_img_list;
+
     String onChooseAlbum = "";
     public ArrayList<Album> getAlbum_list(){
         return album_list;
@@ -67,6 +73,10 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
     public BottomNavigationView getNavigationBar(){
         return this.btnv;
     }
+    public ArrayList<Image> getFavourite_img_list() {
+        return favourite_img_list;
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -110,6 +120,9 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
         loadAllAlbum();
         FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
         GalleryFragment galleryFragment = GalleryFragment.getInstance();
+        FavouriteImageFragment favourite_image_fragment= FavouriteImageFragment.getInstance();
+        this.favouriteImageFragment = favourite_image_fragment;
+        loadFavouriteImage();
         this.gallery_fragment=galleryFragment;
         ft.replace(R.id.mainFragment, galleryFragment); ft.commit();
         AlbumFragment album = AlbumFragment.getInstance();
@@ -148,6 +161,13 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
                             menu.findItem(R.id.btnAddNewAlbum).setVisible(false);
                             menu.findItem(R.id.btnChooseMulti).setVisible(true);
                             getSupportFragmentManager().beginTransaction().replace(R.id.mainFragment,trashFragment).commit();
+                        }else if (id == R.id.btnFavouriteImg)
+                        {
+
+                            FragmentTransaction ft=getSupportFragmentManager().beginTransaction();
+                            ft.replace(R.id.mainFragment,favourite_image_fragment);
+                            ft.addToBackStack("FRAG");
+                            ft.commit();
                         }
                         return true;
                     }
@@ -219,12 +239,12 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
                 arrayAdapter.add(temp);
             }
 
-            builder.setAdapter(arrayAdapter, new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialogInterface, int i) {
+           builder.setAdapter(arrayAdapter, new DialogInterface.OnClickListener() {
+               @Override
+               public void onClick(DialogInterface dialogInterface, int i) {
 
-                }
-            });
+               }
+           });
 
             AlertDialog alert=builder.create();
             alert.show();
@@ -240,7 +260,7 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
             imageFragment.beginSlideShow();
         }
         //special case: back-arrow on action bar
-        else {
+        else{
             getSupportFragmentManager().popBackStackImmediate();
         }
         return super.onOptionsItemSelected(item);
@@ -273,6 +293,9 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
             ft.addToBackStack("ALBUM-FRAG");
             ft.commit();
             this.onChooseAlbum= strValue;
+
+
+
         }
         else if (sender.equals("DELETE-ALBUM"))
         {
@@ -294,6 +317,7 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
                     //xoá các ảnh cần xoá
                     for(int i=0;i<delete_paths.size();i++){
                         gallery_fragment.deleteImage(delete_paths.get(i));
+
                         //xoá trong các album
                         for(int j=0;j<album_list.size();j++){
                             album_list.get(j).removeImageFromAlbum(delete_paths.get(i));
@@ -315,6 +339,32 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
                         }
                     }
                 }
+                String addFav = data.getStringExtra("FAV-ADD");
+
+                if(addFav!=null&&!addFav.isEmpty()) {
+
+                    ArrayList<String> paths = gson.fromJson(addFav, new TypeToken<ArrayList<String>>() {
+                    }.getType());
+
+
+                    for (int j = 0; j < paths.size(); j++) {
+
+                        Image image = gallery_fragment.findImageByPath(paths.get(j));
+                        if (image != null) {
+                            boolean check = false;
+                            for (int i = 0; i < favourite_img_list.size(); i++) {
+                                if (image.getPath().equals(favourite_img_list.get(i).getPath()) == true)
+                                    check = true;
+                            }
+                            if (check == false) {
+                                favourite_img_list.add(image);
+                            }
+
+
+                        }
+                    }
+                    saveFavouriteImage();
+                }
 
             }
             catch (Exception e){
@@ -332,25 +382,25 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
         Gson gson=new Gson();
         SharedPreferences albumPref= getSharedPreferences("GALLERY",Activity.MODE_PRIVATE);
         String album_name=albumPref.getString("ALBUM",null);
-        if(album_name==null || album_name.isEmpty()){
-            return;
-        }
-        ArrayList<String> albums=gson.fromJson(album_name,new TypeToken<ArrayList<String>>(){}.getType());
-        for(int i=0;i<albums.size();i++){
-            Album a=new Album(albums.get(i));
-            String album_image=albumPref.getString(albums.get(i),null);
-            ArrayList<String> all_album_imagepath=gson.fromJson(album_image,new TypeToken<ArrayList<String>>(){}.getType());
-            if(all_album_imagepath!=null){
-                for(int j=0;j<all_album_imagepath.size();j++){
-                    a.addImageToAlbum(new Image(all_album_imagepath.get(j)));
+        if(album_name!=null && !album_name.isEmpty()){
+            ArrayList<String> albums=gson.fromJson(album_name,new TypeToken<ArrayList<String>>(){}.getType());
+            for(int i=0;i<albums.size();i++){
+                Album a=new Album(albums.get(i));
+                String album_image=albumPref.getString(albums.get(i),null);
+                ArrayList<String> all_album_imagepath=gson.fromJson(album_image,new TypeToken<ArrayList<String>>(){}.getType());
+                if(all_album_imagepath!=null){
+                    for(int j=0;j<all_album_imagepath.size();j++){
+                        a.addImageToAlbum(new Image(all_album_imagepath.get(j)));
+                    }
                 }
+                album_list.add(a);
             }
-            album_list.add(a);
         }
         //get all image in trash bin
         String allTrash=albumPref.getString("TRASH","");
         ArrayList<String>allTrashPath=gson.fromJson(allTrash,new TypeToken<ArrayList<String>>(){}.getType());
-        trash_item_lists=new ArrayList<>();
+        trash_item_lists=new ArrayList<TrashItem>();
+
         if(allTrashPath!=null){
             for(int i=0;i<allTrashPath.size();i++){
                 trash_item_lists.add(new TrashItem(allTrashPath.get(i)));
@@ -367,6 +417,37 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
         }
         String albumjson=gson.toJson(album_save);
         editor.putString(album.getName(),albumjson);
+        editor.commit();
+    }
+    public void loadFavouriteImage()
+    {
+        //album_list=new ArrayList<Album>();
+        favourite_img_list = new ArrayList<>();
+        Gson gson=new Gson();
+        SharedPreferences pref = getSharedPreferences("GALLERY",Activity.MODE_PRIVATE);
+        String favourite_image = pref.getString("FavouriteImage", null);
+        if(favourite_image==null || favourite_image.isEmpty()){
+            return;
+        }
+
+        ArrayList<String> fav_img = gson.fromJson(favourite_image, new TypeToken<ArrayList<String>>(){}.getType());
+        for (int i =0 ; i < fav_img.size(); i++)
+        {
+            favourite_img_list.add(new Image(fav_img.get(i)));
+        }
+    }
+    public void saveFavouriteImage()
+    {
+        Gson gson=new Gson();
+        SharedPreferences pref= getSharedPreferences("GALLERY", Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor=pref.edit();
+        ArrayList<String> list = new ArrayList<>();
+        for (int i =0 ; i < favourite_img_list.size(); i++)
+        {
+            list.add(favourite_img_list.get(i).getPath());
+        }
+        String favJson = gson.toJson(list);
+        editor.putString("FavouriteImage",favJson);
         editor.commit();
     }
 }

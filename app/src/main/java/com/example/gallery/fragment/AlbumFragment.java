@@ -101,7 +101,10 @@ public class AlbumFragment extends Fragment implements FragmentCallBacks {
     }
 
     public boolean deleteAlbum(String strValue)
-    {        for(int i=0;i<albums.size();i++){
+    {
+
+
+        for(int i=0;i<albums.size();i++){
             if(albums.get(i).getName().equals(strValue)){
                 index=i;
                 break;

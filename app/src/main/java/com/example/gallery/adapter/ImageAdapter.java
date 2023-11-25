@@ -50,11 +50,71 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHol
         public ImageViewHolder(View view) {
             super(view);
             // Define click listener for the ViewHolder's View
-            image = (ImageView) view.findViewById(R.id.picture_item);
-            checkBox = itemView.findViewById(R.id.checkBoxImageItem);
-        }
+            image = (ImageView)view.findViewById(R.id.picture_item);
+            checkBox=itemView.findViewById(R.id.checkBoxImageItem);
+            image.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if(checkBoxEnable==true){
+                        checkBox.setChecked(!checkBox.isChecked());
+                        int position=getAdapterPosition();
+                        if (checkBox.isChecked()) {
+                            selectedItemsIds.put(position,true);
+                        }
+                        else{
+                            if(selectedItemsIds.get(position)==true) {
+                                selectedItemsIds.delete(position);
+                            }
+                        }
+                    }
+                    else{
+                        //show all picture in album
+                        //((MainActivity)context).onMsgFromFragToMain("ALBUM",listImages.get(getAdapterPosition()));
+                    }
+                }
+            });
 
-        public ImageView getImageView() {
+            image.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View v) {
+
+                    if(!checkBoxEnable) {
+                        /*
+                        AppCompatActivity ma=(AppCompatActivity) context;
+                        ActionMode mode=ma.startSupportActionMode(new ActionMode.Callback() {
+                            @Override
+                            public boolean onCreateActionMode(ActionMode mode, Menu menu) {
+                                //update navìation/action bar here
+                                return true;
+                            }
+
+                            @Override
+                            public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
+                                return true;
+                            }
+
+                            @Override
+                            public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
+                                return true;
+                            }
+
+                            @Override
+                            public void onDestroyActionMode(ActionMode mode) {
+                                selectedItemsIds.clear();
+                                notifyDataSetChanged();
+                                checkBoxEnable=false;
+                                notifyDataSetChanged();
+
+                            }
+                        });*/
+                        checkBoxEnable = true;
+                        notifyDataSetChanged();
+                    }
+                    return true;
+                }
+            });
+        }
+        public ImageView getImageView(){
             return image;
         }
     }
@@ -65,15 +125,14 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHol
     public ImageAdapter(Context context, ArrayList<Image> listImages) {
         this.context = context;
         this.listImages = listImages;
-        selectedItemsIds = new SparseBooleanArray();
+        selectedItemsIds=new SparseBooleanArray();
     }
 
     // setters
-    public void setListGroups(ArrayList<ImageGroup> listGroups) {
+    public void setListGroups(ArrayList<ImageGroup> listGroups){
         this.listGroups = listGroups;
     }
-
-    public void setGroupPos(int groupPos) {
+    public void setGroupPos(int groupPos){
         this.groupPos = groupPos;
     }
 
@@ -87,7 +146,6 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHol
         return new ImageViewHolder(view);
     }
 
-
     // Replace the contents of a view (invoked by the layout manager)
     @Override
     public void onBindViewHolder(ImageViewHolder holder, int position) {
@@ -98,30 +156,12 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHol
         //set image
         File file = new File(image.getPath());
         Glide.with(context).load(file).into(holder.image);
-
-        // set check visibility
-        if (checkBoxEnable) {
+        if(checkBoxEnable==true){
             holder.checkBox.setVisibility(View.VISIBLE);
-            // set check status
-            if(multiSelectCallbacks != null){
-                if(multiSelectCallbacks.isSelectedItem(position, groupPos)){
-                    holder.checkBox.setChecked(true);
-                } else{
-                    holder.checkBox.setChecked(false);
-                }
-            }
-            else{
-                if(selectedItemsIds.get(position)){
-                    holder.checkBox.setChecked(true);
-                } else{
-                    holder.checkBox.setChecked(false);
-                }
-            }
-        } else {
+        }else{
             holder.checkBox.setVisibility(View.INVISIBLE);
             holder.checkBox.setChecked(false);
         }
-
         holder.image.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -141,13 +181,25 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHol
                         intent.putExtra("curPos", newPosition);
                         //đưa danh sách tên các album qua imageactivity
                         ArrayList<String> album_name = new ArrayList<String>();
-                        ArrayList<Album> albums = ((MainActivity)context).getAlbum_list();
+                        ArrayList<String> fav_img_name=new ArrayList<String>();
+                        ArrayList<Album> albums=((MainActivity)context).getAlbum_list();
+                        ArrayList<Image> favImg = ((MainActivity)context).getFavourite_img_list();
                         for(int i = 0; i < albums.size(); i++){
                             album_name.add(albums.get(i).getName());
                         }
                         Gson gson = new Gson();
                         String albu_arr = gson.toJson(album_name);
+                        if (favImg != null)
+                        {
+                            for (int i=0 ; i < favImg.size();i++)
+                            {
+                                fav_img_name.add(favImg.get(i).getPath());
+                            }
+                        }
+                        String fav = gson.toJson(fav_img_name);
+                        Log.d("CheckImgAl",fav);
                         intent.putExtra("ALBUM-LIST",albu_arr);
+                        intent.putExtra("FAV-IMG-LIST",fav);
                         ((MainActivity) context).startActivityForResult(intent,1122);
                     } else {
                         Intent intent = new Intent(context, ImageActivity.class);
@@ -212,19 +264,27 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHol
     // Return the size of your dataset (invoked by the layout manager)
     @Override
     public int getItemCount() {
-        if (listImages == null) {
+        if(listImages==null){
             return 0;
         }
         return listImages.size();
     }
 
-    public boolean changeMultiMode(boolean onMultiSelect) {
-        if(onMultiSelect) {
+    public boolean changeMultiMode(boolean isMultichoose)
+    {
+        if (true == isMultichoose)
+        {
             checkBoxEnable = true;
-        } else {
-            checkBoxEnable = false;
+            notifyDataSetChanged();
         }
-        notifyDataSetChanged();
+        else {
+            checkBoxEnable = false;
+            notifyDataSetChanged();
+        }
         return true;
+    }
+    public void removeFavImage()
+    {
+        notifyDataSetChanged();
     }
 }
