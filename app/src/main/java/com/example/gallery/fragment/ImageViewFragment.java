@@ -3,9 +3,11 @@ package com.example.gallery.fragment;
 import android.app.Activity;
 import android.app.WallpaperManager;
 import android.app.AlertDialog;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.res.Configuration;
 import android.content.SharedPreferences;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
@@ -13,6 +15,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -34,6 +37,7 @@ import com.example.gallery.Animation.ViewPagerTransformAnimation;
 import com.example.gallery.ImageActivity;
 import com.example.gallery.MainCallBacks;
 import com.example.gallery.R;
+import com.example.gallery.TextResultImageActivity;
 import com.example.gallery.ToolbarCallbacks;
 import com.example.gallery.adapter.ImageViewPagerAdapter;
 import com.example.gallery.object.Album;
@@ -274,6 +278,13 @@ public class ImageViewFragment extends Fragment implements ToolbarCallbacks {
                     alert.show();
                 }
                 }
+                else if (id == R.id.btnReadTextInImage) {
+                    Uri uriToImage = getUriFromPath(getContext(), new File(images.get(imageViewPager2.getCurrentItem()).getPath()));
+                    Intent intent = new Intent(context, TextResultImageActivity.class);
+                    intent.putExtra("uriTextImage", uriToImage.toString());
+                    ((ImageActivity) context).startActivity(intent);
+
+                }
                 return true;
             }
         });
@@ -495,4 +506,30 @@ public class ImageViewFragment extends Fragment implements ToolbarCallbacks {
             editor.commit();
         }
     }
+    public static Uri getUriFromPath(Context context, File file) {
+        String filePath = file.getAbsolutePath();
+        Cursor cursor = context.getContentResolver().query(
+                MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                new String[]{MediaStore.Images.Media._ID},
+                MediaStore.Images.Media.DATA + "=? ",
+                new String[]{filePath}, null);
+        if (cursor != null && cursor.moveToFirst()) {
+            if(cursor.getColumnIndex(MediaStore.MediaColumns._ID)<0){
+                return null;
+            }
+            int id = cursor.getInt(cursor.getColumnIndex(MediaStore.MediaColumns._ID));
+            cursor.close();
+            return Uri.withAppendedPath(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, "" + id);
+        } else {
+            if (file.exists()) {
+                ContentValues values = new ContentValues();
+                values.put(MediaStore.Images.Media.DATA, filePath);
+                return context.getContentResolver().insert(
+                        MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
+            } else {
+                return null;
+            }
+        }
+    }
 }
+

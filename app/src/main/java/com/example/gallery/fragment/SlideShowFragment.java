@@ -63,11 +63,12 @@ public class SlideShowFragment extends Fragment {
     private  Timer timer;
     private boolean reverse=false;
     final long DELAY_MS = 0;//delay in milliseconds before task is to be executed
-    final long PERIOD_MS = 3000;
+    private long PERIOD_MS = 3000;
 
-    public SlideShowFragment(Context context, ArrayList<Image> images) {
+    public SlideShowFragment(Context context, ArrayList<Image> images,int time) {
         this.context = context;
         this.images = images;
+        PERIOD_MS=time*1000;
     }
 
     @Override

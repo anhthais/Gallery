@@ -45,7 +45,8 @@ dependencies {
     implementation ("com.github.bumptech.glide:glide:4.12.0")
     implementation ("com.google.code.gson:gson:2.8.5")
     implementation ("com.github.yalantis:ucrop:2.2.6-native")
-
+    implementation ("com.google.mlkit:text-recognition:16.0.0")
+    implementation ("com.google.android.gms:play-services-mlkit-text-recognition:19.0.0")
 
 
 

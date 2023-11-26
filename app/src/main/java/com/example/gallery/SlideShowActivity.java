@@ -17,6 +17,7 @@ import java.util.ArrayList;
 
 public class SlideShowActivity extends AppCompatActivity {
     private ArrayList<Image> images;
+    private int time;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -26,8 +27,9 @@ public class SlideShowActivity extends AppCompatActivity {
         getSupportActionBar().hide();
         Intent intent = getIntent();
         images = intent.getParcelableArrayListExtra("images");
+        time=intent.getIntExtra("time",3);
         FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-        SlideShowFragment imageViewFragment = new SlideShowFragment(SlideShowActivity.this, images);
+        SlideShowFragment imageViewFragment = new SlideShowFragment(SlideShowActivity.this, images,time);
         ft.replace(R.id.pictureFragment, imageViewFragment); ft.commit();
 
     }

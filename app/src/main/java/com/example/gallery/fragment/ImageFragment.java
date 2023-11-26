@@ -3,6 +3,7 @@ package com.example.gallery.fragment;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -102,9 +103,43 @@ public class ImageFragment extends Fragment {
             Toast.makeText(context, "Nothing to slide show", Toast.LENGTH_SHORT).show();
             return;
         }
-        Intent intent = new Intent(getActivity(), SlideShowActivity.class);
-        intent.putParcelableArrayListExtra("images", album.getAll_album_pictures());
-        startActivity(intent);
+
+        Dialog addDialog=new Dialog(context);
+        addDialog.setContentView(R.layout.slide_show_dialog);
+        EditText editText=addDialog.findViewById(R.id.slideshowEditText);
+        Button ok=addDialog.findViewById(R.id.btnOKSlideShow);
+        Button cancel=addDialog.findViewById(R.id.btnCancelSlideShow);
+        TextView message=addDialog.findViewById(R.id.slideshowmessage);
+        addDialog.create();
+        addDialog.show();
+        ok.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(editText.getText().toString().length()==0){
+                    Toast.makeText(context, "Nhập thời gian", Toast.LENGTH_SHORT).show();
+                }
+                else{
+                    try{
+                        int time=Integer.parseInt(editText.getText().toString());
+                        Intent intent = new Intent(getActivity(), SlideShowActivity.class);
+                        intent.putExtra("time",time);
+                        intent.putParcelableArrayListExtra("images", album.getAll_album_pictures());
+                        startActivity(intent);
+                        addDialog.cancel();
+                    }
+                    catch (Exception e){
+                        message.setVisibility(View.VISIBLE);
+                    }
+                }
+            }
+        });
+        cancel.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                addDialog.cancel();
+            }
+        });
+    }
 
     }
-}
+
