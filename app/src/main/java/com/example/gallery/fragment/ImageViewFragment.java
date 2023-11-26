@@ -187,8 +187,9 @@ public class ImageViewFragment extends Fragment implements ToolbarCallbacks {
             public boolean onMenuItemClick(MenuItem item) {
                 int id = item.getItemId();
                 if (id == R.id.btnSetAsWall) {
-                    Bitmap bitmap = BitmapFactory.decodeFile(images.get(curPos).getPath());
+                    Bitmap bitmap = BitmapFactory.decodeFile(images.get(imageViewPager2.getCurrentItem()).getPath());
                     WallpaperManager wallpaperManager = WallpaperManager.getInstance(context);
+
 
                     AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
                     builder.setTitle("--   Đặt làm hình nền   -- ");
@@ -214,7 +215,8 @@ public class ImageViewFragment extends Fragment implements ToolbarCallbacks {
                         public void onClick(DialogInterface dialog, int which) {
                             if (homeScreenRadioButton.isChecked()) {
                                 try {
-                                    wallpaperManager.setBitmap(bitmap);
+                                    wallpaperManager.clear();
+                                    wallpaperManager.setBitmap(bitmap,null,true,WallpaperManager.FLAG_SYSTEM);
                                     Toast.makeText(context, "Setting HomeScreen's Wallpaper Successfully!!", Toast.LENGTH_SHORT).show();
                                 } catch (IOException e) {
                                     e.printStackTrace();

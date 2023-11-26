@@ -35,8 +35,6 @@ public class EditPhotoActivity extends AppCompatActivity {
                 .useSourceImageAspectRatio()
                 .withMaxResultSize(2000,2000)
                 .start(EditPhotoActivity.this);
-        
-
 
     }
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
