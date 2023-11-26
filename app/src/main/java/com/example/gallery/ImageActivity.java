@@ -20,6 +20,7 @@ import java.util.ArrayList;
 public class ImageActivity extends AppCompatActivity implements MainCallBacks{
     private ArrayList<Image> images;
     private ArrayList<String> album_names;
+    private ArrayList<String> fav_img_names;
     private int curPos;
     BottomNavigationView bottomNavigation;
     Intent intent_image;
@@ -38,10 +39,17 @@ public class ImageActivity extends AppCompatActivity implements MainCallBacks{
         curPos = intent.getIntExtra("curPos", 0);
         Gson gson=new Gson();
         String album_arr=intent.getStringExtra("ALBUM-LIST");
+
         album_names=gson.fromJson(album_arr, new TypeToken<ArrayList<String>>(){}.getType());
+        fav_img_names = new ArrayList<>();
+        String fav_arr= intent.getStringExtra("FAV-IMG-LIST");
+
+
+
+        fav_img_names = gson.fromJson(fav_arr,new TypeToken<ArrayList<String>>(){}.getType());
         FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
         //getApplicationContext--> imageActivity.this
-        ImageViewFragment imageViewFragment = new ImageViewFragment(ImageActivity.this, images,album_names, curPos);
+        ImageViewFragment imageViewFragment = new ImageViewFragment(ImageActivity.this, images,album_names,fav_img_names, curPos);
         ft.replace(R.id.pictureFragment, imageViewFragment); ft.commit();
         //bottomNavigation=findViewByIzd(R.id.navigation_bar_picture);
         //handleBottomNavigation();

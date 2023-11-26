@@ -19,6 +19,7 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -27,6 +28,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Toast;
 
 import com.example.gallery.fragment.AlbumFragment;
+import com.example.gallery.fragment.FavouriteImageFragment;
 import com.example.gallery.fragment.GalleryFragment;
 import com.example.gallery.fragment.ImageFragment;
 import com.example.gallery.object.Album;
@@ -53,6 +55,8 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
     ActionBar action_bar;
     ArrayList<Statistic> statisticListImage;
     ArrayList<Album> album_list;
+    ArrayList<Image> favourite_img_list;
+    FavouriteImageFragment favouriteImageFragment;
     String onChooseAlbum = "";
     public ArrayList<Album> getAlbum_list(){
         return album_list;
@@ -60,6 +64,11 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
     public BottomNavigationView getNavigationBar(){
         return this.btnv;
     }
+
+    public ArrayList<Image> getFavourite_img_list() {
+        return favourite_img_list;
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -108,6 +117,11 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
         loadAllAlbum();
         AlbumFragment album = AlbumFragment.getInstance();
         album_fragment = album;
+        this.favourite_img_list = new ArrayList<Image>();
+
+        FavouriteImageFragment favourite_image_fragment= FavouriteImageFragment.getInstance();
+        this.favouriteImageFragment = favourite_image_fragment;
+        loadFavouriteImage();
         btnv=findViewById(R.id.navigationBar);
         btnv.setOnNavigationItemSelectedListener(item -> {
             int id=item.getItemId();
@@ -135,6 +149,13 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
                                 AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
                         }else if (id==R.id.btnThemeLight){
                                 AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+                        }else if (id == R.id.btnFavouriteImg)
+                        {
+
+                            FragmentTransaction ft=getSupportFragmentManager().beginTransaction();
+                            ft.replace(R.id.mainFragment,favourite_image_fragment);
+                            ft.addToBackStack("FRAG");
+                            ft.commit();
                         }
                         return true;
                     }
@@ -299,7 +320,55 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
                         }
                     }
                 }
+                String addFav = data.getStringExtra("FAV-ADD");
 
+                if(addFav!=null&&!addFav.isEmpty()) {
+
+                    ArrayList<String> paths=gson.fromJson(addFav,new TypeToken<ArrayList<String>>(){}.getType());
+
+
+                    for(int j=0;j<paths.size();j++){
+
+                        Image image=gallery_fragment.findImageByPath(paths.get(j));
+                        if(image!=null){
+                            boolean check = false;
+                            for (int i =0 ; i < favourite_img_list.size();i++)
+                            {
+                                if (image.getPath().equals(favourite_img_list.get(i).getPath())== true)
+                                    check = true;
+                            }
+                            if (check == false)
+                            {
+                                favourite_img_list.add(image);
+                            }
+
+
+                        }
+                    }
+                    saveFavouriteImage();
+                }
+                String delFav = data.getStringExtra("FAV-DEL");
+
+                if(delFav!=null&&!delFav.isEmpty()) {
+
+                    ArrayList<String> paths=gson.fromJson(delFav,new TypeToken<ArrayList<String>>(){}.getType());
+                    for(int j=0;j<paths.size();j++){
+
+                        Image image=gallery_fragment.findImageByPath(paths.get(j));
+                        if(image!=null){
+                            Log.d("CheckImg3",paths.get(j));
+                            for (int i = 0 ; i < favourite_img_list.size(); i++)
+                            {
+                                if (image.getPath().equals(favourite_img_list.get(i).getPath())==true)
+                                {
+                                    favourite_img_list.remove(i);
+                                }
+                            }
+                            favouriteImageFragment.removeFavImage();
+                        }
+                    }
+                    saveFavouriteImage();
+                }
             }
             catch (Exception e){
 
@@ -331,6 +400,7 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
             }
             album_list.add(a);
         }
+
     }
     public void saveChangeToAlbum(Album album){
         Gson gson=new Gson();
@@ -342,6 +412,38 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
         }
         String albumjson=gson.toJson(album_save);
         editor.putString(album.getName(),albumjson);
+        editor.commit();
+
+    }
+    public void loadFavouriteImage()
+    {
+        //album_list=new ArrayList<Album>();
+        favourite_img_list = new ArrayList<>();
+        Gson gson=new Gson();
+        SharedPreferences pref = getSharedPreferences("GALLERY", Activity.MODE_PRIVATE);
+        String favourite_image = pref.getString("FavouriteImage", null);
+        if(favourite_image==null || favourite_image.isEmpty()){
+            return;
+        }
+
+        ArrayList<String> fav_img = gson.fromJson(favourite_image, new TypeToken<ArrayList<String>>(){}.getType());
+        for (int i =0 ; i < fav_img.size(); i++)
+        {
+            favourite_img_list.add(new Image(fav_img.get(i)));
+        }
+    }
+    public void saveFavouriteImage()
+    {
+        Gson gson=new Gson();
+        SharedPreferences pref= getSharedPreferences("GALLERY", Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor=pref.edit();
+        ArrayList<String> list = new ArrayList<>();
+        for (int i =0 ; i < favourite_img_list.size(); i++)
+        {
+            list.add(favourite_img_list.get(i).getPath());
+        }
+        String favJson = gson.toJson(list);
+        editor.putString("FavouriteImage",favJson);
         editor.commit();
     }
 }
