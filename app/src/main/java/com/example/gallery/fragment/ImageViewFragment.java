@@ -4,8 +4,10 @@ import android.app.Activity;
 import android.app.Dialog;
 import android.app.WallpaperManager;
 import android.app.AlertDialog;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
@@ -14,6 +16,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.text.Html;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -39,6 +42,7 @@ import com.example.gallery.ImageActivity;
 import com.example.gallery.MainCallBackObjectData;
 import com.example.gallery.MainCallBacks;
 import com.example.gallery.R;
+import com.example.gallery.TextResultImageActivity;
 import com.example.gallery.ToolbarCallbacks;
 import com.example.gallery.adapter.ImageViewPagerAdapter;
 import com.example.gallery.object.Image;
@@ -69,9 +73,9 @@ public class ImageViewFragment extends Fragment implements ToolbarCallbacks {
     private boolean isFavourite = false;
     private MainCallBacks callback;
 
-    public ImageViewFragment(Context context, ArrayList<Image> images,ArrayList<String> albums,ArrayList<String> favImg, int curPos) {
+    public ImageViewFragment(Context context, ArrayList<Image> images, ArrayList<String> albums, ArrayList<String> favImg, int curPos) {
         this.context = context;
-        this.albums=albums;
+        this.albums = albums;
         this.images = images;
         this.favImg = favImg;
         this.curPos = curPos;
@@ -93,6 +97,7 @@ public class ImageViewFragment extends Fragment implements ToolbarCallbacks {
             throw new ClassCastException(context.toString() + " must implement MainCallBack");
         }
     }
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         // set views
@@ -106,8 +111,8 @@ public class ImageViewFragment extends Fragment implements ToolbarCallbacks {
         viewPagerAdapter.setToolbarCallbacks(this);
         imageViewPager2.setAdapter(viewPagerAdapter);
         imageViewPager2.setCurrentItem(curPos, false);
-        imageViewPager2.setPageTransformer(new MarginPageTransformer(Math.round(32*(getResources().getDisplayMetrics().xdpi / DisplayMetrics.DENSITY_DEFAULT))));
-        imageViewPager2.setPageTransformer(new MarginPageTransformer(Math.round(32*(getResources().getDisplayMetrics().xdpi / DisplayMetrics.DENSITY_DEFAULT))));
+        imageViewPager2.setPageTransformer(new MarginPageTransformer(Math.round(32 * (getResources().getDisplayMetrics().xdpi / DisplayMetrics.DENSITY_DEFAULT))));
+        imageViewPager2.setPageTransformer(new MarginPageTransformer(Math.round(32 * (getResources().getDisplayMetrics().xdpi / DisplayMetrics.DENSITY_DEFAULT))));
 
 
         imageViewPager2.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
@@ -116,31 +121,27 @@ public class ImageViewFragment extends Fragment implements ToolbarCallbacks {
             @Override
             public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
                 super.onPageScrolled(position, positionOffset, positionOffsetPixels);
-                String path2=images.get(imageViewPager2.getCurrentItem()).getPath();
-                if (favImg != null && onChooseAddFav!= null)
-                {int count =0;
-                    for (int i =0  ; i < favImg.size(); i++)
-                    {
-                        if(favImg.get(i).equals(path2)==true){
+                String path2 = images.get(imageViewPager2.getCurrentItem()).getPath();
+                if (favImg != null && onChooseAddFav != null) {
+                    int count = 0;
+                    for (int i = 0; i < favImg.size(); i++) {
+                        if (favImg.get(i).equals(path2) == true) {
                             count++;
                             break;
                         }
                     }
 
-                    for (int i=0; i < onChooseAddFav.size(); i++)
-                    {
-                        if (onChooseAddFav.get(i).equals(path2)==true){
+                    for (int i = 0; i < onChooseAddFav.size(); i++) {
+                        if (onChooseAddFav.get(i).equals(path2) == true) {
                             count++;
                             break;
                         }
 
                     }
-                    if (count>0) isFavourite = true;
+                    if (count > 0) isFavourite = true;
                     else isFavourite = false;
-                    for (int i = 0 ; i < onChooseRemoveFav.size(); i++)
-                    {
-                        if (onChooseRemoveFav.get(i).equals(path2)==true)
-                        {
+                    for (int i = 0; i < onChooseRemoveFav.size(); i++) {
+                        if (onChooseRemoveFav.get(i).equals(path2) == true) {
                             isFavourite = false;
                             break;
                         }
@@ -148,23 +149,19 @@ public class ImageViewFragment extends Fragment implements ToolbarCallbacks {
                 }
 
 
-                if (isFavourite==true)
-                {
+                if (isFavourite == true) {
                     btnv.getMenu().getItem(0).setIcon(R.drawable.baseline_favorite_24);
-                }
-                else {
+                } else {
                     btnv.getMenu().getItem(0).setIcon(R.drawable.baseline_favorite_border_24);
 
                 }
 
             }
         });
-        String path2=images.get(imageViewPager2.getCurrentItem()).getPath();
-        if (favImg != null)
-        {
-            for (int i =0  ; i < favImg.size(); i++)
-            {
-                if(favImg.get(i).equals(path2)==true){
+        String path2 = images.get(imageViewPager2.getCurrentItem()).getPath();
+        if (favImg != null) {
+            for (int i = 0; i < favImg.size(); i++) {
+                if (favImg.get(i).equals(path2) == true) {
                     isFavourite = true;
                     break;
                 }
@@ -173,11 +170,9 @@ public class ImageViewFragment extends Fragment implements ToolbarCallbacks {
         }
 
 
-        if (isFavourite==true)
-        {
+        if (isFavourite == true) {
             btnv.getMenu().getItem(0).setIcon(R.drawable.baseline_favorite_24);
-        }
-        else {
+        } else {
             btnv.getMenu().getItem(0).setIcon(R.drawable.baseline_favorite_border_24);
         }
         // handle topBar
@@ -191,7 +186,7 @@ public class ImageViewFragment extends Fragment implements ToolbarCallbacks {
             @Override
             public boolean onMenuItemClick(MenuItem item) {
                 int id = item.getItemId();
-                if(id == R.id.btnSetAsWall) {
+                if (id == R.id.btnSetAsWall) {
                     Bitmap bitmap = BitmapFactory.decodeFile(images.get(curPos).getPath());
                     WallpaperManager wallpaperManager = WallpaperManager.getInstance(context);
 
@@ -258,80 +253,85 @@ public class ImageViewFragment extends Fragment implements ToolbarCallbacks {
                     buttonNegative.setTextColor(ContextCompat.getColor(context, R.color.black));
 
 
-                }
-                else if(id==R.id.btnAddToAlbum){
-                    if(albums==null || albums.size()==0){
+                } else if (id == R.id.btnAddToAlbum) {
+                    if (albums == null || albums.size() == 0) {
                         Toast.makeText(context, "No album found", Toast.LENGTH_SHORT).show();
-                    }
-                    else{
-                    AlertDialog.Builder builder = new AlertDialog.Builder(context);
+                    } else {
+                        AlertDialog.Builder builder = new AlertDialog.Builder(context);
 
-                    // Set Title.
-                    builder.setTitle("Thêm vào album");
+                        // Set Title.
+                        builder.setTitle("Thêm vào album");
 
-                    // Add a list
-                    String[] arr=new String[albums.size()];
-                    for(int i=0;i<albums.size();i++){
-                        arr[i]=albums.get(i);
-                    }
-
-                    int checkedItem = 0; // Sheep
-                    final Set<String> selectedItems = new HashSet<String>();
-                    selectedItems.add(arr[checkedItem]);
-
-                    builder.setSingleChoiceItems(arr, checkedItem, new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            // Do Something...
-                            selectedItems.clear();
-                            selectedItems.add(arr[which]);
+                        // Add a list
+                        String[] arr = new String[albums.size()];
+                        for (int i = 0; i < albums.size(); i++) {
+                            arr[i] = albums.get(i);
                         }
-                    });
 
-                    //
-                    builder.setCancelable(true);
+                        int checkedItem = 0; // Sheep
+                        final Set<String> selectedItems = new HashSet<String>();
+                        selectedItems.add(arr[checkedItem]);
 
-                    // Create "Yes" button with OnClickListener.
-                    builder.setPositiveButton("Thêm", new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int id) {
-                            if(selectedItems.isEmpty()) {
-                                Toast.makeText(context, "Chọn Album", Toast.LENGTH_SHORT).show();
-                                return;
+                        builder.setSingleChoiceItems(arr, checkedItem, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                // Do Something...
+                                selectedItems.clear();
+                                selectedItems.add(arr[which]);
                             }
-                            String album_name = selectedItems.iterator().next();
-                            //put the new image to album
-                            //intent với key: tên album
-                            Intent intent=((ImageActivity)context).getIntent();
-                            Gson gson=new Gson();
-                            String json=intent.getStringExtra(album_name);
-                            ArrayList<String> album_image;
-                            if(json==null){
-                                album_image=new ArrayList<String>();
-                            }else{
-                                album_image=gson.fromJson(json,new TypeToken<ArrayList<String>>(){}.getType());
+                        });
+
+                        //
+                        builder.setCancelable(true);
+
+                        // Create "Yes" button with OnClickListener.
+                        builder.setPositiveButton("Thêm", new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                if (selectedItems.isEmpty()) {
+                                    Toast.makeText(context, "Chọn Album", Toast.LENGTH_SHORT).show();
+                                    return;
+                                }
+                                String album_name = selectedItems.iterator().next();
+                                //put the new image to album
+                                //intent với key: tên album
+                                Intent intent = ((ImageActivity) context).getIntent();
+                                Gson gson = new Gson();
+                                String json = intent.getStringExtra(album_name);
+                                ArrayList<String> album_image;
+                                if (json == null) {
+                                    album_image = new ArrayList<String>();
+                                } else {
+                                    album_image = gson.fromJson(json, new TypeToken<ArrayList<String>>() {
+                                    }.getType());
+                                }
+                                album_image.add(images.get(imageViewPager2.getCurrentItem()).getPath());
+                                intent.putExtra(album_name, gson.toJson(album_image));
+                                //setResult để mainActivity xử lý khi ImageActivity kết thúc
+                                ((ImageActivity) context).setResult(AppCompatActivity.RESULT_OK, intent);
+
+                                // Close Dialog
+                                dialog.dismiss();
+
                             }
-                            album_image.add(images.get(imageViewPager2.getCurrentItem()).getPath());
-                            intent.putExtra(album_name,gson.toJson(album_image));
-                            //setResult để mainActivity xử lý khi ImageActivity kết thúc
-                            ((ImageActivity)context).setResult(AppCompatActivity.RESULT_OK,intent);
+                        });
 
-                            // Close Dialog
-                            dialog.dismiss();
+                        // Create "Cancel" button with OnClickListener.
+                        builder.setNegativeButton("Thoát", new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                dialog.cancel();
+                            }
+                        });
 
-                        }
-                    });
+                        // Create AlertDialog:
+                        AlertDialog alert = builder.create();
+                        alert.show();
+                    }
+                } else if (id == R.id.btnReadTextInImage) {
+                    Uri uriToImage = getUriFromPath(getContext(), new File(images.get(imageViewPager2.getCurrentItem()).getPath()));
+                    Intent intent = new Intent(context, TextResultImageActivity.class);
+                    intent.putExtra("uriTextImage", uriToImage.toString());
+                    ((ImageActivity) context).startActivity(intent);
 
-                    // Create "Cancel" button with OnClickListener.
-                    builder.setNegativeButton("Thoát", new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int id) {
-                            dialog.cancel();
-                        }
-                    });
-
-                    // Create AlertDialog:
-                    AlertDialog alert = builder.create();
-                    alert.show();
-                }
                 }
                 return true;
             }
@@ -342,89 +342,87 @@ public class ImageViewFragment extends Fragment implements ToolbarCallbacks {
             int id = item.getItemId();
             if (id == R.id.btnLovePicture) {
                 // TODO: check favorite
-                if (isFavourite == true)
-                {
+                if (isFavourite == true) {
                     boolean check = false;
-                    Intent intent=((ImageActivity)context).getIntent();
-                    Gson gson=new Gson();
-                    for (int i =0 ; i < onChooseAddFav.size(); i++)
-                    {
-                        if (onChooseAddFav.get(i).equals(images.get(imageViewPager2.getCurrentItem()).getPath())) check = true;
+                    Intent intent = ((ImageActivity) context).getIntent();
+                    Gson gson = new Gson();
+                    for (int i = 0; i < onChooseAddFav.size(); i++) {
+                        if (onChooseAddFav.get(i).equals(images.get(imageViewPager2.getCurrentItem()).getPath()))
+                            check = true;
                     }
 
-                    if ( check == false)
-                    {
+                    if (check == false) {
 
-                        String jsonDel=intent.getStringExtra("FAV-DEL");
+                        String jsonDel = intent.getStringExtra("FAV-DEL");
                         ArrayList<String> Fav_image_del;
-                        if(jsonDel==null){
-                            Fav_image_del=new ArrayList<String>();
-                        }else{
-                            Fav_image_del=gson.fromJson(jsonDel,new TypeToken<ArrayList<String>>(){}.getType());
+                        if (jsonDel == null) {
+                            Fav_image_del = new ArrayList<String>();
+                        } else {
+                            Fav_image_del = gson.fromJson(jsonDel, new TypeToken<ArrayList<String>>() {
+                            }.getType());
                         }
 
                         String delFavpath = images.get(imageViewPager2.getCurrentItem()).getPath();
                         Fav_image_del.add(delFavpath);
                         onChooseRemoveFav.add(delFavpath);
-                        intent.putExtra("FAV-DEL",gson.toJson(Fav_image_del));
+                        intent.putExtra("FAV-DEL", gson.toJson(Fav_image_del));
 
-                    }
-                    else {
-                        String jsonAdd=intent.getStringExtra("FAV-ADD");
+                    } else {
+                        String jsonAdd = intent.getStringExtra("FAV-ADD");
                         ArrayList<String> Fav_image;
-                        if(jsonAdd==null){
-                            Fav_image=new ArrayList<String>();
-                        }else{
-                            Fav_image=gson.fromJson(jsonAdd,new TypeToken<ArrayList<String>>(){}.getType());
+                        if (jsonAdd == null) {
+                            Fav_image = new ArrayList<String>();
+                        } else {
+                            Fav_image = gson.fromJson(jsonAdd, new TypeToken<ArrayList<String>>() {
+                            }.getType());
                         }
                         String addFavpath = images.get(imageViewPager2.getCurrentItem()).getPath();
                         Fav_image.remove(addFavpath);
                         onChooseAddFav.remove(addFavpath);
-                        intent.putExtra("FAV-ADD",gson.toJson(Fav_image));
+                        intent.putExtra("FAV-ADD", gson.toJson(Fav_image));
                     }
-                    ((ImageActivity)context).setResult(AppCompatActivity.RESULT_OK,intent);
+                    ((ImageActivity) context).setResult(AppCompatActivity.RESULT_OK, intent);
                     item.setIcon(R.drawable.baseline_favorite_border_24);
                     isFavourite = false;
-                }
-                else {
+                } else {
 
-                    Intent intent=((ImageActivity)context).getIntent();
-                    Gson gson=new Gson();
+                    Intent intent = ((ImageActivity) context).getIntent();
+                    Gson gson = new Gson();
                     boolean check = false;
-                    for (int i =0 ; i < onChooseRemoveFav.size(); i++)
-                    {
-                        if (onChooseRemoveFav.get(i).equals(images.get(imageViewPager2.getCurrentItem()).getPath())==true) check = true;
+                    for (int i = 0; i < onChooseRemoveFav.size(); i++) {
+                        if (onChooseRemoveFav.get(i).equals(images.get(imageViewPager2.getCurrentItem()).getPath()) == true)
+                            check = true;
                     }
-                    if (check==false)
-                    {
-                        String jsonAdd=intent.getStringExtra("FAV-ADD");
+                    if (check == false) {
+                        String jsonAdd = intent.getStringExtra("FAV-ADD");
                         ArrayList<String> Fav_image;
-                        if(jsonAdd==null){
-                            Fav_image=new ArrayList<String>();
-                        }else{
-                            Fav_image=gson.fromJson(jsonAdd,new TypeToken<ArrayList<String>>(){}.getType());
+                        if (jsonAdd == null) {
+                            Fav_image = new ArrayList<String>();
+                        } else {
+                            Fav_image = gson.fromJson(jsonAdd, new TypeToken<ArrayList<String>>() {
+                            }.getType());
                         }
                         String addFavpath = images.get(imageViewPager2.getCurrentItem()).getPath();
                         Fav_image.add(addFavpath);
                         onChooseAddFav.add(addFavpath);
-                        intent.putExtra("FAV-ADD",gson.toJson(Fav_image));
-                    }
-                    else {
-                        String jsonDel=intent.getStringExtra("FAV-DEL");
+                        intent.putExtra("FAV-ADD", gson.toJson(Fav_image));
+                    } else {
+                        String jsonDel = intent.getStringExtra("FAV-DEL");
                         ArrayList<String> Fav_image_del;
-                        if(jsonDel==null){
-                            Fav_image_del=new ArrayList<String>();
-                        }else{
-                            Fav_image_del=gson.fromJson(jsonDel,new TypeToken<ArrayList<String>>(){}.getType());
+                        if (jsonDel == null) {
+                            Fav_image_del = new ArrayList<String>();
+                        } else {
+                            Fav_image_del = gson.fromJson(jsonDel, new TypeToken<ArrayList<String>>() {
+                            }.getType());
                         }
 
                         String delFavpath = images.get(imageViewPager2.getCurrentItem()).getPath();
                         Fav_image_del.remove(delFavpath);
                         onChooseRemoveFav.remove(delFavpath);
-                        intent.putExtra("FAV-DEL",gson.toJson(Fav_image_del));
+                        intent.putExtra("FAV-DEL", gson.toJson(Fav_image_del));
                     }
 
-                    ((ImageActivity)context).setResult(AppCompatActivity.RESULT_OK,intent);
+                    ((ImageActivity) context).setResult(AppCompatActivity.RESULT_OK, intent);
                     item.setIcon(R.drawable.baseline_favorite_24);
                     isFavourite = true;
 
@@ -432,53 +430,54 @@ public class ImageViewFragment extends Fragment implements ToolbarCallbacks {
             } else if (id == R.id.btnEditPicture) {
 
                 if (callback != null) {
-                    callback.onMsgFromFragToMain("EDIT-PHOTO",String.valueOf(imageViewPager2.getCurrentItem()));
+                    callback.onMsgFromFragToMain("EDIT-PHOTO", String.valueOf(imageViewPager2.getCurrentItem()));
                 }
 
             } else if (id == R.id.btnSharePicture) {
                 Intent shareIntent = new Intent();
                 shareIntent.setAction(Intent.ACTION_SEND);
-                Uri uriToImage= Uri.parse(new File(images.get(imageViewPager2.getCurrentItem()).getPath()).toString());
+                Uri uriToImage = Uri.parse(new File(images.get(imageViewPager2.getCurrentItem()).getPath()).toString());
                 shareIntent.putExtra(Intent.EXTRA_STREAM, uriToImage);
                 shareIntent.setType("image/jpeg");
                 startActivity(Intent.createChooser(shareIntent, null));
 
             } else if (id == R.id.btnDeletePicture) {
-                AlertDialog.Builder builder =new AlertDialog.Builder(context,R.style.MyDialogTheme);
+                AlertDialog.Builder builder = new AlertDialog.Builder(context, R.style.MyDialogTheme);
                 builder.setTitle("Chuyển ảnh vào thùng rác");
                 builder.setCancelable(true);
                 builder.setPositiveButton("Chuyển", new DialogInterface.OnClickListener() {
 
                     public void onClick(DialogInterface dialog, int id) {
-                        String delete_path=images.get(imageViewPager2.getCurrentItem()).getPath();
+                        String delete_path = images.get(imageViewPager2.getCurrentItem()).getPath();
                         //only 1 image in adapter
-                        if(curPos==0&&images.size()==1){
+                        if (curPos == 0 && images.size() == 1) {
                             ((ImageActivity) context).finish();
                             images.remove(curPos);
                         }
                         //get position of current item in viewpager
-                        curPos=imageViewPager2.getCurrentItem();
+                        curPos = imageViewPager2.getCurrentItem();
                         images.remove(curPos);
                         //if the item was the last item choose the previous item
-                        if(curPos==images.size()){
+                        if (curPos == images.size()) {
                             curPos--;
                         }
                         //update viewpageradapter
                         imageViewPager2.setCurrentItem(curPos, false);
                         imageViewPager2.getAdapter().notifyDataSetChanged();
                         // thêm ảnh bị xoá vào arraylist -> intent với key: Trash
-                        Intent intent=((ImageActivity)context).getIntent();
-                        Gson gson=new Gson();
-                        String json=intent.getStringExtra("Trash");
+                        Intent intent = ((ImageActivity) context).getIntent();
+                        Gson gson = new Gson();
+                        String json = intent.getStringExtra("Trash");
                         ArrayList<String> album_image;
-                        if(json==null){
-                            album_image=new ArrayList<String>();
-                        }else{
-                            album_image=gson.fromJson(json,new TypeToken<ArrayList<String>>(){}.getType());
+                        if (json == null) {
+                            album_image = new ArrayList<String>();
+                        } else {
+                            album_image = gson.fromJson(json, new TypeToken<ArrayList<String>>() {
+                            }.getType());
                         }
                         album_image.add(delete_path);
-                        intent.putExtra("Trash",gson.toJson(album_image));
-                        ((ImageActivity)context).setResult(AppCompatActivity.RESULT_OK,intent);
+                        intent.putExtra("Trash", gson.toJson(album_image));
+                        ((ImageActivity) context).setResult(AppCompatActivity.RESULT_OK, intent);
                         //update in database
                     }
                 });
@@ -489,7 +488,7 @@ public class ImageViewFragment extends Fragment implements ToolbarCallbacks {
                     }
                 });
 
-                AlertDialog alertDialog= builder.create();
+                AlertDialog alertDialog = builder.create();
                 alertDialog.show();
             }
 
@@ -500,15 +499,36 @@ public class ImageViewFragment extends Fragment implements ToolbarCallbacks {
     }
 
     @Override
-    public void showOrHideToolbars (boolean show){
-        if(show){
+    public void showOrHideToolbars(boolean show) {
+        if (show) {
             topBar.setVisibility(View.VISIBLE);
             btnv.setVisibility(View.VISIBLE);
-        }
-        else {
+        } else {
             topBar.setVisibility(View.INVISIBLE);
             btnv.setVisibility(View.INVISIBLE);
         }
     }
 
+    public static Uri getUriFromPath(Context context, File file) {
+        String filePath = file.getAbsolutePath();
+        Cursor cursor = context.getContentResolver().query(
+                MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                new String[]{MediaStore.Images.Media._ID},
+                MediaStore.Images.Media.DATA + "=? ",
+                new String[]{filePath}, null);
+        if (cursor != null && cursor.moveToFirst()) {
+            int id = cursor.getInt(cursor.getColumnIndex(MediaStore.MediaColumns._ID));
+            cursor.close();
+            return Uri.withAppendedPath(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, "" + id);
+        } else {
+            if (file.exists()) {
+                ContentValues values = new ContentValues();
+                values.put(MediaStore.Images.Media.DATA, filePath);
+                return context.getContentResolver().insert(
+                        MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
+            } else {
+                return null;
+            }
+        }
+    }
 }
