@@ -13,7 +13,6 @@
         <item name="colorOnSecondary">@color/black</item>
         <!-- Status bar color. -->
         <item name="android:statusBarColor" tools:targetApi="l">?attr/colorPrimaryVariant</item>
-
     </style>
     <style name="BottomNavigationViewNight" parent="Widget.MaterialComponents.BottomNavigationView">
         <item name="itemBackground">@color/black</item>
@@ -21,4 +20,5 @@
     <style name="MyDialogTheme" parent="Theme.AppCompat.Light.Dialog.Alert">
         <item name="colorPrimary">@color/white</item>
     </style>
+
 </resources>

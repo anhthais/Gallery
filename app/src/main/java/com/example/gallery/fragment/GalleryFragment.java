@@ -1,6 +1,7 @@
 package com.example.gallery.fragment;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -21,6 +22,9 @@ import com.example.gallery.helper.LocalStorageReader;
 import com.example.gallery.object.Image;
 import com.example.gallery.object.ImageGroup;
 import com.example.gallery.object.Statistic;
+import com.example.gallery.object.TrashItem;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -123,7 +127,26 @@ public class GalleryFragment extends Fragment {
         ArrayList<ImageGroup> groupList = new ArrayList<>();
         int count = 0;
         ArrayList<Image> imageList = LocalStorageReader.getImagesFromLocal(getContext());
-
+        //lấy ảnh từ thùng rác tránh hiển thị ở galery fragment
+        Gson gson=new Gson();
+        SharedPreferences albumPref= context.getSharedPreferences("GALLERY", Context.MODE_PRIVATE);
+        String allTrash=albumPref.getString("TRASH","");
+        ArrayList<String>allTrashPath=gson.fromJson(allTrash,new TypeToken<ArrayList<String>>(){}.getType());
+        ArrayList<TrashItem>trash_list=new ArrayList<>();
+        if(allTrashPath!=null){
+            for(int i=0;i<allTrashPath.size();i++){
+                trash_list.add(new TrashItem(allTrashPath.get(i)));
+            }
+        }
+        for(int i=0;i<trash_list.size();i++){
+            for(int j=0;j<imageList.size();j++)
+            {
+                if(imageList.get(j).getPath().equals(trash_list.get(i).getPath())){
+                    imageList.remove(j);
+                    break;
+                }
+            }
+        }
         try {
             // group images by taken date, imageList contains images ordered by date DESC
             groupList.add(new ImageGroup(imageList.get(0).getDate(), new ArrayList<>()));
@@ -142,7 +165,7 @@ public class GalleryFragment extends Fragment {
 
         } catch (Exception e) {
             Log.e("getListImageGroup", e.toString());
-            return null;
+            return new ArrayList<>();
         }
 
     }

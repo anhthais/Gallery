@@ -73,7 +73,7 @@ public class FavouriteImageFragment extends Fragment implements FragmentCallBack
 
     public void removeFavImage()
     {
-        imageAdapter.removeFavImage();
+          imageAdapter.removeFavImage();
     }
     @Override
     public void onMsgFromMainToFragment(String strValue) {

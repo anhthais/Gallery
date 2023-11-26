@@ -2,13 +2,13 @@ package com.example.gallery.fragment;
 
 import android.app.Dialog;
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.GridView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -21,29 +21,30 @@ import com.example.gallery.FragmentCallBacks;
 import com.example.gallery.MainActivity;
 import com.example.gallery.R;
 import com.example.gallery.adapter.AlbumAdapter;
+import com.example.gallery.adapter.TrashAdapter;
 import com.example.gallery.object.Album;
-import com.google.gson.Gson;
+import com.example.gallery.object.TrashItem;
 
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 
-public class AlbumFragment extends Fragment implements FragmentCallBacks {
+public class TrashFragment extends Fragment implements FragmentCallBacks {
     private Context context;
-    private AlbumAdapter album_adapter;
-    private ArrayList<Album> albums;
-    private RecyclerView album_recyclerView;
+    private TrashAdapter trash_adapter;
+    private ArrayList<TrashItem> trash_items_list;
+    private RecyclerView trash_RecyclerView;
     private boolean isDel = false;
     private int index = -1;
-    public static AlbumFragment getInstance(){
-        return new AlbumFragment();
+    public static TrashFragment getInstance(){
+        return new TrashFragment();
     }
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         try {
             context = getActivity(); // use this reference to invoke main callbacks
-            albums=((MainActivity)context).getAlbum_list();
+            trash_items_list=((MainActivity)context).getTrashItem_list();
         } catch (IllegalStateException e) {
             throw new IllegalStateException("MainActivity must implement callbacks");
         }
@@ -53,14 +54,14 @@ public class AlbumFragment extends Fragment implements FragmentCallBacks {
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View albumFragment=inflater.inflate(R.layout.album_fragment,container,false);
-        album_adapter=new AlbumAdapter(context,albums);
-        album_recyclerView=albumFragment.findViewById(R.id.albumFragmentRecyclerView);
-        album_recyclerView.setAdapter(album_adapter);
-        album_recyclerView.setLayoutManager(new GridLayoutManager(context,2));
-        return albumFragment;
+        View TrashFragment=inflater.inflate(R.layout.trash,container,false);
+        trash_adapter= new TrashAdapter(context, R.layout.trash_item , trash_items_list);
+        trash_RecyclerView=TrashFragment.findViewById(R.id.trashFragmentRecyclerView);
+        trash_RecyclerView.setAdapter(trash_adapter);
+        trash_RecyclerView.setLayoutManager(new GridLayoutManager(context,4));
+        return TrashFragment;
     }
-    public void addNewAlbum(){
+   /* public void addNewAlbum(){
         Dialog addDialog=new Dialog(context);
         addDialog.setContentView(R.layout.add_album_dialog);
         EditText editText=addDialog.findViewById(R.id.addNewAlbumEditText);
@@ -75,19 +76,8 @@ public class AlbumFragment extends Fragment implements FragmentCallBacks {
                     Toast.makeText(context, "Nhập tên Album", Toast.LENGTH_SHORT).show();
                 }
                 else{
-                    Gson gson=new Gson();
                     Album a=new Album(editText.getText().toString());
                     albums.add(a);
-                    album_adapter.notifyItemInserted(albums.size()-1);
-                    SharedPreferences albumPref= context.getSharedPreferences("GALLERY",Context.MODE_PRIVATE);
-                    SharedPreferences.Editor editor=albumPref.edit();
-                    ArrayList<String> album_save=new ArrayList<>();
-                    for(int i=0;i<albums.size();i++){
-                        album_save.add(albums.get(i).getName());
-                    }
-                    String albumjson=gson.toJson(album_save);
-                    editor.putString("ALBUM",albumjson);
-                    editor.commit();
                     addDialog.cancel();
                 }
             }
@@ -98,12 +88,10 @@ public class AlbumFragment extends Fragment implements FragmentCallBacks {
                 addDialog.cancel();
             }
         });
-    }
+    }*/
 
-    public boolean deleteAlbum(String strValue)
+  /* public boolean deleteAlbum(String strValue)
     {
-
-
         for(int i=0;i<albums.size();i++){
             if(albums.get(i).getName().equals(strValue)){
                 index=i;
@@ -129,30 +117,17 @@ public class AlbumFragment extends Fragment implements FragmentCallBacks {
                     albums.add(a);
                     addDialog.cancel();
 
-                }*/
-                String album_deleted=albums.get(index).getName();
+                }
                 albums.remove(albums.get(index));
                 isDel = true;
                 addDialog.cancel();
-                //save in local
-                Gson gson=new Gson();
-                SharedPreferences albumPref= context.getSharedPreferences("GALLERY", Context.MODE_PRIVATE);
-                SharedPreferences.Editor editor=albumPref.edit();
-                ArrayList<String> album_save=new ArrayList<>();
-                for(int i=0;i<albums.size();i++){
-                    album_save.add(albums.get(i).getName());
-                }
-                String albumjson=gson.toJson(album_save);
-                editor.putString("ALBUM",albumjson);
-                editor.putString(album_deleted,"");
-                editor.commit();
                 ((MainActivity)context).onMsgFromFragToMain("DELETE-ALBUM", "yes");
             }
         });
         cancel.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-               // addDialog.cancel();
+                // addDialog.cancel();
                 isDel= false;
                 addDialog.cancel();
                 //((MainActivity)context).onMsgFromFragToMain("DELETE-ALBUM", "no");
@@ -163,8 +138,7 @@ public class AlbumFragment extends Fragment implements FragmentCallBacks {
         });
 
         return this.isDel;
-    };
-
+    };*/
 
 
     @Override

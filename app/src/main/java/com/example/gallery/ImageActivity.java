@@ -39,8 +39,8 @@ public class ImageActivity extends AppCompatActivity implements MainCallBacks{
         curPos = intent.getIntExtra("curPos", 0);
         Gson gson=new Gson();
         String album_arr=intent.getStringExtra("ALBUM-LIST");
-
         album_names=gson.fromJson(album_arr, new TypeToken<ArrayList<String>>(){}.getType());
+        gson = new Gson();
         fav_img_names = new ArrayList<>();
         String fav_arr= intent.getStringExtra("FAV-IMG-LIST");
 

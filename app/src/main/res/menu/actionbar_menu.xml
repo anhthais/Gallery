@@ -15,6 +15,11 @@
         app:showAsAction="never"
         android:title="Chọn nhiều ảnh"/>
     <item
+        android:id="@+id/btnSlideShow"
+        android:checked="true"
+        app:showAsAction="never"
+        android:title="Trình chiếu"/>
+    <item
         android:id="@+id/btnAddImageAcTion"
         android:checked="true"
         app:showAsAction="never"
