@@ -1,5 +1,7 @@
 package com.example.gallery;
 
+import static android.app.PendingIntent.getActivity;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
@@ -7,6 +9,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.appcompat.widget.PopupMenu;
 import androidx.core.app.ActivityCompat;
+import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 import android.Manifest;
 import android.content.Context;
@@ -20,6 +23,7 @@ import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
+import android.util.SparseBooleanArray;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -27,34 +31,46 @@ import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Toast;
 
+import com.example.gallery.Database.DatabaseHelper;
 import com.example.gallery.fragment.AlbumFragment;
 import com.example.gallery.fragment.FavouriteImageFragment;
 import com.example.gallery.fragment.GalleryFragment;
 import com.example.gallery.fragment.ImageFragment;
 import com.example.gallery.fragment.TrashFragment;
+import com.example.gallery.helper.DateConverter;
+import com.example.gallery.helper.LocalStorageReader;
 import com.example.gallery.object.Album;
 import com.example.gallery.object.Image;
+import com.example.gallery.object.ImageGroup;
 import com.example.gallery.object.Statistic;
 import com.example.gallery.object.TrashItem;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
+import java.sql.Date;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
 public class MainActivity extends AppCompatActivity implements MainCallBacks,MainCallBackObjectData {
-
     private static final int PERMISSION_REQUEST_READ_CODE = 1;
-
+    // TODO: init data used in all fragments in MainActivity
+    public DatabaseHelper galleryDB;
+    public ArrayList<Image> allImages;
+    public ArrayList<ImageGroup> imageGroupsByDate;
+    public Map<Long, Image> allImagesInMap;
+    public ArrayList<TrashItem> trashItems;
     FragmentTransaction ft;
     Menu menu;
     Album Trash;
     Album Favorite;
-    GalleryFragment gallery_fragment=null;
-    AlbumFragment album_fragment=null;
+    GalleryFragment gallery_fragment = null;
+    AlbumFragment album_fragment = null;
     ArrayList<TrashItem> trash_item_lists;
     TrashFragment trashFragment;
-    ImageFragment imageFragment=null;
+    ImageFragment imageFragment = null;
     FavouriteImageFragment favouriteImageFragment = null;
 
     BottomNavigationView btnv;
@@ -99,21 +115,30 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
                     PERMISSION_REQUEST_READ_CODE);
         }
 
-
-        // init DB
-//        galleryDB = new DatabaseHelper(MainActivity.this);
-//
-//        image_id = new ArrayList<>();
-//        image_name = new ArrayList<>();
-//        image_address = new ArrayList<>();
-//        album_name = new ArrayList<>();
-//        image_status = new ArrayList<>();
-//        image_timeRemaining = new ArrayList<>();
-//        storeDataInArrays();
-
     }
 
     private void initApp(){
+        // TODO: init first data --> all fragments in this activity retrieve data directly from properties in the activity
+        allImages = LocalStorageReader.getImagesFromLocal(getApplicationContext());
+        imageGroupsByDate = LocalStorageReader.getListImageGroupByDate(allImages);
+        allImagesInMap = new HashMap<>();
+        for(int i = 0; i < allImages.size(); ++i){
+            allImagesInMap.put(allImages.get(i).getIdInMediaStore(), allImages.get(i));
+        }
+        // TODO: SharedPreference overview
+        // 1. GALLERY:
+        // 1.1 FAVORITE: idInMediaStore of favorite images
+        // 1.2 ALBUM
+        // 2. TRASH: <newPath, data>
+        // - newPath: path of image after being moved to app specific external storage
+        // - data: <oldPath, dateExpires> contains previous path of the image and time when the image will be deleted permanently (in long)
+        trashItems = new ArrayList<>();
+        loadFavouriteImage();
+        loadDeleteImage();
+
+        // TODO: delete data from SharedPref
+        deleteExpiredImages();
+
         menu.findItem(R.id.btnRenameAlbum).setVisible(false);
         menu.findItem(R.id.btnDeleteAlbum).setVisible(false);
         menu.findItem(R.id.btnSlideShow).setVisible(false);
@@ -293,9 +318,6 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
             ft.addToBackStack("ALBUM-FRAG");
             ft.commit();
             this.onChooseAlbum= strValue;
-
-
-
         }
         else if (sender.equals("DELETE-ALBUM"))
         {
@@ -304,27 +326,42 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
     }
 
     @Override
+    public void onResume(){
+        super.onResume();
+
+    }
+    @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if(requestCode==1122 && resultCode==AppCompatActivity.RESULT_OK){
             try{
-                //lấy danh sách ảnh bị xoá từ intent data
-                String delete=data.getStringExtra("Trash");
-                Gson gson=new Gson();
-                //kiểm tra có danh sách ảnh bị xoá hay không
-                if(delete!=null&&!delete.isEmpty()){
-                    ArrayList<String> delete_paths=gson.fromJson(delete,new TypeToken<ArrayList<String>>(){}.getType());
-                    //xoá các ảnh cần xoá
-                    for(int i=0;i<delete_paths.size();i++){
-                        gallery_fragment.deleteImage(delete_paths.get(i));
+                Gson gson = new Gson();
+                SharedPreferences myPrefGallery = getSharedPreferences("GALLERY", Context.MODE_PRIVATE);
+                SharedPreferences.Editor editorGallery = myPrefGallery.edit();
+                SharedPreferences myPrefTrash = getSharedPreferences("TRASH", Context.MODE_PRIVATE);
+                SharedPreferences.Editor editorTrash = myPrefTrash.edit();
 
-                        //xoá trong các album
-                        for(int j=0;j<album_list.size();j++){
-                            album_list.get(j).removeImageFromAlbum(delete_paths.get(i));
-                        }
-                        trash_item_lists.add(new TrashItem(delete_paths.get(i)));
+
+                // TODO: handle delete images
+                String addDelete = data.getStringExtra("addDelete");
+                String addDeleteTime = data.getStringExtra("addDeleteTime");
+                String addDeleteNewPath = data.getStringExtra("addDeleteNewPath");
+                ArrayList<Integer> addDeletePos = gson.fromJson(addDelete, new TypeToken<ArrayList<Integer>>(){}.getType());
+                ArrayList<Long> addDeletePosTime = gson.fromJson(addDeleteTime, new TypeToken<ArrayList<Long>>(){}.getType());
+                ArrayList<String> addDeletePosNewPath = gson.fromJson(addDeleteNewPath, new TypeToken<ArrayList<String>>(){}.getType());
+                if(addDeletePos != null && addDeletePosTime != null && addDeletePosNewPath != null){
+                    for(int i = 0; i < addDeletePos.size(); ++i){
+                        Image image = allImages.get(addDeletePos.get(i));
+                        // update models
+                        trashItems.add(new TrashItem(addDeletePosNewPath.get(i), image.getPath(), addDeletePosTime.get(i)));
+                        allImagesInMap.remove(image.getIdInMediaStore());
+                        allImages.remove(image);
                     }
+                    imageGroupsByDate = LocalStorageReader.getListImageGroupByDate(allImages);
                 }
+                saveDeleteImages();
+
+                // TODO: handle album
                 for(int i=0;i<album_list.size();i++){
                     //lấy danh sách ảnh được thêm vào album
                     String add_paths=data.getStringExtra(album_list.get(i).getName());
@@ -339,37 +376,40 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
                         }
                     }
                 }
-                String addFav = data.getStringExtra("FAV-ADD");
 
-                if(addFav!=null&&!addFav.isEmpty()) {
-
-                    ArrayList<String> paths = gson.fromJson(addFav, new TypeToken<ArrayList<String>>() {
-                    }.getType());
-
-
-                    for (int j = 0; j < paths.size(); j++) {
-
-                        Image image = gallery_fragment.findImageByPath(paths.get(j));
-                        if (image != null) {
-                            boolean check = false;
-                            for (int i = 0; i < favourite_img_list.size(); i++) {
-                                if (image.getPath().equals(favourite_img_list.get(i).getPath()) == true)
-                                    check = true;
-                            }
-                            if (check == false) {
-                                favourite_img_list.add(image);
-                            }
-
-
-                        }
+                // TODO: handle favorite images
+                String addFavorite = data.getStringExtra("addFav");
+                String removeFavorite = data.getStringExtra("removeFav");
+                ArrayList<Integer> addFavId = gson.fromJson(addFavorite, new TypeToken<ArrayList<Integer>>(){}.getType());
+                ArrayList<Integer> removeFavId = gson.fromJson(removeFavorite, new TypeToken<ArrayList<Integer>>(){}.getType());
+                if(addFavId != null){
+                    for(int i = 0; i < addFavId.size(); ++i){
+                        Image image = allImages.get(addFavId.get(i));
+                        image.setFavorite(true);
                     }
-                    saveFavouriteImage();
                 }
+                if(removeFavId != null){
+                    for(int i = 0; i < removeFavId.size(); ++i){
+                        Image image = allImages.get(removeFavId.get(i));
+                        image.setFavorite(false);
+                    }
+                }
+                saveFavoriteImages();
+
+                editorGallery.apply();
+                editorTrash.apply();
+
+                Fragment frag = getSupportFragmentManager().findFragmentById(R.id.mainFragment);
+                FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+                ft.detach(frag).attach(frag).commit();
 
             }
             catch (Exception e){
-
+                Log.d("error result", e.getMessage());
             }
+        }
+        else if(requestCode == 2233){
+
         }
     }
     // receive statisticListImage fragment GalleryFragment
@@ -396,16 +436,6 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
                 album_list.add(a);
             }
         }
-        //get all image in trash bin
-        String allTrash=albumPref.getString("TRASH","");
-        ArrayList<String>allTrashPath=gson.fromJson(allTrash,new TypeToken<ArrayList<String>>(){}.getType());
-        trash_item_lists=new ArrayList<TrashItem>();
-
-        if(allTrashPath!=null){
-            for(int i=0;i<allTrashPath.size();i++){
-                trash_item_lists.add(new TrashItem(allTrashPath.get(i)));
-            }
-        }
     }
     public void saveChangeToAlbum(Album album){
         Gson gson=new Gson();
@@ -419,35 +449,74 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
         editor.putString(album.getName(),albumjson);
         editor.commit();
     }
-    public void loadFavouriteImage()
-    {
-        //album_list=new ArrayList<Album>();
-        favourite_img_list = new ArrayList<>();
-        Gson gson=new Gson();
-        SharedPreferences pref = getSharedPreferences("GALLERY",Activity.MODE_PRIVATE);
-        String favourite_image = pref.getString("FavouriteImage", null);
-        if(favourite_image==null || favourite_image.isEmpty()){
-            return;
+
+    public void loadFavouriteImage() {
+        Gson gson = new Gson();
+        SharedPreferences myPref = getSharedPreferences("GALLERY",Activity.MODE_PRIVATE);
+        String favImgIds = myPref.getString("FAVORITE", null);
+        ArrayList<Long> id = gson.fromJson(favImgIds, new TypeToken<ArrayList<Long>>(){}.getType());
+
+        if(id != null){
+            for (int i = 0 ; i < id.size(); i++){
+                Long test = id.get(i);
+                Image image = allImagesInMap.get(test);
+                if(allImagesInMap.get(id.get(i)) != null){
+                    allImagesInMap.get(id.get(i)).setFavorite(true);
+                }
+            }
         }
 
-        ArrayList<String> fav_img = gson.fromJson(favourite_image, new TypeToken<ArrayList<String>>(){}.getType());
-        for (int i =0 ; i < fav_img.size(); i++)
-        {
-            favourite_img_list.add(new Image(fav_img.get(i)));
+    }
+
+    public void loadDeleteImage(){
+        Gson gson = new Gson();
+        SharedPreferences myPref = getSharedPreferences("TRASH", Activity.MODE_PRIVATE);
+        SharedPreferences.Editor editor = myPref.edit();
+        editor.apply();
+        Map<String, ?> allEntries = myPref.getAll();
+        if(allEntries != null){
+            for (Map.Entry<String, ?> entry : allEntries.entrySet ()) {
+                String key = entry.getKey ();
+                String value = (String) entry.getValue();
+                ArrayList<String> dataFromJson = gson.fromJson(value, new TypeToken<ArrayList<String>>(){}.getType());
+                trashItems.add(new TrashItem(key, dataFromJson.get(0), DateConverter.stringToDate(dataFromJson.get(1)).getTime()));
+            }
         }
     }
-    public void saveFavouriteImage()
-    {
-        Gson gson=new Gson();
-        SharedPreferences pref= getSharedPreferences("GALLERY", Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor=pref.edit();
-        ArrayList<String> list = new ArrayList<>();
-        for (int i =0 ; i < favourite_img_list.size(); i++)
-        {
-            list.add(favourite_img_list.get(i).getPath());
+
+    public void saveFavoriteImages(){
+        Gson gson = new Gson();
+        SharedPreferences myPref = getSharedPreferences("GALLERY", Activity.MODE_PRIVATE);
+        SharedPreferences.Editor editor = myPref.edit();
+
+        ArrayList<Long> favList = new ArrayList<>();
+        for(int i = 0; i < allImages.size(); ++i){
+            if(allImages.get(i).isFavorite()){
+                favList.add(Long.valueOf(allImages.get(i).getIdInMediaStore()));
+            }
         }
-        String favJson = gson.toJson(list);
-        editor.putString("FavouriteImage",favJson);
-        editor.commit();
+        editor.putString("FAVORITE", gson.toJson(favList));
+        editor.apply();
     }
+
+    public void saveDeleteImages(){
+        Gson gson = new Gson();
+        SharedPreferences myPref = getSharedPreferences("TRASH", Activity.MODE_PRIVATE);
+        SharedPreferences.Editor editor = myPref.edit();
+
+        for(int i = 0; i < trashItems.size(); ++i){
+            String newPath = trashItems.get(i).getPath();
+            ArrayList<String> data = new ArrayList<>(2);
+            data.add(trashItems.get(i).getPrevPath());
+            data.add(DateConverter.longToString(trashItems.get(i).getDateExpires()));
+            editor.putString(newPath, gson.toJson(data));
+        }
+
+        editor.apply();
+    }
+
+    public void deleteExpiredImages(){
+
+    }
+
 }

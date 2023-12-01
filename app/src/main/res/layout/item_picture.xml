@@ -15,7 +15,8 @@
         android:focusable="true"
         android:foreground="?android:attr/selectableItemBackgroundBorderless"
         android:scaleType="centerCrop"
-        android:src="@drawable/ic_launcher_foreground"/>
+        android:src="@drawable/ic_launcher_foreground" />
+
     <CheckBox
         android:id="@+id/checkBoxImageItem"
         android:layout_width="wrap_content"

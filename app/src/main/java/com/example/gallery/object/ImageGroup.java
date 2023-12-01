@@ -2,6 +2,7 @@ package com.example.gallery.object;
 
 import java.util.ArrayList;
 
+// TODO: change id to groupName (for correct meaning)
 public class ImageGroup {
     private String id;
     private ArrayList<Image> imgList;

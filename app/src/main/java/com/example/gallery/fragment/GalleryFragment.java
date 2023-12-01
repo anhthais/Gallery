@@ -1,5 +1,9 @@
 package com.example.gallery.fragment;
 
+import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
+import static java.nio.file.StandardWatchEventKinds.ENTRY_DELETE;
+import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY;
+
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -14,6 +18,7 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.gallery.FragmentCallBacks;
 import com.example.gallery.MainActivity;
 import com.example.gallery.MainCallBackObjectData;
 import com.example.gallery.R;
@@ -27,25 +32,35 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.FileSystems;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.WatchEvent;
+import java.nio.file.WatchKey;
+import java.nio.file.WatchService;
 import java.util.ArrayList;
 
-public class GalleryFragment extends Fragment {
+public class GalleryFragment extends Fragment implements FragmentCallBacks {
     private RecyclerView recyclerView;
     private ImageGroupAdapter imageGroupAdapter;
     private ArrayList<ImageGroup> groupList;
-
     private  ArrayList<Statistic> statisticList;
+    private WatchService watchService;
+    private Path imageFolderPath;
+    private  ArrayList<String> listMediaFolderImage;
 
     private Context context;
-
     private MainActivity main;
 
 
+
+    // TODO: adjust to singleton
     public static GalleryFragment getInstance(){
         return new GalleryFragment();
     }
 
-    final Integer REQUEST_CODE =1;
+    final Integer REQUEST_CODE = 1;
     private MainCallBackObjectData callback;
 
     @Override
@@ -63,31 +78,99 @@ public class GalleryFragment extends Fragment {
         try {
             context = getActivity(); // use this reference to invoke main callbacks
             main = (MainActivity) getActivity();
+            groupList = main.imageGroupsByDate;
         } catch (IllegalStateException e) {
             throw new IllegalStateException("MainActivity must implement callbacks");
         }
     }
 
-
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.gallery_fragment, container, false);
         recyclerView = view.findViewById(R.id.recycleImages);
-
-        groupList = getListImageGroup();
+        //groupList = getListImageGroup();
         imageGroupAdapter = new ImageGroupAdapter(context, groupList);
 
         recyclerView.setAdapter(imageGroupAdapter);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext(), RecyclerView.VERTICAL, false));
-
-
+        listMediaFolderImage = findMediaStoreImageFolder(groupList);
+        listenerUpdateMediaStore(listMediaFolderImage);
         // Tính dung lượng và số lượng của mỗi group list,
         statisticList = getStatisticGroupList(groupList);
         passObjectToActivity(statisticList);
 
         return view;
     }
+    private ArrayList<String> findMediaStoreImageFolder(ArrayList<ImageGroup> groupList){
+        ArrayList<String> result = new ArrayList<String>();
+        for(int i=0;i<groupList.size();i++){
+            for(int j=0;j<groupList.get(i).getList().size();j++){
+                String path = groupList.get(i).getList().get(j).getPath();
+                String pathWithoutFilename = path.substring(0, path.lastIndexOf("/"));
+                if(result.isEmpty()){
+                    result.add(pathWithoutFilename);
+                }
+                else if(!result.contains(pathWithoutFilename)){
+                    result.add(pathWithoutFilename);
+                }
+            }
+        }
+        return result;
 
+    }
+    private void listenerUpdateMediaStore(ArrayList<String> listPaths){
+
+        for(int i=0;i<listPaths.size();i++) {
+
+            String path = listPaths.get(i);
+            imageFolderPath = Paths.get(path);
+
+            try {
+                watchService = FileSystems.getDefault().newWatchService();
+                imageFolderPath.register(watchService, ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            new Thread(() -> {
+                while (true) {
+                    WatchKey watchKey = null;
+                    try {
+                        watchKey = watchService.take();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+
+                    for (WatchEvent event : watchKey.pollEvents()) {
+                        Path watchedPath = ((WatchEvent<Path>) event).context();
+                        Path childPath = imageFolderPath.resolve(watchedPath);
+
+                        WatchEvent.Kind kind = event.kind();
+                        if (kind.equals(ENTRY_CREATE)) {
+                            updateGroupListAndRecyclerView(childPath);
+                        } else if (kind.equals(ENTRY_DELETE)) {
+                            updateGroupListAndRecyclerView(childPath);
+                        } else if (kind.equals(ENTRY_MODIFY)) {
+                            updateGroupListAndRecyclerView(childPath);
+                        }
+                    }
+
+                    if (!watchKey.reset()) {
+                        break;
+                    }
+                }
+            }).start();
+        }
+    }
+    private void updateGroupListAndRecyclerView(Path childPath) {
+        getActivity().runOnUiThread(() -> {
+            groupList = getListImageGroup();
+            imageGroupAdapter = new ImageGroupAdapter(context, groupList);
+            recyclerView.setAdapter(imageGroupAdapter);
+            recyclerView.setLayoutManager(new LinearLayoutManager(getContext(), RecyclerView.VERTICAL, false));
+        });
+    }
+    // TODO: delete and adjust the code below: statistic and delete
     private  ArrayList<Statistic> getStatisticGroupList(ArrayList<ImageGroup> groupList) {
         ArrayList<Statistic> result = new ArrayList<Statistic>();
         int count=0;
@@ -134,9 +217,9 @@ public class GalleryFragment extends Fragment {
         ArrayList<String>allTrashPath=gson.fromJson(allTrash,new TypeToken<ArrayList<String>>(){}.getType());
         ArrayList<TrashItem>trash_list=new ArrayList<>();
         if(allTrashPath!=null){
-            for(int i=0;i<allTrashPath.size();i++){
-                trash_list.add(new TrashItem(allTrashPath.get(i)));
-            }
+//            for(int i=0;i<allTrashPath.size();i++){
+//                trash_list.add(new TrashItem(allTrashPath.get(i)));
+//            }
         }
         for(int i=0;i<trash_list.size();i++){
             for(int j=0;j<imageList.size();j++)
@@ -169,6 +252,7 @@ public class GalleryFragment extends Fragment {
         }
 
     }
+
     //xoá 1 ảnh gallery fragment---> image adapter--->image group
     public void deleteImage(String path){
         imageGroupAdapter.deleteImage(path);
@@ -179,13 +263,21 @@ public class GalleryFragment extends Fragment {
     }
 
     public Image findImageByPath(String path){
-        for(int i=0;i<groupList.size();i++){
-            Image image=groupList.get(i).findImageByPath(path);
-            if(image!=null){
-                return image;
+        File file = new File(path);
+        if(file.exists()){
+            for(int i=0;i<groupList.size();i++){
+                Image image=groupList.get(i).findImageByPath(path);
+                if(image!=null){
+                    return image;
+                }
             }
         }
         return null;
     }
 
+    @Override
+    public void onMsgFromMainToFragment(String strValue) {
+        groupList = main.imageGroupsByDate;
+        getActivity().getSupportFragmentManager().beginTransaction().detach(this).attach(this).commit();
+    }
 }

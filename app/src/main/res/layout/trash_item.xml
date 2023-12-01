@@ -1,10 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/cardImage_trash"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    android:orientation="vertical">
+    android:layout_margin="4dp">
+
     <ImageView
-        android:id="@+id/imageViewTrashItem"
+        android:id="@+id/trash_item"
         android:layout_width="110dp"
         android:layout_height="110dp"
         android:clickable="true"
@@ -12,19 +15,21 @@
         android:focusable="true"
         android:foreground="?android:attr/selectableItemBackgroundBorderless"
         android:scaleType="centerCrop"
-        android:layout_gravity="center"
-        android:src="@drawable/ic_share_24"/>
-    <TextView
-        android:id="@+id/textViewTrashItem"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:text="Thời gian còn lại"
-        />
+        android:src="@drawable/ic_launcher_foreground"
+        android:alpha="0.75"/>
+
     <CheckBox
         android:id="@+id/checkBoxTrashItem"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_height="35dp"
+        android:layout_marginEnd="0dp" />
 
-        />
-</LinearLayout>
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/remainingTime"
+        android:layout_gravity="bottom"
+        android:textColor="@android:color/white"
+        android:text="Text"/>
+
+</com.google.android.material.card.MaterialCardView>

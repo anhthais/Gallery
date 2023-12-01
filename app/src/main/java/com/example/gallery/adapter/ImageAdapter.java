@@ -8,11 +8,16 @@ import android.util.SparseBooleanArray;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
 import android.widget.ImageView;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.view.ActionMode;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.gallery.ImageActivity;
@@ -24,6 +29,7 @@ import com.example.gallery.object.Image;
 
 import com.bumptech.glide.Glide;
 import com.example.gallery.object.ImageGroup;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.gson.Gson;
 
 import java.io.File;
@@ -34,7 +40,9 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHol
     private ArrayList<Image> listImages;
     private Context context;
     private SparseBooleanArray selectedItemsIds;
-    private MultiSelectCallbacks multiSelectCallbacks;
+    private MultiSelectCallbacks multiSelectCallbacks = null;
+    private ActionMode mode = null;
+    BottomNavigationView btnv;
     private boolean checkBoxEnable = false;
     private ArrayList<ImageGroup> listGroups = null; // contains listImages
     private int groupPos = 0; // position of listImages in listGroups
@@ -51,71 +59,8 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHol
             super(view);
             // Define click listener for the ViewHolder's View
             image = (ImageView)view.findViewById(R.id.picture_item);
-            checkBox=itemView.findViewById(R.id.checkBoxImageItem);
-            image.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    if(checkBoxEnable==true){
-                        checkBox.setChecked(!checkBox.isChecked());
-                        int position=getAdapterPosition();
-                        if (checkBox.isChecked()) {
-                            selectedItemsIds.put(position,true);
-                        }
-                        else{
-                            if(selectedItemsIds.get(position)==true) {
-                                selectedItemsIds.delete(position);
-                            }
-                        }
-                    }
-                    else{
-                        //show all picture in album
-                        //((MainActivity)context).onMsgFromFragToMain("ALBUM",listImages.get(getAdapterPosition()));
-                    }
-                }
-            });
+            checkBox = itemView.findViewById(R.id.checkBoxImageItem);
 
-            image.setOnLongClickListener(new View.OnLongClickListener() {
-                @Override
-                public boolean onLongClick(View v) {
-
-                    if(!checkBoxEnable) {
-                        /*
-                        AppCompatActivity ma=(AppCompatActivity) context;
-                        ActionMode mode=ma.startSupportActionMode(new ActionMode.Callback() {
-                            @Override
-                            public boolean onCreateActionMode(ActionMode mode, Menu menu) {
-                                //update navìation/action bar here
-                                return true;
-                            }
-
-                            @Override
-                            public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
-                                return true;
-                            }
-
-                            @Override
-                            public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
-                                return true;
-                            }
-
-                            @Override
-                            public void onDestroyActionMode(ActionMode mode) {
-                                selectedItemsIds.clear();
-                                notifyDataSetChanged();
-                                checkBoxEnable=false;
-                                notifyDataSetChanged();
-
-                            }
-                        });*/
-                        checkBoxEnable = true;
-                        notifyDataSetChanged();
-                    }
-                    return true;
-                }
-            });
-        }
-        public ImageView getImageView(){
-            return image;
         }
     }
 
@@ -125,7 +70,7 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHol
     public ImageAdapter(Context context, ArrayList<Image> listImages) {
         this.context = context;
         this.listImages = listImages;
-        selectedItemsIds=new SparseBooleanArray();
+        selectedItemsIds = new SparseBooleanArray();
     }
 
     // setters
@@ -156,12 +101,19 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHol
         //set image
         File file = new File(image.getPath());
         Glide.with(context).load(file).into(holder.image);
-        if(checkBoxEnable==true){
+        if(checkBoxEnable){
             holder.checkBox.setVisibility(View.VISIBLE);
         }else{
             holder.checkBox.setVisibility(View.INVISIBLE);
             holder.checkBox.setChecked(false);
         }
+
+        if(multiSelectCallbacks != null){
+            holder.checkBox.setChecked(multiSelectCallbacks.isSelectedItem(position, groupPos));
+        } else {
+            holder.checkBox.setChecked(selectedItemsIds.get(position));
+        }
+
         holder.image.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -217,11 +169,13 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHol
                     // no nested adapter
                     else{
                         holder.checkBox.setChecked(!holder.checkBox.isChecked());
-                        if(selectedItemsIds.get(position)){
+                        if(!selectedItemsIds.get(position)){
                             selectedItemsIds.put(position, true);
                         }else{
                             selectedItemsIds.delete(position);
                         }
+                        mode.setTitle("Đã chọn " + selectedItemsIds.size());
+                        notifyDataSetChanged();
                     }
                 }
             }
@@ -230,13 +184,21 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHol
         holder.image.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View view) {
+                holder.checkBox.setChecked(true);
+                // nested adapter
                 if(multiSelectCallbacks != null){
                     multiSelectCallbacks.setMultiSelect(holder.getAdapterPosition(), groupPos);
-                }else{
-                    // TODO: call actionmode, like ImageGroupAdapter
-
                 }
-                holder.checkBox.setChecked(true);
+                // no nested adapter
+                else{
+                    changeOnMultiChooseMode();
+                    if(!selectedItemsIds.get(position)){
+                        selectedItemsIds.put(position, true);
+                    }else{
+                        selectedItemsIds.delete(position);
+                    }
+                    mode.setTitle("Đã chọn " + selectedItemsIds.size());
+                }
                 return true;
             }
         });
@@ -250,13 +212,14 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHol
                 }
                 // no nested adapter
                 else{
-                    if(selectedItemsIds.get(position)){
+                    if(!selectedItemsIds.get(position)){
                         selectedItemsIds.put(position, true);
                     }else{
                         selectedItemsIds.delete(position);
                     }
                 }
-
+                mode.setTitle("Đã chọn " + selectedItemsIds.size());
+                notifyDataSetChanged();
             }
         });
     }
@@ -264,25 +227,86 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHol
     // Return the size of your dataset (invoked by the layout manager)
     @Override
     public int getItemCount() {
-        if(listImages==null){
+        if(listImages == null){
             return 0;
         }
         return listImages.size();
     }
 
-    public boolean changeMultiMode(boolean isMultichoose)
-    {
-        if (true == isMultichoose)
-        {
+    public boolean changeMultiMode(boolean isMultichoose) {
+        if (isMultichoose) {
             checkBoxEnable = true;
-            notifyDataSetChanged();
         }
         else {
             checkBoxEnable = false;
-            notifyDataSetChanged();
         }
+        notifyDataSetChanged();
         return true;
     }
+    public void changeOnMultiChooseMode() {
+        //start action mode
+        AppCompatActivity ma = (AppCompatActivity) context;
+        mode = ma.startSupportActionMode(new ActionMode.Callback() {
+            @Override
+            public boolean onCreateActionMode(ActionMode mode, Menu menu) {
+                checkBoxEnable = true;
+                mode.getMenuInflater().inflate(R.menu.multi_select_menu_gallery, menu);
+                btnv = ((AppCompatActivity) context).findViewById(R.id.navigationBar);
+                btnv.setVisibility(View.GONE);
+                notifyDataSetChanged();
+                return true;
+            }
+
+            @Override
+            public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
+                return true;
+            }
+
+            @Override
+            public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
+                //TODO: handle action of menu
+                int id = item.getItemId();
+                if(id == R.id.btnSelectAll){
+                    for(int i = 0; i < listImages.size(); ++i){
+                        if(!selectedItemsIds.get(i)){
+                            selectedItemsIds.put(i, true);
+                        }
+                    }
+                }
+                else if(id == R.id.btnAddMultiFromGalleryToAlbum){
+
+                }
+                else if(id == R.id.btnDeleteMultiFromGallery){
+
+                }
+
+                mode.setTitle("Đã chọn " + selectedItemsIds.size());
+                notifyDataSetChanged();
+                return true;
+            }
+
+            @Override
+            public void onDestroyActionMode(ActionMode mode) {
+                checkBoxEnable = false;
+                mode = null;
+                Log.d("multiSelect", selectedItemsIds.toString());
+                selectedItemsIds.clear();
+                btnv.setVisibility(View.VISIBLE);
+                notifyDataSetChanged();
+
+            }
+        });
+    }
+
+    public ArrayList<Image> getSelectedItems(){
+        ArrayList<Image> selected = new ArrayList<>();
+        for(int i = 0; i < selectedItemsIds.size(); ++i){
+            selected.add(listImages.get(selectedItemsIds.keyAt(i)));
+        }
+        Log.d("selected", selected.toString());
+        return selected;
+    }
+
     public void removeFavImage()
     {
         notifyDataSetChanged();

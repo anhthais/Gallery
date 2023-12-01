@@ -7,7 +7,8 @@
         android:id="@+id/trashTextView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Hình ảnh sẽ bị xoá sau khi hết thời gian"/>
+        android:textAlignment="center"
+        android:text="Ảnh trong thùng rác sẽ bị xóa vĩnh viên sau 30 ngày"/>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/trashFragmentRecyclerView"

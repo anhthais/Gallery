@@ -4,28 +4,42 @@ import android.os.Parcel;
 import android.os.Parcelable;
 
 public class Image implements Parcelable {
+    private long idInMediaStore;
     private String path;
-    private String takenDate;
+    private String dateAdded;
+    private boolean isFavorite;
+    private String tags;
 
     public Image() {
     }
-    public Image(String path, String takenDate) {
+    public Image(String path, String dateAdded, long idInMediaStore) {
         this.path = path;
-        this.takenDate = takenDate;
+        this.dateAdded = dateAdded;
+        this.idInMediaStore = idInMediaStore;
+    }
+    public Image(String path, String dateAdded) {
+        this.path = path;
+        this.dateAdded = dateAdded;
     }
     public Image(String path) {
         this.path = path;
-
     }
+
     protected Image(Parcel in) {
+        idInMediaStore = in.readLong();
         path = in.readString();
-        takenDate = in.readString();
+        dateAdded = in.readString();
+        isFavorite = in.readByte() != 0;
+        tags = in.readString();
     }
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
+        dest.writeLong(idInMediaStore);
         dest.writeString(path);
-        dest.writeString(takenDate);
+        dest.writeString(dateAdded);
+        dest.writeByte((byte) (isFavorite ? 1 : 0));
+        dest.writeString(tags);
     }
 
     @Override
@@ -45,6 +59,13 @@ public class Image implements Parcelable {
         }
     };
 
+    public long getIdInMediaStore(){
+        return this.idInMediaStore;
+    }
+    public void setIdInMediaStore(long id){
+        this.idInMediaStore = id;
+    }
+
     public String getPath() {
         return path;
     }
@@ -53,10 +74,23 @@ public class Image implements Parcelable {
     }
 
     public String getDate() {
-        return takenDate;
+        return dateAdded;
     }
     public void setDate(String date) {
-        this.takenDate = date;
+        this.dateAdded = date;
     }
 
+    public boolean isFavorite(){
+        return this.isFavorite;
+    }
+    public void setFavorite(boolean isFavorite){
+        this.isFavorite = isFavorite;
+    }
+
+    public String getTags() {
+        return tags;
+    }
+    public void setTags(String tags) {
+        this.tags = tags;
+    }
 }

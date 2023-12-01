@@ -1,12 +1,19 @@
 package com.example.gallery.helper;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.Uri;
 import android.provider.MediaStore;
 import android.util.Log;
+import android.widget.Toast;
 
+import com.example.gallery.Database.DatabaseHelper;
 import com.example.gallery.object.Image;
+import com.example.gallery.object.ImageGroup;
+import com.example.gallery.object.TrashItem;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
@@ -14,16 +21,14 @@ import java.util.ArrayList;
 import java.util.Calendar;
 
 public class LocalStorageReader {
-    // Constant fields for projection and sort order
-    private static final String[] PROJECTION = {
-            MediaStore.MediaColumns.DATA,
-            MediaStore.Images.Media.BUCKET_DISPLAY_NAME,
-            MediaStore.Images.Media.DATE_TAKEN
-    };
-    private static final String ORDER_BY = MediaStore.Images.Media.DATE_TAKEN + " DESC";
-
-    // Method to get images from local storage
-    public static final ArrayList<Image> getImagesFromLocal(Context context) {
+    // TODO: multithreading
+    public static ArrayList<Image> getImagesFromLocal(Context context) {
+        String[] PROJECTION = {
+                MediaStore.Images.Media._ID,
+                MediaStore.Images.Media.DATA,
+                MediaStore.Images.Media.DATE_ADDED,
+        };
+        String ORDER_BY = MediaStore.Images.Media.DATE_ADDED + " DESC";
         Uri uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
         Cursor cursor = null;
         ArrayList<Image> images = new ArrayList<>();
@@ -31,39 +36,28 @@ public class LocalStorageReader {
         try {
             cursor = context.getApplicationContext().getContentResolver().query(uri, PROJECTION, null, null, ORDER_BY);
 
-            // Check if cursor is not null and move to first row
             if (cursor != null && cursor.moveToFirst()) {
-                // Get data
-//                int columnIndex = cursor.getColumnIndex(MediaStore.Images.Media._ID);
-                int columnIndex = cursor.getColumnIndex(MediaStore.MediaColumns.DATA);
-                int dateIndex = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATE_TAKEN);
-
-                // Create a calendar and a formatter for date conversion
-                Calendar myCal = Calendar.getInstance();
-                SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy");
+                int idColIdx = cursor.getColumnIndexOrThrow(MediaStore.Images.Media._ID);
+                int dataColIdx = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
+                int dateAddedColIdx = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATE_ADDED);
 
                 do {
-                    // Get image data from cursor
-                    String absolutePath = cursor.getString(columnIndex);
+                    long id = cursor.getLong(idColIdx);
+                    String absolutePath = cursor.getString(dataColIdx);
                     File file = new File(absolutePath);
-                    if (!file.canRead()) {
+                    if (!file.exists()) {
                         continue;
                     }
-                    Long dateTaken = cursor.getLong(dateIndex);
+                    long dateAdded = cursor.getLong(dateAddedColIdx) * 1000L;
+                    String dateString = DateConverter.simpleLongToString(dateAdded);
 
-                    // Convert date taken to string format
-                    myCal.setTimeInMillis(dateTaken);
-                    String dateText = formatter.format(myCal.getTime());
-
-                    // Create an image object and set its fields
-                    Image image = new Image(absolutePath, dateText);
+                    Image image = new Image(absolutePath, dateString, id);
 
                     if (!image.getPath().isEmpty()) {
                         images.add(image);
                         Log.d("Path", image.getPath());
                         Log.d("NumOfImages", String.valueOf(images.size()));
                     }
-
                     if(images.size() >= 100) break; // for testing
                 } while (cursor.moveToNext()); // Move to next row
             }
@@ -77,8 +71,30 @@ public class LocalStorageReader {
             }
         }
 
-        // Return list of images
-
         return images;
     }
+
+    public static ArrayList<ImageGroup> getListImageGroupByDate(ArrayList<Image> imageList) {
+        ArrayList<ImageGroup> groupList = new ArrayList<>();
+        int count = 0;
+        try {
+            // group images by taken date, imageList contains images ordered by date DESC
+            groupList.add(new ImageGroup(imageList.get(0).getDate(), new ArrayList<>()));
+            groupList.get(count).addImg(imageList.get(0));
+
+            for (int i = 1; i < imageList.size(); ++i) {
+                if (!imageList.get(i).getDate().equals(imageList.get(i - 1).getDate())) {
+                    groupList.add(new ImageGroup(imageList.get(i).getDate(), new ArrayList<>()));
+                    count++;
+                }
+                groupList.get(count).addImg(imageList.get(i));
+            }
+
+            return groupList;
+        } catch (Exception e) {
+            Log.e("getListImageGroup", e.toString());
+            return new ArrayList<>();
+        }
+    }
+
 }
