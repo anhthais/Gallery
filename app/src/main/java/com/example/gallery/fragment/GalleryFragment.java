@@ -4,6 +4,7 @@ import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_DELETE;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY;
 
+import android.app.Dialog;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -11,6 +12,9 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -28,6 +32,8 @@ import com.example.gallery.object.Image;
 import com.example.gallery.object.ImageGroup;
 import com.example.gallery.object.Statistic;
 import com.example.gallery.object.TrashItem;
+import com.example.gallery.helper.DownLoadImage;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
@@ -53,7 +59,7 @@ public class GalleryFragment extends Fragment implements FragmentCallBacks {
     private Context context;
     private MainActivity main;
 
-
+    private FloatingActionButton addImageFromLink;
 
     // TODO: adjust to singleton
     public static GalleryFragment getInstance(){
@@ -88,6 +94,7 @@ public class GalleryFragment extends Fragment implements FragmentCallBacks {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.gallery_fragment, container, false);
         recyclerView = view.findViewById(R.id.recycleImages);
+        addImageFromLink=view.findViewById(R.id.btnAddImage);
         //groupList = getListImageGroup();
         imageGroupAdapter = new ImageGroupAdapter(context, groupList);
 
@@ -98,7 +105,40 @@ public class GalleryFragment extends Fragment implements FragmentCallBacks {
         // Tính dung lượng và số lượng của mỗi group list,
         statisticList = getStatisticGroupList(groupList);
         passObjectToActivity(statisticList);
+        addImageFromLink.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Dialog addDialog=new Dialog(context);
+                addDialog.setContentView(R.layout.add_album_dialog);
+                EditText editText=addDialog.findViewById(R.id.addNewAlbumEditText);
+                Button ok=addDialog.findViewById(R.id.btnOKAddAlbum);
+                Button cancel=addDialog.findViewById(R.id.btnCancelAddAlbum);
+                TextView textView=addDialog.findViewById(R.id.addNewAlbumTextView);
+                textView.setText("Thêm ảnh từ đường dẫn");
+                addDialog.create();
+                addDialog.show();
 
+                ok.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        if(editText.getText().toString().length()==0){
+                            Toast.makeText(context, "Nhập đường dẫn", Toast.LENGTH_SHORT).show();
+                        }
+                        else{
+                            DownloadImageFromLink(editText.getText().toString());
+
+                            addDialog.cancel();
+                        }
+                    }
+                });
+                cancel.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        addDialog.cancel();
+                    }
+                });
+            }
+        });
         return view;
     }
     private ArrayList<String> findMediaStoreImageFolder(ArrayList<ImageGroup> groupList){
@@ -274,7 +314,15 @@ public class GalleryFragment extends Fragment implements FragmentCallBacks {
         }
         return null;
     }
+    void DownloadImageFromLink(String ImageUrl) {
+        //Asynctask to create a thread to downlaod image in the background
+        Toast.makeText(context, "Downloading", Toast.LENGTH_SHORT).show();
+        try{
+            new DownLoadImage(context).execute(ImageUrl);
+        }catch (Exception e){
+        }
 
+    }
     @Override
     public void onMsgFromMainToFragment(String strValue) {
         groupList = main.imageGroupsByDate;

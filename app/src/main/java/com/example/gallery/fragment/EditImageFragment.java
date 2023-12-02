@@ -2,6 +2,7 @@ package com.example.gallery.fragment;
 
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.ColorFilter;
 import android.graphics.ColorMatrix;
@@ -16,24 +17,31 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
 
+import android.util.Base64;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.SeekBar;
+import android.widget.Toast;
 
+import com.example.gallery.FragmentCallBacks;
 import com.example.gallery.MainCallBacks;
 import com.example.gallery.R;
 import com.example.gallery.object.Tool;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
+import java.io.ByteArrayOutputStream;
+
 
 public class EditImageFragment extends Fragment {
-    Uri uri;
+    Bitmap uCropEditedImage;
     Context context;
     ImageView imageView;
 
-    private Toolbar topBar;
+
     private BottomNavigationView btnv;
 
     private MainCallBacks callback;
@@ -43,11 +51,20 @@ public class EditImageFragment extends Fragment {
     private SeekBar seekBarBrightness;
     private SeekBar seekBarConstract;
 
+    LinearLayout editBrightnessBottomNav;
+    LinearLayout editConstractBottomNav;
+    Toolbar editTopBar;
+    Toolbar topBar;
+    ImageButton img_btn_save;
+    ImageButton img_btn_saveEdit;
     private  Bitmap currenBitmap;
 
-    public EditImageFragment(Context context,String imageUri, Integer curPos) {
+    private  Bitmap editFinal;
+
+    public EditImageFragment(Context context,String encodedBitmap, Integer curPos) {
         this.context = context;
-        uri = Uri.parse(imageUri);
+        byte[] decodedString = Base64.decode(encodedBitmap, Base64.DEFAULT);
+        uCropEditedImage = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
         this.curPos = curPos;
     }
 
@@ -73,12 +90,22 @@ public class EditImageFragment extends Fragment {
 
         imageView = view.findViewById(R.id.imageViewEditPicture);
         btnv = view.findViewById(R.id.navigationBarEditPicture);
-        topBar = view.findViewById(R.id.topAppBar);
         seekBarBrightness = view.findViewById(R.id.seekBarBrightness);
         seekBarConstract = view.findViewById(R.id.seekBarConstract);
 
+        editTopBar = view.findViewById(R.id.topEditBar);
+        topBar = view.findViewById(R.id.topAppBar);
+
+        editBrightnessBottomNav = view.findViewById(R.id.layout_edit_brightness);
+        editConstractBottomNav = view.findViewById(R.id.layout_edit_constract);
+
+        img_btn_save = view.findViewById(R.id.check);
+        img_btn_save.setClickable(false);
+
+        img_btn_saveEdit = view.findViewById(R.id.checkEdit);
+
         imageView.setImageURI(null);
-        imageView.setImageURI(uri);
+        imageView.setImageBitmap(uCropEditedImage);
 
         currenBitmap = ((BitmapDrawable) imageView.getDrawable()).getBitmap();
 
@@ -86,18 +113,33 @@ public class EditImageFragment extends Fragment {
             int id = item.getItemId();
             if(id == R.id.btnCutPicture){
                 if (callback != null) {
-                    callback.onMsgFromFragToMain("CUT-ROTATE",curPos.toString());
+                    currenBitmap = ((BitmapDrawable) imageView.getDrawable()).getBitmap();
+                    ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+                    currenBitmap.compress(Bitmap.CompressFormat.PNG, 100, byteArrayOutputStream);
+                    byte[] byteArray = byteArrayOutputStream .toByteArray();
+                    String encodedBitmap = Base64.encodeToString(byteArray, Base64.DEFAULT);
+
+                    callback.onMsgFromFragToMain("CUT-ROTATE",encodedBitmap);
                 }
             }
             else if (id == R.id.btnLightUp){
                 btnv.setVisibility(View.INVISIBLE);
-                seekBarBrightness.setVisibility(view.VISIBLE);
-
+                editBrightnessBottomNav.setVisibility(View.VISIBLE);
+                img_btn_save.setClickable(true);
+                topBar.setVisibility(View.INVISIBLE);
+                editTopBar.setVisibility(View.VISIBLE);
 
             }
             else if (id == R.id.btnConstract){
                 btnv.setVisibility(View.INVISIBLE);
-                seekBarConstract.setVisibility(view.VISIBLE);
+                editConstractBottomNav.setVisibility(View.VISIBLE);
+
+                img_btn_save.setClickable(true);
+
+                topBar.setVisibility(View.INVISIBLE);
+                editTopBar.setVisibility(View.VISIBLE);
+
+
             }
 
             else if (id == R.id.btnFilter){
@@ -118,6 +160,47 @@ public class EditImageFragment extends Fragment {
                 if (callback != null) {
                     callback.onMsgFromFragToMain("RETURN-IMAGE-VIEW",curPos.toString());
                 }
+            }
+
+
+        });
+        img_btn_save.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Toast.makeText(context,"Save Edit Image",Toast.LENGTH_SHORT).show();
+                currenBitmap = ((BitmapDrawable) imageView.getDrawable()).getBitmap();
+                ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+                currenBitmap.compress(Bitmap.CompressFormat.PNG, 100, byteArrayOutputStream);
+                byte[] byteArray = byteArrayOutputStream .toByteArray();
+                String encodedBitmap = Base64.encodeToString(byteArray, Base64.DEFAULT);
+
+                if (callback != null) {
+                    callback.onMsgFromFragToMain("SAVE-EDITED-IMAGE",encodedBitmap);
+                }
+
+            }
+        });
+
+        img_btn_saveEdit.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                editBrightnessBottomNav.setVisibility(View.INVISIBLE);
+                editConstractBottomNav.setVisibility(View.INVISIBLE);
+                editTopBar.setVisibility(View.INVISIBLE);
+                btnv.setVisibility(View.VISIBLE);
+                topBar.setVisibility(View.VISIBLE);
+                imageView.setImageBitmap(editFinal);
+            }
+        });
+        editTopBar.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                btnv.setVisibility(View.VISIBLE);
+                editBrightnessBottomNav.setVisibility(View.INVISIBLE);
+                editConstractBottomNav.setVisibility(View.INVISIBLE);
+                topBar.setVisibility(View.VISIBLE);
+                editTopBar.setVisibility(View.INVISIBLE);
+                imageView.setImageBitmap(currenBitmap);
             }
         });
 
@@ -182,6 +265,7 @@ public class EditImageFragment extends Fragment {
 
         // Set the output Bitmap to ImageView
         imageView.setImageBitmap(outputBitmap);
+        editFinal = outputBitmap;
 
     }
 
@@ -211,6 +295,7 @@ public class EditImageFragment extends Fragment {
 
         // Set the output Bitmap to ImageView
         imageView.setImageBitmap(outputBitmap);
+        editFinal = outputBitmap;
     }
 
     private void toggleSeekBarVisibility() {
@@ -221,5 +306,9 @@ public class EditImageFragment extends Fragment {
 
 
 
-
+    public void onMsgFromMainToFragment(String strValue) {
+        byte [] decodedString = Base64.decode(strValue,Base64.DEFAULT);
+        editFinal = BitmapFactory.decodeByteArray(decodedString,0,decodedString.length);
+        imageView.setImageBitmap(editFinal);
+    }
 }

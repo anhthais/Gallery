@@ -39,6 +39,8 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 import androidx.viewpager2.widget.MarginPageTransformer;
 import androidx.viewpager2.widget.ViewPager2;
 import androidx.appcompat.widget.Toolbar;
@@ -520,6 +522,7 @@ public class ImageViewFragment extends Fragment implements ToolbarCallbacks {
                             Log.d("error delete", e.getMessage());
                         }
                     }
+
                 });
                 builder.setNegativeButton("Thoát", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
@@ -530,6 +533,18 @@ public class ImageViewFragment extends Fragment implements ToolbarCallbacks {
 
                 AlertDialog alertDialog = builder.create();
                 alertDialog.show();
+            }else if (id == R.id.btnViewInfor) {
+                Image currentImage = images.get(imageViewPager2.getCurrentItem());
+                EditPictureInformationFragment editFragment = new EditPictureInformationFragment(currentImage);
+
+                Bundle bundle = new Bundle();
+                bundle.putString("key", "value");
+                editFragment.setArguments(bundle);
+                FragmentManager fragmentManager = requireActivity().getSupportFragmentManager();
+                FragmentTransaction transaction = fragmentManager.beginTransaction();
+                transaction.replace(R.id.pictureFragment, editFragment);
+                transaction.addToBackStack(null);
+                transaction.commit();
             }
 
             return true;

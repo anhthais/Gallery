@@ -5,53 +5,149 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
     <!--Phần này là view để user ghi đè lên/ chưa rõ view nào hỗ trợ phần này-->
+
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/topAppBar"
         android:layout_width="match_parent"
-        android:layout_height="?attr/actionBarSize"
-        app:itemIconTint="?attr/colorOnBackground"
+        android:layout_height="wrap_content"
         android:background="?attr/colorOnPrimary"
-        app:navigationIcon="@drawable/baseline_arrow_back_ios_24"
-        android:fitsSystemWindows="true"/>
+        android:fitsSystemWindows="true"
+        app:navigationIcon="@drawable/ic_cancel">
+
+        <ImageButton
+            android:id="@+id/check"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="right"
+            android:src="@drawable/ic_check"
+            app:tint="@color/green">
+
+        </ImageButton>
+    </androidx.appcompat.widget.Toolbar>
+
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/topEditBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?attr/colorOnPrimary"
+        android:fitsSystemWindows="true"
+        android:visibility="gone"
+        app:navigationIcon="@drawable/ic_cancel">
+
+        <ImageButton
+            android:id="@+id/checkEdit"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="right"
+            android:src="@drawable/ic_check"
+            app:tint="@color/green">
+
+        </ImageButton>
+    </androidx.appcompat.widget.Toolbar>
+
+
+
 
     <ImageView
         android:id="@+id/imageViewEditPicture"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/topAppBar"
-        android:layout_marginBottom="50dp"
-        android:layout_above="@id/navigationBarEditPicture"/>
+        android:layout_height="match_parent"
+        android:layout_marginTop="50dp"
+        android:layout_marginBottom="60dp"/>
 
-    <SeekBar
-        android:id="@+id/seekBarBrightness"
+    <LinearLayout
+        android:id="@+id/layout_edit_brightness"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="16dp"
-        android:layout_marginEnd="16dp"
-        android:layout_marginBottom="20dp"
-        android:background="@color/dark"
-        android:progressBackgroundTint="@color/white"
-        android:max="255"
+        android:layout_gravity="bottom"
+        android:orientation="vertical"
         android:visibility="gone"
-        />
+        android:layout_marginBottom="30dp">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:src="@drawable/ic_sunny_24"
+                app:tint="@color/green"
+                android:layout_gravity="center_vertical">
 
-    <SeekBar
-        android:id="@+id/seekBarConstract"
+            </ImageView>
+
+            <SeekBar
+                android:id="@+id/seekBarBrightness"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_alignParentBottom="true"
+                android:layout_marginStart="20dp"
+                android:layout_marginEnd="16dp"
+                android:background="@color/dark"
+                android:max="255"
+                android:layout_gravity="center_vertical"
+                android:progressBackgroundTint="@color/white"></SeekBar>
+        </LinearLayout>
+
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:text="Điều chỉnh độ sáng"
+            android:textSize="24sp"
+            android:textColor="@color/green_light"
+            android:gravity="center_horizontal"/>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/layout_edit_constract"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="16dp"
-        android:layout_marginEnd="16dp"
-        android:layout_marginBottom="20dp"
-        android:background="@color/dark"
-        android:progressBackgroundTint="@color/white"
-        android:max="255"
-        android:progress="128"
+        android:layout_gravity="bottom"
+        android:orientation="vertical"
         android:visibility="gone"
-        />
+        android:layout_marginBottom="30dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <ImageView
+                android:layout_marginStart="10dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_constract"
+                app:tint="@color/green"
+                android:layout_gravity="center_vertical">
+
+            </ImageView>
+
+            <SeekBar
+                android:id="@+id/seekBarConstract"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_alignParentBottom="true"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                android:background="@color/dark"
+                android:progressBackgroundTint="@color/white"
+                android:max="255"
+                android:progress="128"
+
+                />
+            /</LinearLayout>
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Điều chỉnh tương phản"
+            android:textColor="@color/green_light"
+            android:textSize="24sp"
+            android:gravity="center_horizontal"/>
+
+    </LinearLayout>
 
 
     <com.google.android.material.bottomnavigation.BottomNavigationView
@@ -64,4 +160,5 @@
         app:itemTextColor="?attr/colorOnBackground"
         android:background="?attr/colorOnPrimary"
         app:menu="@menu/edit_picture_navigationbar_menu"/>
+
 </RelativeLayout>

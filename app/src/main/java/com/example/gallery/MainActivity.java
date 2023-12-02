@@ -98,9 +98,11 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         // set widget view
+
         action_bar=getSupportActionBar();
         action_bar.setDisplayShowHomeEnabled(true);
         // request permission
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU){
             ActivityCompat.requestPermissions(MainActivity.this,
                     new String[]{
@@ -108,6 +110,8 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
                             Manifest.permission.INTERNET},
                     PERMISSION_REQUEST_READ_CODE);
         } else {
+            Log.d("CheckImg","check");
+
             ActivityCompat.requestPermissions(MainActivity.this,
                     new String[]{
                             android.Manifest.permission.READ_EXTERNAL_STORAGE,
@@ -215,6 +219,7 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
             } else {
                 // permission denied, boo! Disable the functionality that depends on this permission.
                 Toast.makeText(MainActivity.this, "Permission denied!", Toast.LENGTH_SHORT).show();
+
             }
         }
 
