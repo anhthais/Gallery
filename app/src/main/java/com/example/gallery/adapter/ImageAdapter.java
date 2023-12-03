@@ -133,30 +133,27 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHol
                         intent.putExtra("curPos", newPosition);
                         //đưa danh sách tên các album qua imageactivity
                         ArrayList<String> album_name = new ArrayList<String>();
-                        ArrayList<String> fav_img_name=new ArrayList<String>();
-                        ArrayList<Album> albums=((MainActivity)context).getAlbum_list();
-                        ArrayList<Image> favImg = ((MainActivity)context).getFavourite_img_list();
+                        ArrayList<Album> albums=((MainActivity)context).album_list;
                         for(int i = 0; i < albums.size(); i++){
                             album_name.add(albums.get(i).getName());
                         }
                         Gson gson = new Gson();
                         String albu_arr = gson.toJson(album_name);
-                        if (favImg != null)
-                        {
-                            for (int i=0 ; i < favImg.size();i++)
-                            {
-                                fav_img_name.add(favImg.get(i).getPath());
-                            }
-                        }
-                        String fav = gson.toJson(fav_img_name);
-                        Log.d("CheckImgAl",fav);
                         intent.putExtra("ALBUM-LIST",albu_arr);
-                        intent.putExtra("FAV-IMG-LIST",fav);
                         ((MainActivity) context).startActivityForResult(intent,1122);
                     } else {
                         Intent intent = new Intent(context, ImageActivity.class);
                         intent.putParcelableArrayListExtra("images", listImages);
                         intent.putExtra("curPos", position);
+                        //đưa danh sách tên các album qua imageactivity
+                        ArrayList<String> album_name = new ArrayList<String>();
+                        ArrayList<Album> albums=((MainActivity)context).album_list;
+                        for(int i = 0; i < albums.size(); i++){
+                            album_name.add(albums.get(i).getName());
+                        }
+                        Gson gson = new Gson();
+                        String albu_arr = gson.toJson(album_name);
+                        intent.putExtra("ALBUM-LIST",albu_arr);
                         ((MainActivity) context).startActivityForResult(intent,1122);
                     }
                 }

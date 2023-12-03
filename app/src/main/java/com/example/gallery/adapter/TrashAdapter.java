@@ -19,20 +19,17 @@ import androidx.appcompat.view.ActionMode;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
-import com.example.gallery.ImageActivity;
 import com.example.gallery.MainActivity;
 import com.example.gallery.R;
 import com.example.gallery.TrashActivity;
 import com.example.gallery.helper.DateConverter;
-import com.example.gallery.object.Album;
-import com.example.gallery.object.Image;
 import com.example.gallery.object.TrashItem;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
-import com.google.gson.Gson;
 
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 
 public class TrashAdapter extends RecyclerView.Adapter<TrashAdapter.ViewHolder> {
@@ -99,15 +96,15 @@ public class TrashAdapter extends RecyclerView.Adapter<TrashAdapter.ViewHolder> 
             holder.checkBox.setChecked(false);
         }
         holder.checkBox.setChecked(selectedItemsIds.get(position));
-        String txt = "Còn lại " + DateConverter.getMinutesFromComputeDiff(new Date(trashItems.get(position).getDateExpires()), new Date());
-        holder.text.setText(txt);
-        holder.checkBox.setOnClickListener(new View.OnClickListener() {
+
+        holder.text.setText(getRemainingTime(item));
+        holder.image.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 if (!checkBoxEnable) {
                     Intent intent = new Intent(context, TrashActivity.class);
                     intent.putParcelableArrayListExtra("trashItems", trashItems);
-                    intent.putExtra("curPos", position);
+                    intent.putExtra("curPos", holder.getAdapterPosition());
                     ((MainActivity) context).startActivityForResult(intent,2233);
                 }
                 else {
@@ -145,6 +142,7 @@ public class TrashAdapter extends RecyclerView.Adapter<TrashAdapter.ViewHolder> 
                 notifyDataSetChanged();
             }
         });
+
     }
 
     public void changeOnMultiChooseMode() {
@@ -216,5 +214,11 @@ public class TrashAdapter extends RecyclerView.Adapter<TrashAdapter.ViewHolder> 
         }
         Log.d("selected", selected.toString());
         return selected;
+    }
+
+    public String getRemainingTime(TrashItem item){
+        Date curDate = Calendar.getInstance().getTime();
+        Date expiredDate = new Date(item.getDateExpires());
+        return "Còn lại " + DateConverter.getMinutesFromComputeDiff(curDate, expiredDate) + " phút";
     }
 }

@@ -31,7 +31,7 @@ public class Album {
     }
     //add an image to database (set Album=Album name)
     public void addImageToAlbum(Image image){
-        for(int i=0;i<all_album_pictures.size();i++){
+        for(int i = 0; i < all_album_pictures.size(); i++){
             if(all_album_pictures.get(i).getPath().equals(image.getPath()))
                 return;
         }

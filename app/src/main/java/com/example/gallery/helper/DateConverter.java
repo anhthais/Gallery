@@ -69,19 +69,23 @@ public class DateConverter {
 
     public static Date plusDays(Date current, int numOfDays){
         Calendar cal = Calendar.getInstance();
+        cal.setTimeInMillis(current.getTime());
         cal.add(Calendar.DATE, numOfDays);
         return cal.getTime();
     }
 
     public static Date plusHours(Date current, int numOfHours){
         Calendar cal = Calendar.getInstance();
+        cal.setTimeInMillis(current.getTime());
         cal.add(Calendar.HOUR, numOfHours);
         return cal.getTime();
     }
 
     public static Date plusMinutes(Date current, int numOfMinutes){
         Calendar cal = Calendar.getInstance();
+        cal.setTimeInMillis(current.getTime());
         cal.add(Calendar.MINUTE, numOfMinutes);
         return cal.getTime();
     }
+
 }

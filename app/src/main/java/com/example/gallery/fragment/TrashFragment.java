@@ -14,6 +14,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.gallery.FragmentCallBacks;
 import com.example.gallery.MainActivity;
+import com.example.gallery.MultiSelectModeCallbacks;
 import com.example.gallery.R;
 import com.example.gallery.adapter.TrashAdapter;
 import com.example.gallery.object.TrashItem;
@@ -22,7 +23,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 
-public class TrashFragment extends Fragment implements FragmentCallBacks {
+public class TrashFragment extends Fragment implements FragmentCallBacks, MultiSelectModeCallbacks {
     private Context context;
     private TrashAdapter trash_adapter;
     private ArrayList<TrashItem> trashItems;
@@ -39,7 +40,6 @@ public class TrashFragment extends Fragment implements FragmentCallBacks {
         try {
             context = getActivity(); // use this reference to invoke main callbacks
             main = (MainActivity) getActivity();
-            trashItems = main.trashItems;
         } catch (IllegalStateException e) {
             throw new IllegalStateException("MainActivity must implement callbacks");
         }
@@ -49,15 +49,40 @@ public class TrashFragment extends Fragment implements FragmentCallBacks {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View TrashFragment = inflater.inflate(R.layout.trash_fragment, container, false);
-        trash_adapter = new TrashAdapter(context, trashItems);
         trash_RecyclerView = TrashFragment.findViewById(R.id.trashFragmentRecyclerView);
-        trash_RecyclerView.setAdapter(trash_adapter);
         trash_RecyclerView.setLayoutManager(new GridLayoutManager(context, 3));
+
+        ((MainActivity)context).getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        ((MainActivity)context).getSupportActionBar().setHomeButtonEnabled(true);
+        ((MainActivity)context).getSupportActionBar().setTitle("Thùng rác");
+
         return TrashFragment;
     }
 
     @Override
+    public void onResume(){
+        super.onResume();
+        trashItems = main.trashItems;
+        trash_adapter = new TrashAdapter(context, trashItems);
+        trash_RecyclerView.setAdapter(trash_adapter);
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        ((MainActivity)context).getSupportActionBar().setTitle("Gallery");
+        ((MainActivity)context).getSupportActionBar().setDisplayHomeAsUpEnabled(false);
+        ((MainActivity)context).getMenu().findItem(R.id.btnRenameAlbum).setVisible(false);
+        ((MainActivity)context).getMenu().findItem(R.id.btnAddNewAlbum).setVisible(true);
+
+    }
+    @Override
     public void onMsgFromMainToFragment(String strValue) {
 
+    }
+
+    @Override
+    public void changeOnMultiChooseMode(){
+        trash_adapter.changeOnMultiChooseMode();
     }
 }

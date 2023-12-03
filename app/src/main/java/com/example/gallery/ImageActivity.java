@@ -1,17 +1,22 @@
 package com.example.gallery;
 
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
+import android.app.Activity;
 import android.content.BroadcastReceiver;
+import android.content.ContentUris;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
@@ -21,6 +26,7 @@ import android.widget.Toast;
 
 import com.example.gallery.fragment.EditImageFragment;
 import com.example.gallery.fragment.ImageViewFragment;
+import com.example.gallery.helper.DateConverter;
 import com.example.gallery.object.Image;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.gson.Gson;
@@ -39,15 +45,12 @@ import java.util.UUID;
 public class ImageActivity extends AppCompatActivity implements MainCallBacks{
     private ArrayList<Image> images;
     private ArrayList<String> album_names;
-    private ArrayList<String> fav_img_names;
     private int curPos;
     private Uri tempEdited;
-    BottomNavigationView bottomNavigation;
     Intent intent_image;
     Uri uri;
-    Toolbar tool_bar;
     private FragmentCallBacks callback;
-
+    public ImageViewFragment imageViewFragment = null;
 
     private String dataSend;
     @Override
@@ -61,36 +64,61 @@ public class ImageActivity extends AppCompatActivity implements MainCallBacks{
         intent_image=intent;
         images = intent.getParcelableArrayListExtra("images");
         curPos = intent.getIntExtra("curPos", 0);
-        Gson gson=new Gson();
-        String album_arr=intent.getStringExtra("ALBUM-LIST");
-        album_names=gson.fromJson(album_arr, new TypeToken<ArrayList<String>>(){}.getType());
-        gson = new Gson();
-        fav_img_names = new ArrayList<>();
-        String fav_arr= intent.getStringExtra("FAV-IMG-LIST");
+        Gson gson = new Gson();
+        String album_arr = intent.getStringExtra("ALBUM-LIST");
+        album_names = gson.fromJson(album_arr, new TypeToken<ArrayList<String>>(){}.getType());
 
-
-
-        fav_img_names = gson.fromJson(fav_arr,new TypeToken<ArrayList<String>>(){}.getType());
         FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
         //getApplicationContext--> imageActivity.this
-        ImageViewFragment imageViewFragment = new ImageViewFragment(ImageActivity.this, images,album_names,fav_img_names, curPos);
+        ImageViewFragment imageViewFragment = new ImageViewFragment(ImageActivity.this, images, album_names, curPos);
         ft.replace(R.id.pictureFragment, imageViewFragment);
         ft.commit();
-
-
-
     }
 
+    public void updateImageViewFragment(ImageViewFragment frag){
+        Gson gson = new Gson();
+        // update images list
+        curPos = frag.imageViewPager2.getCurrentItem();
+        // set result for main activity
+        frag.deletePos.add(frag.images.get(curPos).getIdInMediaStore());
+        frag.deleteTime.add((new Date()).getTime());
+        frag.newDeletedImagePath.add(frag.newPath);
+        images.remove(curPos);
+        if (curPos == images.size()) {
+            curPos--;
+        } else curPos++;
+        //update viewpagerAdapter
+        frag.imageViewPager2.setCurrentItem(curPos, false);
+        frag.imageViewPager2.getAdapter().notifyDataSetChanged();
+
+        Intent intent = getIntent();
+        intent.putExtra("addDelete", gson.toJson(frag.deletePos));
+        intent.putExtra("addDeleteTime", gson.toJson(frag.deleteTime));
+        intent.putExtra("addDeleteNewPath", gson.toJson(frag.newDeletedImagePath));
+        setResult(AppCompatActivity.RESULT_OK, intent);
+
+        SharedPreferences myPref = getSharedPreferences("TRASH", Activity.MODE_PRIVATE);
+        SharedPreferences.Editor editor = myPref.edit();
+        ArrayList<String> data = new ArrayList<>(2);
+        data.add(frag.oldPath);
+        Date dateExpires = DateConverter.plusMinutes(new Date(), 10);
+        data.add(DateConverter.longToString(dateExpires.getTime()));
+        editor.putString(frag.newPath, gson.toJson(data));
+        editor.apply();
+
+        if (images.size() == 0) {
+            finish();
+        }
+    }
 
     @Override
     public void onMsgFromFragToMain(String sender, String strValue) {
-        if(sender == "EDIT-PHOTO"){
+        if(sender.equals("EDIT-PHOTO")){
             Toast.makeText(this,"Edit Feature Pos: "+strValue,Toast.LENGTH_SHORT).show();
             curPos = Integer.valueOf(strValue);
 
             try {
                 uri = Uri.parse(images.get(Integer.valueOf(strValue)).getPath().toString());
-
 
                 if (uri!=null) {
                     FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
@@ -108,7 +136,7 @@ public class ImageActivity extends AppCompatActivity implements MainCallBacks{
                 e.printStackTrace();
             }
         }
-        if(sender == "CUT-ROTATE"){
+        else if(sender.equals("CUT-ROTATE")){
             ByteArrayOutputStream bytes = new ByteArrayOutputStream();
 
             //Uri fileUri = Uri.fromFile(new File(images.get(Integer.valueOf(strValue)).getPath().toString()));
@@ -131,25 +159,19 @@ public class ImageActivity extends AppCompatActivity implements MainCallBacks{
 
             }
 
-
-
         }
-
-        if(sender == "RETURN-IMAGE-VIEW"){
+        else if(sender.equals("RETURN-IMAGE-VIEW")){
             FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
             //getApplicationContext--> imageActivity.this
-            ImageViewFragment imageViewFragment = new ImageViewFragment(ImageActivity.this, images,album_names,fav_img_names,curPos);
+            ImageViewFragment imageViewFragment = new ImageViewFragment(ImageActivity.this, images,album_names, curPos);
             ft.replace(R.id.pictureFragment, imageViewFragment); ft.commit();
-
         }
-
-        if(sender == "SAVE-EDITED-IMAGE") {
+        else if(sender.equals("SAVE-EDITED-IMAGE")) {
             byte[] decodeString = Base64.decode(strValue, Base64.DEFAULT);
             Bitmap decodedBitmap = BitmapFactory.decodeByteArray(decodeString, 0, decodeString.length);
 
             String path = images.get(curPos).getPath();
             String pathWithoutFilename = path.substring(0, path.lastIndexOf("/"));
-
 
             try {
                 // Create a new File object for the output file
@@ -181,16 +203,12 @@ public class ImageActivity extends AppCompatActivity implements MainCallBacks{
             }
             FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
             //getApplicationContext--> imageActivity.this
-            ImageViewFragment imageViewFragment = new ImageViewFragment(ImageActivity.this, images,album_names,fav_img_names,curPos);
+            ImageViewFragment imageViewFragment = new ImageViewFragment(ImageActivity.this, images,album_names ,curPos);
             ft.replace(R.id.pictureFragment, imageViewFragment); ft.commit();
-
-
         }
-
-
     }
 
-
+    @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (resultCode == RESULT_OK && requestCode ==UCrop.REQUEST_CROP) {
@@ -204,18 +222,21 @@ public class ImageActivity extends AppCompatActivity implements MainCallBacks{
 
             this.getContentResolver().delete(tempEdited, null, null);
 
-
             FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
             //getApplicationContext--> imageActivity.this
             EditImageFragment editImageFragment = new EditImageFragment(ImageActivity.this,encodedBitmap,curPos);
             ft.replace(R.id.pictureFragment, editImageFragment); ft.commit();
 
-
         }
         else if(resultCode == UCrop.RESULT_ERROR){
             final Throwable cropError = UCrop.getError(data);
         }
+        else if(resultCode == AppCompatActivity.RESULT_OK && requestCode == 1){
+            if(Build.VERSION.SDK_INT == Build.VERSION_CODES.Q){
+                getContentResolver().delete(ContentUris.withAppendedId(MediaStore.Images.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY), Long.valueOf(imageViewFragment.images.get(imageViewFragment.imageViewPager2.getCurrentItem()).getIdInMediaStore())), null, null);
+            }
+            updateImageViewFragment(imageViewFragment);
+        }
     }
-
 
 }

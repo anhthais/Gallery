@@ -25,6 +25,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.gallery.FragmentCallBacks;
 import com.example.gallery.MainActivity;
 import com.example.gallery.MainCallBackObjectData;
+import com.example.gallery.MultiSelectModeCallbacks;
 import com.example.gallery.R;
 import com.example.gallery.adapter.ImageGroupAdapter;
 import com.example.gallery.helper.LocalStorageReader;
@@ -47,7 +48,7 @@ import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
 import java.util.ArrayList;
 
-public class GalleryFragment extends Fragment implements FragmentCallBacks {
+public class GalleryFragment extends Fragment implements FragmentCallBacks, MultiSelectModeCallbacks {
     private RecyclerView recyclerView;
     private ImageGroupAdapter imageGroupAdapter;
     private ArrayList<ImageGroup> groupList;
@@ -55,18 +56,14 @@ public class GalleryFragment extends Fragment implements FragmentCallBacks {
     private WatchService watchService;
     private Path imageFolderPath;
     private  ArrayList<String> listMediaFolderImage;
-
     private Context context;
     private MainActivity main;
-
     private FloatingActionButton addImageFromLink;
 
     // TODO: adjust to singleton
     public static GalleryFragment getInstance(){
         return new GalleryFragment();
     }
-
-    final Integer REQUEST_CODE = 1;
     private MainCallBackObjectData callback;
 
     @Override
@@ -84,9 +81,19 @@ public class GalleryFragment extends Fragment implements FragmentCallBacks {
         try {
             context = getActivity(); // use this reference to invoke main callbacks
             main = (MainActivity) getActivity();
-            groupList = main.imageGroupsByDate;
         } catch (IllegalStateException e) {
             throw new IllegalStateException("MainActivity must implement callbacks");
+        }
+    }
+
+    @Override
+    public void onResume(){
+        super.onResume();
+        if(main.isResetView){
+            groupList = main.imageGroupsByDate;
+            imageGroupAdapter = new ImageGroupAdapter(context, groupList);
+            recyclerView.setAdapter(imageGroupAdapter);
+            main.isResetView = false;
         }
     }
 
@@ -94,12 +101,12 @@ public class GalleryFragment extends Fragment implements FragmentCallBacks {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.gallery_fragment, container, false);
         recyclerView = view.findViewById(R.id.recycleImages);
-        addImageFromLink=view.findViewById(R.id.btnAddImage);
-        //groupList = getListImageGroup();
+        addImageFromLink = view.findViewById(R.id.btnAddImage);
+        groupList = main.imageGroupsByDate;
         imageGroupAdapter = new ImageGroupAdapter(context, groupList);
-
         recyclerView.setAdapter(imageGroupAdapter);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext(), RecyclerView.VERTICAL, false));
+
         listMediaFolderImage = findMediaStoreImageFolder(groupList);
         listenerUpdateMediaStore(listMediaFolderImage);
         // Tính dung lượng và số lượng của mỗi group list,
@@ -204,7 +211,9 @@ public class GalleryFragment extends Fragment implements FragmentCallBacks {
     }
     private void updateGroupListAndRecyclerView(Path childPath) {
         getActivity().runOnUiThread(() -> {
-            groupList = getListImageGroup();
+            main.allImages = LocalStorageReader.getImagesFromLocal(getContext());
+            main.imageGroupsByDate = LocalStorageReader.getListImageGroupByDate(main.allImages);
+            groupList = main.imageGroupsByDate;
             imageGroupAdapter = new ImageGroupAdapter(context, groupList);
             recyclerView.setAdapter(imageGroupAdapter);
             recyclerView.setLayoutManager(new LinearLayoutManager(getContext(), RecyclerView.VERTICAL, false));
@@ -246,60 +255,9 @@ public class GalleryFragment extends Fragment implements FragmentCallBacks {
         }
     }
 
-    private ArrayList<ImageGroup> getListImageGroup() {
-        ArrayList<ImageGroup> groupList = new ArrayList<>();
-        int count = 0;
-        ArrayList<Image> imageList = LocalStorageReader.getImagesFromLocal(getContext());
-        //lấy ảnh từ thùng rác tránh hiển thị ở galery fragment
-        Gson gson=new Gson();
-        SharedPreferences albumPref= context.getSharedPreferences("GALLERY", Context.MODE_PRIVATE);
-        String allTrash=albumPref.getString("TRASH","");
-        ArrayList<String>allTrashPath=gson.fromJson(allTrash,new TypeToken<ArrayList<String>>(){}.getType());
-        ArrayList<TrashItem>trash_list=new ArrayList<>();
-        if(allTrashPath!=null){
-//            for(int i=0;i<allTrashPath.size();i++){
-//                trash_list.add(new TrashItem(allTrashPath.get(i)));
-//            }
-        }
-        for(int i=0;i<trash_list.size();i++){
-            for(int j=0;j<imageList.size();j++)
-            {
-                if(imageList.get(j).getPath().equals(trash_list.get(i).getPath())){
-                    imageList.remove(j);
-                    break;
-                }
-            }
-        }
-        try {
-            // group images by taken date, imageList contains images ordered by date DESC
-            groupList.add(new ImageGroup(imageList.get(0).getDate(), new ArrayList<>()));
-
-            groupList.get(count).addImg(imageList.get(0));
-
-            for (int i = 1; i < imageList.size(); ++i) {
-                if (!imageList.get(i).getDate().equals(imageList.get(i - 1).getDate())) {
-                    groupList.add(new ImageGroup(imageList.get(i).getDate(), new ArrayList<>()));
-                    count++;
-                }
-                groupList.get(count).addImg(imageList.get(i));
-            }
-
-            return groupList;
-
-        } catch (Exception e) {
-            Log.e("getListImageGroup", e.toString());
-            return new ArrayList<>();
-        }
-
-    }
-
     //xoá 1 ảnh gallery fragment---> image adapter--->image group
     public void deleteImage(String path){
         imageGroupAdapter.deleteImage(path);
-    }
-    public void changeOnMultiChooseMode()
-    {
-        imageGroupAdapter.changeOnMultiChooseMode();
     }
 
     public Image findImageByPath(String path){
@@ -327,5 +285,11 @@ public class GalleryFragment extends Fragment implements FragmentCallBacks {
     public void onMsgFromMainToFragment(String strValue) {
         groupList = main.imageGroupsByDate;
         getActivity().getSupportFragmentManager().beginTransaction().detach(this).attach(this).commit();
+    }
+
+    @Override
+    public void changeOnMultiChooseMode()
+    {
+        imageGroupAdapter.changeOnMultiChooseMode();
     }
 }

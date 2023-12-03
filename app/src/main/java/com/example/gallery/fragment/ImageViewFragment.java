@@ -55,6 +55,7 @@ import com.example.gallery.TextResultImageActivity;
 import com.example.gallery.ToolbarCallbacks;
 import com.example.gallery.adapter.ImageViewPagerAdapter;
 import com.example.gallery.helper.DateConverter;
+import com.example.gallery.helper.FileManager;
 import com.example.gallery.object.Image;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.gson.Gson;
@@ -79,33 +80,27 @@ import java.util.Set;
 
 public class ImageViewFragment extends Fragment implements ToolbarCallbacks {
     private Context context;
-    private ViewPager2 imageViewPager2;
-    private ImageViewPagerAdapter viewPagerAdapter;
+    public ViewPager2 imageViewPager2;
+    public ImageViewPagerAdapter viewPagerAdapter;
     private BottomNavigationView btnv;
-    private ArrayList<String> albums;
-    private ArrayList<String> favImg;
-    private ArrayList<String> onChooseAddFav;
-    private ArrayList<String> onChooseRemoveFav;
-    private ArrayList<Integer> addFav;
-    private ArrayList<Integer> removeFav;
-    private ArrayList<Integer> deletePos;
-    private ArrayList<Long> deleteTime;
-    private ArrayList<String> newDeletedImagePath;
-    private Menu menu;
+    public ArrayList<String> album_names;
+    public ArrayList<Long> addFav;
+    public ArrayList<Long> removeFav;
+    public ArrayList<Long> deletePos;
+    public ArrayList<Long> deleteTime;
+    public ArrayList<String> newDeletedImagePath;
     private Toolbar topBar;
-    private boolean isSystemUiVisible = true;
-    private ArrayList<Image> images;
-    private int curPos = 0;
+    public ArrayList<Image> images;
+    public int curPos = 0;
     private MainCallBacks callback;
+    public ImageActivity main;
+    public String oldPath, newPath;
 
-    public ImageViewFragment(Context context, ArrayList<Image> images, ArrayList<String> albums, ArrayList<String> favImg, int curPos) {
+    public ImageViewFragment(Context context, ArrayList<Image> images, ArrayList<String> album_names, int curPos) {
         this.context = context;
-        this.albums = albums;
+        this.album_names = album_names;
         this.images = images;
-        this.favImg = favImg;
         this.curPos = curPos;
-        onChooseAddFav = new ArrayList<>();
-        onChooseRemoveFav = new ArrayList<>();
     }
 
     @Override
@@ -116,6 +111,8 @@ public class ImageViewFragment extends Fragment implements ToolbarCallbacks {
         deletePos = new ArrayList<>();
         deleteTime = new ArrayList<>();
         newDeletedImagePath = new ArrayList<>();
+        main = (ImageActivity) getActivity();
+        main.imageViewFragment = this;
     }
 
     @Override
@@ -146,68 +143,19 @@ public class ImageViewFragment extends Fragment implements ToolbarCallbacks {
         imageViewPager2.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
             @Override
             public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+                if(position == 0 && positionOffset == 0) return;
                 Image image = images.get(position);
-                Log.d("CheckImg", String.valueOf(image.isFavorite()));
                 super.onPageScrolled(position, positionOffset, positionOffsetPixels);
                 if (image.isFavorite()) {
                     btnv.getMenu().getItem(0).setIcon(R.drawable.baseline_favorite_24);
                 } else {
                     btnv.getMenu().getItem(0).setIcon(R.drawable.baseline_favorite_border_24);
                 }
+                if(position == 0 && positionOffset == 0){
+
+                }
             }
         });
-//        imageViewPager2.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
-//
-//            @Override
-//            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
-//                super.onPageScrolled(position, positionOffset, positionOffsetPixels);
-//                String path2 = images.get(imageViewPager2.getCurrentItem()).getPath();
-//                if (favImg != null && onChooseAddFav != null) {
-//                    int count = 0;
-//                    for (int i = 0; i < favImg.size(); i++) {
-//                        if (favImg.get(i).equals(path2) == true) {
-//                            count++;
-//                            break;
-//                        }
-//                    }
-//
-//                    for (int i = 0; i < onChooseAddFav.size(); i++) {
-//                        if (onChooseAddFav.get(i).equals(path2) == true) {
-//                            count++;
-//                            break;
-//                        }
-//
-//                    }
-//                    if (count > 0) isFavourite = true;
-//                    else isFavourite = false;
-//                    for (int i = 0; i < onChooseRemoveFav.size(); i++) {
-//                        if (onChooseRemoveFav.get(i).equals(path2) == true) {
-//                            isFavourite = false;
-//                            break;
-//                        }
-//                    }
-//                }
-//
-//
-//                if (isFavourite == true) {
-//                    btnv.getMenu().getItem(0).setIcon(R.drawable.baseline_favorite_24);
-//                } else {
-//                    btnv.getMenu().getItem(0).setIcon(R.drawable.baseline_favorite_border_24);
-//
-//                }
-//
-//            }
-//        });
-//        String path2 = images.get(imageViewPager2.getCurrentItem()).getPath();
-//        if (favImg != null) {
-//            for (int i = 0; i < favImg.size(); i++) {
-//                if (favImg.get(i).equals(path2) == true) {
-//                    isFavourite = true;
-//                    break;
-//                }
-//                isFavourite = false;
-//            }
-//        }
 
         // handle topBar
         topBar.setNavigationOnClickListener(new View.OnClickListener() {
@@ -236,12 +184,12 @@ public class ImageViewFragment extends Fragment implements ToolbarCallbacks {
                     RadioButton lockScreenRadioButton = new RadioButton(getActivity());
                     lockScreenRadioButton.setText("Màn hình khóa");
                     // Create a ColorStateList for the background tint
-                    int[][] states = new int[][] {
-                            new int[] { android.R.attr.state_checked },
-                            new int[] { -android.R.attr.state_checked }
+                    int[][] states = new int[][]{
+                            new int[]{android.R.attr.state_checked},
+                            new int[]{-android.R.attr.state_checked}
                     };
 
-                    int[] colors = new int[] {
+                    int[] colors = new int[]{
                             ContextCompat.getColor(context, R.color.black),
                             ContextCompat.getColor(context, R.color.black)
                     };
@@ -252,8 +200,6 @@ public class ImageViewFragment extends Fragment implements ToolbarCallbacks {
                     lockScreenRadioButton.setButtonTintList(colorStateList);
 
                     RadioGroup radioGroup = new RadioGroup(getActivity());
-
-
                     radioGroup.addView(homeScreenRadioButton);
                     radioGroup.addView(lockScreenRadioButton);
 
@@ -261,11 +207,9 @@ public class ImageViewFragment extends Fragment implements ToolbarCallbacks {
                     builder.setPositiveButton("YES", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
-
                             if (homeScreenRadioButton.isChecked()) {
                                 try {
-
-                                    wallpaperManager.setBitmap(bitmap,null,true,WallpaperManager.FLAG_SYSTEM);
+                                    wallpaperManager.setBitmap(bitmap, null, true, WallpaperManager.FLAG_SYSTEM);
                                     Toast.makeText(context, "Setting HomeScreen's Wallpaper Successfully!!", Toast.LENGTH_SHORT).show();
                                 } catch (IOException e) {
                                     e.printStackTrace();
@@ -294,18 +238,15 @@ public class ImageViewFragment extends Fragment implements ToolbarCallbacks {
                             }
                     );
 
-
-// Create and show the AlertDialog
                     AlertDialog dialog = builder.create();
                     dialog.show();
                     Button buttonPositive = dialog.getButton(DialogInterface.BUTTON_POSITIVE);
                     buttonPositive.setTextColor(ContextCompat.getColor(context, R.color.black));
-
                     Button buttonNegative = dialog.getButton(DialogInterface.BUTTON_NEGATIVE);
                     buttonNegative.setTextColor(ContextCompat.getColor(context, R.color.black));
 
                 } else if (id == R.id.btnAddToAlbum) {
-                    if (albums == null || albums.size() == 0) {
+                    if (album_names == null || album_names.size() == 0) {
                         Toast.makeText(context, "No album found", Toast.LENGTH_SHORT).show();
                     } else {
                         AlertDialog.Builder builder = new AlertDialog.Builder(context);
@@ -314,9 +255,9 @@ public class ImageViewFragment extends Fragment implements ToolbarCallbacks {
                         builder.setTitle("Thêm vào album");
 
                         // Add a list
-                        String[] arr = new String[albums.size()];
-                        for (int i = 0; i < albums.size(); i++) {
-                            arr[i] = albums.get(i);
+                        String[] arr = new String[album_names.size()];
+                        for (int i = 0; i < album_names.size(); i++) {
+                            arr[i] = album_names.get(i);
                         }
 
                         int checkedItem = 0; // Sheep
@@ -348,14 +289,14 @@ public class ImageViewFragment extends Fragment implements ToolbarCallbacks {
                                 Intent intent = ((ImageActivity) context).getIntent();
                                 Gson gson = new Gson();
                                 String json = intent.getStringExtra(album_name);
-                                ArrayList<String> album_image;
+                                ArrayList<Long> album_image;
                                 if (json == null) {
-                                    album_image = new ArrayList<String>();
+                                    album_image = new ArrayList<Long>();
                                 } else {
-                                    album_image = gson.fromJson(json, new TypeToken<ArrayList<String>>() {
+                                    album_image = gson.fromJson(json, new TypeToken<ArrayList<Long>>() {
                                     }.getType());
                                 }
-                                album_image.add(images.get(imageViewPager2.getCurrentItem()).getPath());
+                                album_image.add(images.get(imageViewPager2.getCurrentItem()).getIdInMediaStore());
                                 intent.putExtra(album_name, gson.toJson(album_image));
                                 //setResult để mainActivity xử lý khi ImageActivity kết thúc
                                 ((ImageActivity) context).setResult(AppCompatActivity.RESULT_OK, intent);
@@ -383,7 +324,7 @@ public class ImageViewFragment extends Fragment implements ToolbarCallbacks {
                     intent.putExtra("uriTextImage", uriToImage.toString());
                     ((ImageActivity) context).startActivity(intent);
 
-                }else if (id == R.id.btnViewInfor) {
+                } else if (id == R.id.btnViewInfor) {
 
                     Image currentImage = images.get(imageViewPager2.getCurrentItem());
                     EditPictureInformationFragment editFragment = new EditPictureInformationFragment(currentImage);
@@ -407,14 +348,15 @@ public class ImageViewFragment extends Fragment implements ToolbarCallbacks {
             if (id == R.id.btnLovePicture) {
                 int position = imageViewPager2.getCurrentItem();
                 Image image = images.get(position);
+
                 if (image.isFavorite()) {
-                    removeFav.add(position);
-                    addFav.remove(Integer.valueOf(position));
+                    removeFav.add(image.getIdInMediaStore());
+                    addFav.remove(Long.valueOf(image.getIdInMediaStore()));
                     image.setFavorite(false);
                     btnv.getMenu().getItem(0).setIcon(R.drawable.baseline_favorite_border_24);
                 } else {
-                    addFav.add(position);
-                    removeFav.remove(Integer.valueOf(position));
+                    addFav.add(image.getIdInMediaStore());
+                    removeFav.remove(Long.valueOf(image.getIdInMediaStore()));
                     image.setFavorite(true);
                     btnv.getMenu().getItem(0).setIcon(R.drawable.baseline_favorite_24);
                 }
@@ -439,115 +381,29 @@ public class ImageViewFragment extends Fragment implements ToolbarCallbacks {
                 shareIntent.setType("image/jpeg");
                 startActivity(Intent.createChooser(shareIntent, null));
 
-            }
-
-            else if (id == R.id.btnDeletePicture) {
-                AlertDialog.Builder builder = new AlertDialog.Builder(context, R.style.MyDialogTheme);
-                builder.setTitle("Chuyển ảnh vào thùng rác");
-                builder.setCancelable(true);
-                builder.setPositiveButton("Chuyển", new DialogInterface.OnClickListener() {
-
-                    public void onClick(DialogInterface dialog, int id) {
-//                        String delete_path = images.get(imageViewPager2.getCurrentItem()).getPath();
-//                        //only 1 image in adapter
-//                        if (curPos == 0 && images.size() == 1) {
-//                            ((ImageActivity) context).finish();
-//                            images.remove(curPos);
-//                        }
-//                        //get position of current item in viewpager
-//                        curPos = imageViewPager2.getCurrentItem();
-//                        images.remove(curPos);
-//                        //if the item was the last item choose the previous item
-//                        if (curPos == images.size()) {
-//                            curPos--;
-//                        }
-//                        //update viewpageradapter
-//                        imageViewPager2.setCurrentItem(curPos, false);
-//                        imageViewPager2.getAdapter().notifyDataSetChanged();
-//                        // thêm ảnh bị xoá vào arraylist -> intent với key: Trash
-//                        Intent intent = ((ImageActivity) context).getIntent();
-//                        Gson gson = new Gson();
-//                        String json = intent.getStringExtra("Trash");
-//                        ArrayList<String> album_image;
-//                        if (json == null) {
-//                            album_image = new ArrayList<String>();
-//                        } else {
-//                            album_image = gson.fromJson(json, new TypeToken<ArrayList<String>>() {
-//                            }.getType());
-//                        }
-//                        album_image.add(delete_path);
-//                        intent.putExtra("Trash", gson.toJson(album_image));
-//                        ((ImageActivity) context).setResult(AppCompatActivity.RESULT_OK, intent);
-                        // TODO: move image to folder trash  --> store SharedPref <newPath, (oldPath, dateExpires)> --> delete images have dateExpires > currentDate whenever launching app
-                        try {
-                            String appFolder = getActivity().getApplicationContext().getExternalFilesDir("").getAbsolutePath();
-                            File folder = new File(appFolder, "Trash");
-                            if (!folder.exists()) {
-                                folder.mkdir();
-                            }
-
-                            String oldPath = images.get(imageViewPager2.getCurrentItem()).getPath();
-                            String[] dirInPath = oldPath.split("/");
-                            String filename = dirInPath[dirInPath.length - 1];
-                            String newPath = folder.getAbsolutePath() + "/" + filename;
-
-                            if(Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)){
-                                Log.d("Media mounted", "duoc e nhe");
-                            }
-                            File from = new File(oldPath);
-                            File to = new File(newPath);
-                            Uri fromUri = Uri.fromFile(from);
-//                            Uri toUri = Uri.fromFile(to);
-                            Path fromPath = Paths.get(fromUri.getPath());
-//                            Path toPath = Paths.get(toUri.getPath());
-//                            Path movedPath = Files.move(fromPath, toPath, StandardCopyOption.REPLACE_EXISTING);
-//                            if (movedPath.equals(toPath)) {
-                                File newFile = exportFile(from, to);
-                                newPath = newFile.getAbsolutePath();
-                                Gson gson = new Gson();
-                                // update images list
-                                curPos = imageViewPager2.getCurrentItem();
-                                images.remove(curPos);
-                                // set result for main activity
-                                deletePos.add(curPos);
-                                deleteTime.add((new Date()).getTime());
-                                newDeletedImagePath.add(newPath);
-                                if (curPos == images.size()) {
-                                    curPos--;
-                                }
-                                else curPos++;
-                                //update viewpagerAdapter
-                                imageViewPager2.setCurrentItem(curPos, false);
-                                imageViewPager2.getAdapter().notifyDataSetChanged();
-
-                                Intent intent = ((ImageActivity) context).getIntent();
-                                intent.putExtra("addDelete", gson.toJson(deletePos));
-                                intent.putExtra("addDeleteTime", gson.toJson(deleteTime));
-                                intent.putExtra("addDeleteNewPath", gson.toJson(newDeletedImagePath));
-                                ((ImageActivity) context).setResult(AppCompatActivity.RESULT_OK, intent);
-
-                                Toast.makeText(context, "Xóa ảnh thành công", Toast.LENGTH_SHORT).show();
-                                MediaScannerConnection.scanFile(context, new String[]{oldPath}, null, null);
-                                if (images.size() == 0) {
-                                    ((ImageActivity) context).finish();
-                                }
-
-//                            }
-                        } catch (Exception e) {
-                            Log.d("error delete", e.getMessage());
+            } else if (id == R.id.btnDeletePicture) {
+                if(Build.VERSION.SDK_INT <= Build.VERSION_CODES.P){
+                    AlertDialog.Builder builder = new AlertDialog.Builder(context, R.style.MyDialogTheme);
+                    builder.setTitle("Chuyển ảnh vào thùng rác");
+                    builder.setCancelable(true);
+                    builder.setPositiveButton("Chuyển", new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int id) {
+                            deleteImage();
                         }
-                    }
 
-                });
-                builder.setNegativeButton("Thoát", new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int id) {
-                        //  Cancel
-                        dialog.cancel();
-                    }
-                });
+                    });
+                    builder.setNegativeButton("Thoát", new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int id) {
+                            //  Cancel
+                            dialog.cancel();
+                        }
+                    });
 
-                AlertDialog alertDialog = builder.create();
-                alertDialog.show();
+                    AlertDialog alertDialog = builder.create();
+                    alertDialog.show();
+                } else {
+                    deleteImage();
+                }
             }
             return true;
         });
@@ -589,37 +445,27 @@ public class ImageViewFragment extends Fragment implements ToolbarCallbacks {
         }
     }
 
-
-    private File exportFile(File src, File dst) throws IOException {
-
-        //if folder does not exist
-//        if (!dst.exists()) {
-//            if (!dst.mkdir()) {
-//                return null;
-//            }
-//        }
-
-//        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-//        File expFile = new File(dst.getPath() + File.separator + "IMG_" + timeStamp + ".jpg");
-        FileChannel inChannel = null;
-        FileChannel outChannel = null;
-
+    public void deleteImage(){
         try {
-            inChannel = new FileInputStream(src).getChannel();
-            outChannel = new FileOutputStream(dst).getChannel();
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
+            Image image = images.get(imageViewPager2.getCurrentItem());
+            String appFolder = getActivity().getApplicationContext().getExternalFilesDir("").getAbsolutePath();
+            File folder = new File(appFolder, "Trash");
+            if (!folder.exists()) {
+                folder.mkdir();
+            }
 
-        try {
-            inChannel.transferTo(0, inChannel.size(), outChannel);
-        } finally {
-            if (inChannel != null)
-                inChannel.close();
-            if (outChannel != null)
-                outChannel.close();
-        }
+            oldPath = image.getPath();
+            String[] dirInPath = oldPath.split("/");
+            String filename = dirInPath[dirInPath.length - 1];
+            newPath = folder.getAbsolutePath() + "/" + filename;
 
-        return dst;
+            if (FileManager.moveFile(main, oldPath, newPath, context)) {
+                Toast.makeText(context, "Delete photo successfully", Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(context, "Cannot delete photo", Toast.LENGTH_SHORT).show();
+            }
+        } catch (Exception e) {
+            Log.d("error delete", e.getMessage());
+        }
     }
 }

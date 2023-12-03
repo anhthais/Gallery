@@ -21,6 +21,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.gallery.ImageActivity;
 import com.example.gallery.MainActivity;
+import com.example.gallery.MultiSelectModeCallbacks;
 import com.example.gallery.R;
 import com.example.gallery.SlideShowActivity;
 import com.example.gallery.adapter.ImageAdapter;
@@ -30,32 +31,44 @@ import com.google.gson.Gson;
 
 import java.util.ArrayList;
 
-public class ImageFragment extends Fragment {
+public class ImageFragment extends Fragment implements MultiSelectModeCallbacks {
     private ImageAdapter image_adapter;
     private Context context;
     private RecyclerView recyclerView;
     private Album album;
+    private MainActivity main;
+    public static ImageFragment getInstance(){
+        return new ImageFragment();
+    }
+    public ImageFragment(){
+
+    }
     public ImageFragment(Context context, Album album){
-        this.album=album;
-        this.context=context;
+        this.context = context;
+        this.album = album;
     }
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        ((MainActivity)context).getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        ((MainActivity)context).getSupportActionBar().setHomeButtonEnabled(true);
-        ((MainActivity)context).getSupportActionBar().setTitle(album.getName());
+        main = (MainActivity) getActivity();
+//        main.getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+//        main.getSupportActionBar().setHomeButtonEnabled(true);
+//        main.getSupportActionBar().setTitle(album.getName());
     }
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view=inflater.inflate(R.layout.image_fragment,container,false);
-        image_adapter=new ImageAdapter(context,album.getAll_album_pictures());
-        recyclerView=view.findViewById(R.id.image_fragment_list);
+        image_adapter = new ImageAdapter(context, album.getAll_album_pictures());
+        recyclerView = view.findViewById(R.id.image_fragment_list);
         recyclerView.setAdapter(image_adapter);
         recyclerView.setLayoutManager(new GridLayoutManager(context,3));
+
+        ((MainActivity)context).getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        ((MainActivity)context).getSupportActionBar().setHomeButtonEnabled(true);
+        ((MainActivity)context).getSupportActionBar().setTitle(album.getName());
         return view;
     }
     public void RenameAlbum(){
@@ -78,7 +91,6 @@ public class ImageFragment extends Fragment {
                     album.Rename(editText.getText().toString());
                     ((MainActivity)context).getSupportActionBar().setTitle(album.getName());
                     addDialog.cancel();
-                    //TODO: update in database
                 }
             }
         });
@@ -141,5 +153,9 @@ public class ImageFragment extends Fragment {
         });
     }
 
+    @Override
+    public void changeOnMultiChooseMode(){
+        image_adapter.changeOnMultiChooseMode();
     }
+}
 
