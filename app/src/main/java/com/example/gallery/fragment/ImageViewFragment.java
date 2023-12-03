@@ -383,6 +383,19 @@ public class ImageViewFragment extends Fragment implements ToolbarCallbacks {
                     intent.putExtra("uriTextImage", uriToImage.toString());
                     ((ImageActivity) context).startActivity(intent);
 
+                }else if (id == R.id.btnViewInfor) {
+
+                    Image currentImage = images.get(imageViewPager2.getCurrentItem());
+                    EditPictureInformationFragment editFragment = new EditPictureInformationFragment(currentImage);
+
+                    Bundle bundle = new Bundle();
+                    bundle.putString("key", "value");
+                    editFragment.setArguments(bundle);
+                    FragmentManager fragmentManager = requireActivity().getSupportFragmentManager();
+                    FragmentTransaction transaction = fragmentManager.beginTransaction();
+                    transaction.replace(R.id.pictureFragment, editFragment);
+                    transaction.addToBackStack(null);
+                    transaction.commit();
                 }
                 return true;
             }
@@ -426,7 +439,9 @@ public class ImageViewFragment extends Fragment implements ToolbarCallbacks {
                 shareIntent.setType("image/jpeg");
                 startActivity(Intent.createChooser(shareIntent, null));
 
-            } else if (id == R.id.btnDeletePicture) {
+            }
+
+            else if (id == R.id.btnDeletePicture) {
                 AlertDialog.Builder builder = new AlertDialog.Builder(context, R.style.MyDialogTheme);
                 builder.setTitle("Chuyển ảnh vào thùng rác");
                 builder.setCancelable(true);
@@ -533,20 +548,7 @@ public class ImageViewFragment extends Fragment implements ToolbarCallbacks {
 
                 AlertDialog alertDialog = builder.create();
                 alertDialog.show();
-            }else if (id == R.id.btnViewInfor) {
-                Image currentImage = images.get(imageViewPager2.getCurrentItem());
-                EditPictureInformationFragment editFragment = new EditPictureInformationFragment(currentImage);
-
-                Bundle bundle = new Bundle();
-                bundle.putString("key", "value");
-                editFragment.setArguments(bundle);
-                FragmentManager fragmentManager = requireActivity().getSupportFragmentManager();
-                FragmentTransaction transaction = fragmentManager.beginTransaction();
-                transaction.replace(R.id.pictureFragment, editFragment);
-                transaction.addToBackStack(null);
-                transaction.commit();
             }
-
             return true;
         });
 
