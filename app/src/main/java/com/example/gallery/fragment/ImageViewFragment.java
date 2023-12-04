@@ -45,6 +45,7 @@ import androidx.viewpager2.widget.MarginPageTransformer;
 import androidx.viewpager2.widget.ViewPager2;
 import androidx.appcompat.widget.Toolbar;
 
+import com.example.gallery.Animation.ViewPagerTransformAnimation;
 import com.example.gallery.Database.DatabaseHelper;
 import com.example.gallery.ImageActivity;
 import com.example.gallery.MainActivity;
@@ -138,7 +139,7 @@ public class ImageViewFragment extends Fragment implements ToolbarCallbacks {
         viewPagerAdapter.setToolbarCallbacks(this);
         imageViewPager2.setAdapter(viewPagerAdapter);
         imageViewPager2.setCurrentItem(curPos, false);
-        imageViewPager2.setPageTransformer(new MarginPageTransformer(Math.round(32 * (getResources().getDisplayMetrics().xdpi / DisplayMetrics.DENSITY_DEFAULT))));
+        imageViewPager2.setPageTransformer(new ViewPagerTransformAnimation());
 
         imageViewPager2.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
             @Override
@@ -150,9 +151,6 @@ public class ImageViewFragment extends Fragment implements ToolbarCallbacks {
                     btnv.getMenu().getItem(0).setIcon(R.drawable.baseline_favorite_24);
                 } else {
                     btnv.getMenu().getItem(0).setIcon(R.drawable.baseline_favorite_border_24);
-                }
-                if(position == 0 && positionOffset == 0){
-
                 }
             }
         });
@@ -324,7 +322,59 @@ public class ImageViewFragment extends Fragment implements ToolbarCallbacks {
                     intent.putExtra("uriTextImage", uriToImage.toString());
                     ((ImageActivity) context).startActivity(intent);
 
-                } else if (id == R.id.btnViewInfor) {
+                }else if(id==R.id.btnHide) {
+                    String dcimPath = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM).getAbsolutePath();
+                    String imagepath = images.get(imageViewPager2.getCurrentItem()).getPath();
+                    String filextension = imagepath.substring(imagepath.lastIndexOf("."));
+                    dcimPath += "/.nomedia";
+                    File dcimNomedia = new File(dcimPath);
+                    if (!dcimNomedia.exists()) {
+                        dcimNomedia.mkdir();
+                    }
+                    dcimPath += ("/" + String.valueOf(System.currentTimeMillis()) + filextension);
+                    if (FileManager.moveFile(getActivity(), imagepath, dcimPath, context)) {
+                        SharedPreferences hidePref = context.getSharedPreferences("GALLERY", Context.MODE_PRIVATE);
+                        Gson gson = new Gson();
+                        String HideCurrentJSON = hidePref.getString("HIDE-CURRENT", null);
+                        String HideBeforeJSON = hidePref.getString("HIDE-BEFORE", null);
+                        ArrayList<String> hide_current = null;
+                        ArrayList<String> hide_before = null;
+                        //put in intent on activity rsult
+                        Intent intent = ((ImageActivity) context).getIntent();
+                        ArrayList<String> deletePaths = null;
+                        String deleteJSON = intent.getStringExtra("Trash");
+                        if (deleteJSON == null) {
+                            deletePaths = new ArrayList<>();
+                        } else {
+                            deletePaths = gson.fromJson(deleteJSON, new TypeToken<ArrayList<String>>() {
+                            }.getType());
+                        }
+                        deletePaths.add(imagepath);
+                        intent.putExtra("Trash", gson.toJson(deletePaths));
+                        ((ImageActivity) context).setResult(AppCompatActivity.RESULT_OK, intent);
+
+                        if (HideCurrentJSON == null || HideCurrentJSON.isEmpty()) {
+                            hide_before = new ArrayList<>();
+                            hide_current = new ArrayList<>();
+                        } else {
+                            hide_current = gson.fromJson(HideCurrentJSON, new TypeToken<ArrayList<String>>() {}.getType());
+                            hide_before = gson.fromJson(HideBeforeJSON, new TypeToken<ArrayList<String>>() {}.getType());
+                        }
+                        hide_before.add(imagepath);
+                        hide_current.add(dcimPath);
+                        SharedPreferences.Editor editor = hidePref.edit();
+                        editor.putString("HIDE-BEFORE", gson.toJson(hide_before));
+                        editor.putString("HIDE-CURRENT", gson.toJson(hide_current));
+                        editor.commit();
+                        int removeindex = imageViewPager2.getCurrentItem();
+                        images.remove(imageViewPager2.getCurrentItem());
+                        imageViewPager2.getAdapter().notifyItemRemoved(removeindex);
+
+                    } else {
+                        Toast.makeText(context, "Cannot hide this image", Toast.LENGTH_SHORT).show();
+                    }
+                }
+                else if (id == R.id.btnViewInfor) {
 
                     Image currentImage = images.get(imageViewPager2.getCurrentItem());
                     EditPictureInformationFragment editFragment = new EditPictureInformationFragment(currentImage);

@@ -4,6 +4,7 @@ import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_DELETE;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY;
 
+import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -102,11 +103,19 @@ public class GalleryFragment extends Fragment implements FragmentCallBacks, Mult
         View view = inflater.inflate(R.layout.gallery_fragment, container, false);
         recyclerView = view.findViewById(R.id.recycleImages);
         addImageFromLink = view.findViewById(R.id.btnAddImage);
+        SharedPreferences myPref = getActivity().getSharedPreferences("GALLERY", Activity.MODE_PRIVATE);
+        SharedPreferences.Editor editor = myPref.edit();
+        boolean isChangeTheme = myPref.getBoolean("__isChangeTheme", false);
+        if(isChangeTheme){
+            main.allImages = LocalStorageReader.getImagesFromLocal(getContext());
+            main.imageGroupsByDate = LocalStorageReader.getListImageGroupByDate(main.allImages);
+            editor.putBoolean("__isChangeTheme", false);
+        }
+        editor.apply();
         groupList = main.imageGroupsByDate;
         imageGroupAdapter = new ImageGroupAdapter(context, groupList);
         recyclerView.setAdapter(imageGroupAdapter);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext(), RecyclerView.VERTICAL, false));
-
         listMediaFolderImage = findMediaStoreImageFolder(groupList);
         listenerUpdateMediaStore(listMediaFolderImage);
         // Tính dung lượng và số lượng của mỗi group list,
@@ -291,5 +300,9 @@ public class GalleryFragment extends Fragment implements FragmentCallBacks, Mult
     public void changeOnMultiChooseMode()
     {
         imageGroupAdapter.changeOnMultiChooseMode();
+    }
+
+    public void addImage(ArrayList<String> path){
+        imageGroupAdapter.addImage(path);
     }
 }

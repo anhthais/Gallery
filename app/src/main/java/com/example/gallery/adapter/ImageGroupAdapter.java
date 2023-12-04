@@ -24,6 +24,7 @@ import com.example.gallery.object.ImageGroup;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 
 public class ImageGroupAdapter extends RecyclerView.Adapter<ImageGroupAdapter.ImageGroupViewHolder> implements MultiSelectCallbacks {
     private final int COL_SPAN_VIEW = 3;
@@ -244,6 +245,21 @@ public class ImageGroupAdapter extends RecyclerView.Adapter<ImageGroupAdapter.Im
                 notifyItemChanged(i);
                 return;
             }
+        }
+    }
+
+    public void addImage(ArrayList<String> path){
+        if(listGroups==null ||listGroups.get(0)==null){
+            listGroups=new ArrayList<>();
+            Calendar calendar=Calendar.getInstance();
+            int date=calendar.get(Calendar.DATE);
+            int month=calendar.get(Calendar.MONTH);
+            int year=calendar.get(Calendar.YEAR);
+
+            listGroups.add(new ImageGroup(""+date+"-"+month+"-"+year,new ArrayList<>()));
+        }
+        for(int i=0;i<path.size();i++){
+            listGroups.get(listGroups.size()-1).addImg(new Image(path.get(i)));
         }
     }
 }

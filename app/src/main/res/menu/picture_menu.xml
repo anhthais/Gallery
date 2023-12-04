@@ -31,4 +31,9 @@
         android:checked="true"
         android:title="Đọc ký tự"
         />
+    <item
+        android:id="@+id/btnHide"
+        android:checked="true"
+        android:title="Ẩn"
+        />
 </menu>

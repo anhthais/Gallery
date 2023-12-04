@@ -12,6 +12,7 @@ import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 import android.Manifest;
+import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
 import android.app.Activity;
@@ -29,12 +30,15 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.Toast;
 
 import com.example.gallery.Database.DatabaseHelper;
 import com.example.gallery.fragment.AlbumFragment;
 import com.example.gallery.fragment.FavouriteImageFragment;
 import com.example.gallery.fragment.GalleryFragment;
+import com.example.gallery.fragment.HideFragment;
 import com.example.gallery.fragment.ImageFragment;
 import com.example.gallery.fragment.TrashFragment;
 import com.example.gallery.helper.DateConverter;
@@ -50,6 +54,7 @@ import com.google.gson.reflect.TypeToken;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -70,11 +75,12 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
     TrashFragment trashFragment = null;
     ImageFragment imageFragment = null;
     FavouriteImageFragment favouriteImageFragment = null;
-
+    HideFragment hideFragment = null;
     BottomNavigationView btnv;
     ActionBar action_bar;
     ArrayList<Statistic> statisticListImage;
     public ArrayList<Album> album_list;
+    public int curIdxAlbum;
     String onChooseAlbum = "";
     public ArrayList<Album> getAlbum_list(){
         return album_list;
@@ -95,15 +101,12 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
                             Manifest.permission.INTERNET},
                     PERMISSION_REQUEST_READ_CODE);
         } else {
-            Log.d("CheckImg","check");
-
             ActivityCompat.requestPermissions(MainActivity.this,
                     new String[]{
                             android.Manifest.permission.READ_EXTERNAL_STORAGE,
                             Manifest.permission.INTERNET},
                     PERMISSION_REQUEST_READ_CODE);
         }
-
     }
 
     @Override
@@ -118,6 +121,8 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
             }
             loadAllAlbum();
         }
+        Toast.makeText(this, "onResume() main", Toast.LENGTH_SHORT).show();
+
     }
 
     @Override
@@ -177,9 +182,17 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
                     public boolean onMenuItemClick(MenuItem item) {
                         int id=item.getItemId();
                         if(id==R.id.btnThemeDark){
-                                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
+                            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
+                            SharedPreferences myPref = getSharedPreferences("GALLERY", Activity.MODE_PRIVATE);
+                            SharedPreferences.Editor editor = myPref.edit();
+                            editor.putBoolean("__isChangeTheme", true);
+                            editor.apply();
                         }else if (id==R.id.btnThemeLight){
-                                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+                            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+                            SharedPreferences myPref = getSharedPreferences("GALLERY", Activity.MODE_PRIVATE);
+                            SharedPreferences.Editor editor = myPref.edit();
+                            editor.putBoolean("__isChangeTheme", true);
+                            editor.apply();
                         }else if (id == R.id.btnTrashbin)
                         {
                             menu.findItem(R.id.btnAddNewAlbum).setVisible(false);
@@ -194,6 +207,38 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
                             ft.replace(R.id.mainFragment, favouriteImageFragment);
                             ft.addToBackStack("FRAG");
                             ft.commit();
+                        }else if(id==R.id.btnShowHideFrag){
+                            SharedPreferences hidePref=getSharedPreferences("GALLERY",MODE_PRIVATE);
+                            String password=hidePref.getString("PASSWORD",null);
+                            if(password==null){
+                                //show add new album frag
+                                int opendate=hidePref.getInt("OPEN-DATE",0);
+                                int openyear=hidePref.getInt("OPEN-YEAR",0);
+                                int openmoth=hidePref.getInt("OPEN-MONTH",0);
+                                Calendar calendar=Calendar.getInstance();
+                                int curr_date=calendar.get(Calendar.DATE);
+                                int curr_month=calendar.get(Calendar.MONTH);
+                                int curr_year=calendar.get(Calendar.YEAR);
+                                boolean firstVisit=true;
+                                if(curr_year<openyear){
+                                    firstVisit=false;
+                                }else if(curr_year==openyear){
+                                    if(curr_month<openmoth){
+                                        firstVisit=false;
+                                    }else if(curr_month==openmoth){
+                                        if(curr_date<opendate){
+                                            firstVisit=false;
+                                        }
+                                    }
+                                }
+                                if(firstVisit){
+                                    createPasswordHideFragmentDialog();
+                                }else{
+                                    Toast.makeText(MainActivity.this, "Comeback later, in reset countdown", Toast.LENGTH_SHORT).show();
+                                }
+                            }else{
+                                showHideFragmentDialog();
+                            }
                         }
                         return true;
                     }
@@ -226,7 +271,7 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.actionbar_menu,menu);
         menu.findItem(R.id.btnAddNewAlbum).setVisible(false);
-        this.menu=menu;
+        this.menu = menu;
         return super.onCreateOptionsMenu(menu);
     }
     public Menu getMenu(){
@@ -310,14 +355,14 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
             menu.findItem(R.id.btnDeleteAlbum).setVisible(true);
             menu.findItem(R.id.btnSlideShow).setVisible(true);
             //2nd argument is album
-            int index=0;
+            curIdxAlbum = 0;
             for(int i=0;i<album_list.size();i++){
                 if(album_list.get(i).getName().equals(strValue)){
-                    index=i;
+                    curIdxAlbum=i;
                     break;
                 }
             }
-            ImageFragment imageFragment = new ImageFragment(this, album_list.get(index));
+            ImageFragment imageFragment = new ImageFragment(this, album_list.get(curIdxAlbum));
             this.imageFragment = imageFragment;
             FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
             ft.replace(R.id.mainFragment, imageFragment);
@@ -370,6 +415,7 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
                     for(int i = 0; i < addDeletePos.size(); ++i){
                         Image image = allImagesInMap.get(addDeletePos.get(i));
                         trashItems.add(new TrashItem(addDeletePosNewPath.get(i), image.getPath(), DateConverter.plusMinutes(new Date(addDeletePosTime.get(i)), 10).getTime()));
+//                        album_list.get(curIdxAlbum).deleteImageFromAlbum(image.getPath());
                     }
                     isResetView = true;
                 }
@@ -409,6 +455,45 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
                 }
                 isResetView = true;
             }
+        } else if(requestCode==1123 && resultCode==AppCompatActivity.RESULT_OK) {
+            String delete = data.getStringExtra("Trash");
+            Gson gson = new Gson();
+            //kiểm tra có danh sách ảnh bị xoá hay không
+            if (delete != null && !delete.isEmpty()) {
+                ArrayList<String> delete_paths = gson.fromJson(delete, new TypeToken<ArrayList<String>>() {
+                }.getType());
+                hideFragment.removeImage(delete_paths);
+                //xoá các ảnh cần xoá
+                for (int i = 0; i < delete_paths.size(); i++) {
+                    gallery_fragment.deleteImage(delete_paths.get(i));
+
+                    //xoá trong các album
+                    for (int j = 0; j < album_list.size(); j++) {
+                        if (album_list.get(j).removeImageFromAlbum(delete_paths.get(i))) {
+                            break;
+                        }
+                    }
+                }
+            }
+            String added = data.getStringExtra("Unhide");
+            //kiểm tra có danh sách ảnh bị xoá hay không
+            if (added != null && !added.isEmpty()) {
+                ArrayList<String> add_paths = gson.fromJson(added, new TypeToken<ArrayList<String>>() {
+                }.getType());
+                //xoá các ảnh cần xoá
+                gallery_fragment.addImage(add_paths);
+                hideFragment.removeImage(add_paths);
+                for (int i = 0; i < add_paths.size(); i++) {
+                    //xoá trong các album
+                    for (int j = 0; j < album_list.size(); j++) {
+                        String albumpath = album_list.get(i).getPath();
+                        if (add_paths.get(i).contains(albumpath) && add_paths.get(i).lastIndexOf("/") == albumpath.length()) {
+                            album_list.get(j).addImageToAlbum(new Image(add_paths.get(i)));
+                        }
+
+                    }
+                }
+            }
         }
     }
     // receive statisticListImage fragment GalleryFragment
@@ -420,6 +505,7 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
         album_list = new ArrayList<Album>();
         Gson gson = new Gson();
         SharedPreferences albumPref = getSharedPreferences("GALLERY",Activity.MODE_PRIVATE);
+        SharedPreferences.Editor editor = albumPref.edit();
         String album_name = albumPref.getString("ALBUM",null);
         if(album_name != null && !album_name.isEmpty()){
             ArrayList<String> albums = gson.fromJson(album_name,new TypeToken<ArrayList<String>>(){}.getType());
@@ -429,7 +515,7 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
                 ArrayList<Long> image_id = gson.fromJson(album_image,new TypeToken<ArrayList<Long>>(){}.getType());
                 if(image_id != null){
                     for(int j = 0; j < image_id.size(); j++){
-                        if(allImagesInMap.get(image_id.get(j)) != null){
+                        if(allImagesInMap.containsKey(image_id.get(j))){
                             a.addImageToAlbum(allImagesInMap.get(image_id.get(j)));
                         }
                     }
@@ -443,13 +529,13 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
         Gson gson=new Gson();
         SharedPreferences albumPref= getSharedPreferences("GALLERY", Context.MODE_PRIVATE);
         SharedPreferences.Editor editor=albumPref.edit();
-        ArrayList<Long> album_save=new ArrayList<>();
+        ArrayList<Long> album_save = new ArrayList<>();
         for(int i=0;i<album.getAll_album_pictures().size();i++){
             album_save.add(album.getAll_album_pictures().get(i).getIdInMediaStore());
         }
-        String albumjson=gson.toJson(album_save);
+        String albumjson = gson.toJson(album_save);
         editor.putString(album.getName(),albumjson);
-        editor.commit();
+        editor.apply();
     }
 
     public void loadDeleteImage(){
@@ -510,6 +596,93 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
             }
         }
 
+    }
+
+    public void showHideFragment(){
+        hideFragment= HideFragment.getInstance();
+        getSupportFragmentManager().beginTransaction().replace(R.id.mainFragment,hideFragment).commit();
+    }
+    public void showHideFragmentDialog(){
+        Dialog addDialog=new Dialog(this);
+        addDialog.setContentView(R.layout.access_hidefragment_dialog);
+        EditText editText=addDialog.findViewById(R.id.confirmPasswordEditText1);
+        Button ok=addDialog.findViewById(R.id.btnOKConfirmPassword);
+        Button cancel=addDialog.findViewById(R.id.btnCancelConfirmPassword);
+        Button reset=addDialog.findViewById(R.id.btnResetPassword);
+        addDialog.create();
+        addDialog.show();
+        ok.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                SharedPreferences hidePref=getSharedPreferences("GALLERY",MODE_PRIVATE);
+                String pass=hidePref.getString("PASSWORD",null);
+                if(pass.equals(editText.getText().toString())){
+                    //show hide frag
+                    showHideFragment();
+                    addDialog.cancel();
+                }else{
+                    Toast.makeText(MainActivity.this, "Sai mật khẩu", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+        cancel.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                addDialog.cancel();
+            }
+        });
+        reset.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                SharedPreferences hidePref=getSharedPreferences("GALLERY",MODE_PRIVATE);
+                SharedPreferences.Editor editor=hidePref.edit();
+                editor.putString("PASSWORD",null);
+                Calendar calendar=Calendar.getInstance();
+                int curr_date=calendar.get(Calendar.DATE);
+                int curr_month=calendar.get(Calendar.MONTH);
+                int curr_year=calendar.get(Calendar.YEAR);
+                editor.putInt("OPEN-DATE",curr_date);
+                editor.putInt("OPEN-MONTH",curr_month);
+                editor.putInt("OPEN-YEAR",curr_year);
+                editor.commit();
+                addDialog.cancel();
+            }
+        });
+    }
+    public void createPasswordHideFragmentDialog(){
+        Dialog addDialog=new Dialog(this);
+        addDialog.setContentView(R.layout.create_password_hidefrag_dialog);
+        EditText password=addDialog.findViewById(R.id.createPasswordEditText1);
+        EditText confirmPass=addDialog.findViewById(R.id.createPasswordEditText2);
+        Button ok=addDialog.findViewById(R.id.btnOKCreatePassword);
+        Button cancel=addDialog.findViewById(R.id.btnCancelCreatePassword);
+        addDialog.create();
+        addDialog.show();
+        ok.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String pass=password.getText().toString();
+                String confirm=confirmPass.getText().toString();
+                if(!pass.equals(confirm)){
+                    Toast.makeText(MainActivity.this, "Mật khẩu nhập lại không khớp", Toast.LENGTH_SHORT).show();
+                }
+                else{
+                    SharedPreferences hidePref=getSharedPreferences("GALLERY",MODE_PRIVATE);
+                    SharedPreferences.Editor editor=hidePref.edit();
+                    editor.putString("PASSWORD",pass);
+                    editor.commit();
+                    addDialog.cancel();
+                    //show hide fragment
+                    showHideFragment();
+                }
+            }
+        });
+        cancel.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                addDialog.cancel();
+            }
+        });
     }
 
 }

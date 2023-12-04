@@ -21,6 +21,10 @@
         android:checked="true"
         android:title="Sao lưu"/>
     <item
+        android:id="@+id/btnShowHideFrag"
+        android:checked="true"
+        android:title="Thư mục ẩn"/>
+    <item
         android:id="@+id/btnTrashbin"
         android:checked="true"
         android:title="Thùng rác"/>

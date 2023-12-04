@@ -61,15 +61,22 @@ public class ImageFragment extends Fragment implements MultiSelectModeCallbacks 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view=inflater.inflate(R.layout.image_fragment,container,false);
-        image_adapter = new ImageAdapter(context, album.getAll_album_pictures());
         recyclerView = view.findViewById(R.id.image_fragment_list);
-        recyclerView.setAdapter(image_adapter);
         recyclerView.setLayoutManager(new GridLayoutManager(context,3));
 
         ((MainActivity)context).getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         ((MainActivity)context).getSupportActionBar().setHomeButtonEnabled(true);
         ((MainActivity)context).getSupportActionBar().setTitle(album.getName());
         return view;
+    }
+    @Override
+    public void onResume(){
+        super.onResume();
+//        if(main.isResetView){
+            album = main.album_list.get(main.curIdxAlbum);
+            image_adapter = new ImageAdapter(context, album.getAll_album_pictures());
+            recyclerView.setAdapter(image_adapter);
+//        }
     }
     public void RenameAlbum(){
         Dialog addDialog=new Dialog(context);

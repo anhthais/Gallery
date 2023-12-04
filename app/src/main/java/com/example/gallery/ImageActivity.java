@@ -25,6 +25,7 @@ import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import com.example.gallery.fragment.EditImageFragment;
+import com.example.gallery.fragment.HidePagerFragment;
 import com.example.gallery.fragment.ImageViewFragment;
 import com.example.gallery.helper.DateConverter;
 import com.example.gallery.object.Image;
@@ -61,18 +62,23 @@ public class ImageActivity extends AppCompatActivity implements MainCallBacks{
         getSupportActionBar().hide();
 
         Intent intent = getIntent();
-        intent_image=intent;
+        intent_image = intent;
         images = intent.getParcelableArrayListExtra("images");
         curPos = intent.getIntExtra("curPos", 0);
         Gson gson = new Gson();
         String album_arr = intent.getStringExtra("ALBUM-LIST");
         album_names = gson.fromJson(album_arr, new TypeToken<ArrayList<String>>(){}.getType());
-
-        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-        //getApplicationContext--> imageActivity.this
-        ImageViewFragment imageViewFragment = new ImageViewFragment(ImageActivity.this, images, album_names, curPos);
-        ft.replace(R.id.pictureFragment, imageViewFragment);
-        ft.commit();
+        String hide = intent.getStringExtra("TYPE");
+        if(hide!=null && hide.equals("hide")){
+            HidePagerFragment hidePagerFragment = new HidePagerFragment(ImageActivity.this, images, curPos);
+            getSupportFragmentManager().beginTransaction().replace(R.id.pictureFragment,hidePagerFragment).commit();
+        }{
+            FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+            //getApplicationContext--> imageActivity.this
+            ImageViewFragment imageViewFragment = new ImageViewFragment(ImageActivity.this, images, album_names, curPos);
+            ft.replace(R.id.pictureFragment, imageViewFragment);
+            ft.commit();
+        }
     }
 
     public void updateImageViewFragment(ImageViewFragment frag){
