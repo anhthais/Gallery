@@ -1,6 +1,8 @@
 package com.example.gallery.adapter;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.util.SparseBooleanArray;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -10,6 +12,7 @@ import android.view.ViewGroup;
 import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -25,101 +28,34 @@ import java.util.ArrayList;
 public class AlbumAdapter extends RecyclerView.Adapter<AlbumAdapter.ViewHolder> {
     private Context context;
     private ArrayList<Album> albums;
-    private SparseBooleanArray selectedItemsIds;
 
-    private boolean checkBoxEnable=false;
 
     public AlbumAdapter(Context context,ArrayList<Album> albums_list){
         this.albums=albums_list;
         this.context=context;
-        selectedItemsIds=new SparseBooleanArray();
-    }
-    @Override
-    public void onViewRecycled(@NonNull ViewHolder holder) {
-        super.onViewRecycled(holder);
-        int position = holder.getAdapterPosition();
-        holder.checkBox.setChecked(selectedItemsIds.get(position));
-    }
-
-    @Override
-    public void onViewAttachedToWindow(@NonNull ViewHolder holder) {
-        super.onViewAttachedToWindow(holder);
-        int position = holder.getAdapterPosition();
-        holder.checkBox.setChecked(selectedItemsIds.get(position));
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder{
         private ImageView itemImageView;
-        private TextView albumNameTxtView;
-        private CheckBox checkBox;
+        private TextView albumNameTxtView,albumImageAmountTextView;
 
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
             itemImageView=itemView.findViewById(R.id.imageAlbumItem);
             albumNameTxtView=itemView.findViewById(R.id.albumNameTextView);
-            checkBox=itemView.findViewById(R.id.checkBoxAlbumItem);
+            albumImageAmountTextView=itemView.findViewById(R.id.albumImageAmount);
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    if(checkBoxEnable==true){
-                        checkBox.setChecked(!checkBox.isChecked());
-                        int position=getAdapterPosition();
-                        if (checkBox.isChecked()) {
-                            selectedItemsIds.put(position,true);
-                        }
-                        else{
-                            if(selectedItemsIds.get(position)==true) {
-                                selectedItemsIds.delete(position);
-                            }
-                        }
 
-                    }
-                    else{
-                        //show all picture in album
-                        ((MainActivity)context).onMsgFromFragToMain("ALBUM",albums.get(getAdapterPosition()).getName());
-                    }
+                    //show all picture in album
+                    Toast.makeText(context, ""+albums.get(getAdapterPosition()).getAll_album_pictures().size(), Toast.LENGTH_SHORT).show();
+                    ((MainActivity)context).onMsgFromFragToMain("ALBUM",albums.get(getAdapterPosition()).getPath());
+
                 }
             });
-            itemView.setOnLongClickListener(new View.OnLongClickListener() {
-                @Override
-                public boolean onLongClick(View v) {
-                    if(!checkBoxEnable) {
-                        AppCompatActivity ma=(AppCompatActivity) context;
-                        ActionMode mode=ma.startSupportActionMode(new ActionMode.Callback() {
-                            @Override
-                            public boolean onCreateActionMode(ActionMode mode, Menu menu) {
-                                //update navìation/action bar here
-                                ((MainActivity)context).getMenuInflater().inflate(R.menu.settings_menu,menu);
-                                return true;
-                            }
 
-                            @Override
-                            public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
-                                return true;
-                            }
-
-                            @Override
-                            public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
-                                return true;
-                            }
-
-                            @Override
-                            public void onDestroyActionMode(ActionMode mode) {
-                                selectedItemsIds.clear();
-                                notifyDataSetChanged();
-                                checkBoxEnable=false;
-                                notifyDataSetChanged();
-
-                            }
-                        });
-                        checkBoxEnable = true;
-                        notifyDataSetChanged();
-
-                    }
-                    return true;
-                }
-            });
         }
     }
     @NonNull
@@ -133,36 +69,16 @@ public class AlbumAdapter extends RecyclerView.Adapter<AlbumAdapter.ViewHolder> 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         Album album=albums.get(position);
-
-        holder.itemImageView.setImageResource(R.drawable.ic_folder_24);
-        holder.albumNameTxtView.setText(album.getName());
-        if(checkBoxEnable==true){
-            //holder.setIsRecyclable(false);
-            holder.checkBox.setVisibility(View.VISIBLE);
-        }else{
-            holder.checkBox.setVisibility(View.INVISIBLE);
-            holder.checkBox.setChecked(false);
+        if(albums.get(position).getAll_album_pictures().size()>0){
+            Bitmap bitmap=BitmapFactory.decodeFile(albums.get(position).getAll_album_pictures().get(0).getPath());
+            holder.itemImageView.setImageBitmap(bitmap);
         }
-        //if(selectedItemsIds.get(position)){
-        //    holder.checkBox.setChecked(true);
-        //}
-        holder.checkBox.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                    int position=holder.getAdapterPosition();
-                    if (holder.checkBox.isChecked()) {
-                        selectedItemsIds.put(position,true);
-                    }
-                    else{
-                        if(selectedItemsIds.get(position)==true) {
-                            selectedItemsIds.delete(position);
-                        }
-                }
-            }
-        });
-    }
-    public SparseBooleanArray getSelectedItemsIds(){
-        return this.selectedItemsIds;
+        else{
+            holder.itemImageView.setImageResource(R.drawable.logo_app);
+        }
+        holder.albumNameTxtView.setText(album.getName());
+        holder.albumImageAmountTextView.setText(album.getAll_album_pictures().size()+"");
+
     }
     @Override
     public int getItemCount() {

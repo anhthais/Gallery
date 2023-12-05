@@ -9,6 +9,7 @@ import android.app.Dialog;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -108,6 +109,8 @@ public class GalleryFragment extends Fragment implements FragmentCallBacks, Mult
         boolean isChangeTheme = myPref.getBoolean("__isChangeTheme", false);
         if(isChangeTheme){
             main.allImages = LocalStorageReader.getImagesFromLocal(getContext());
+            main.album_list=LocalStorageReader.loadAllAlbum();
+            main.loadAllAlbumData(main.allImages);
             main.imageGroupsByDate = LocalStorageReader.getListImageGroupByDate(main.allImages);
             editor.putBoolean("__isChangeTheme", false);
         }
@@ -223,6 +226,8 @@ public class GalleryFragment extends Fragment implements FragmentCallBacks, Mult
             main.allImages = LocalStorageReader.getImagesFromLocal(getContext());
             main.imageGroupsByDate = LocalStorageReader.getListImageGroupByDate(main.allImages);
             groupList = main.imageGroupsByDate;
+            main.album_list=LocalStorageReader.loadAllAlbum();
+            main.loadAllAlbumData(main.allImages);
             imageGroupAdapter = new ImageGroupAdapter(context, groupList);
             recyclerView.setAdapter(imageGroupAdapter);
             recyclerView.setLayoutManager(new LinearLayoutManager(getContext(), RecyclerView.VERTICAL, false));
@@ -288,7 +293,7 @@ public class GalleryFragment extends Fragment implements FragmentCallBacks, Mult
             new DownLoadImage(context).execute(ImageUrl);
         }catch (Exception e){
         }
-
+        
     }
     @Override
     public void onMsgFromMainToFragment(String strValue) {

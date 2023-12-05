@@ -23,6 +23,7 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.util.Log;
 import android.util.SparseBooleanArray;
 import android.view.LayoutInflater;
@@ -53,6 +54,7 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
 import java.io.File;
+import java.io.FilenameFilter;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -120,6 +122,7 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
                 allImagesInMap.put(allImages.get(i).getIdInMediaStore(), allImages.get(i));
             }
             loadAllAlbum();
+            loadAllAlbumData(allImages);
         }
         Toast.makeText(this, "onResume() main", Toast.LENGTH_SHORT).show();
 
@@ -135,6 +138,8 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
         // TODO: init first data --> all fragments in this activity retrieve data directly from properties in the activity
         allImages = LocalStorageReader.getImagesFromLocal(getApplicationContext());
         imageGroupsByDate = LocalStorageReader.getListImageGroupByDate(allImages);
+        album_list=LocalStorageReader.loadAllAlbum();
+        loadAllAlbumData(allImages);
         allImagesInMap = new HashMap<>();
         for(int i = 0; i < allImages.size(); ++i){
             allImagesInMap.put(allImages.get(i).getIdInMediaStore(), allImages.get(i));
@@ -148,7 +153,6 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
         // - data: <oldPath, dateExpires> contains previous path of the image and time when the image will be deleted permanently (in long)
         loadDeleteImage(); // delete expired images when loading images
         loadFavouriteImage();
-        loadAllAlbum();
 
         menu.findItem(R.id.btnRenameAlbum).setVisible(false);
         menu.findItem(R.id.btnDeleteAlbum).setVisible(false);
@@ -352,12 +356,13 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
             //
             menu.findItem(R.id.btnAddNewAlbum).setVisible(false);
             menu.findItem(R.id.btnRenameAlbum).setVisible(true);
+
             menu.findItem(R.id.btnDeleteAlbum).setVisible(true);
             menu.findItem(R.id.btnSlideShow).setVisible(true);
             //2nd argument is album
             curIdxAlbum = 0;
             for(int i=0;i<album_list.size();i++){
-                if(album_list.get(i).getName().equals(strValue)){
+                if(album_list.get(i).getPath().equals(strValue)){
                     curIdxAlbum=i;
                     break;
                 }
@@ -502,28 +507,57 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
         statisticListImage = statisticList;
     }
     public void loadAllAlbum(){
-        album_list = new ArrayList<Album>();
-        Gson gson = new Gson();
-        SharedPreferences albumPref = getSharedPreferences("GALLERY",Activity.MODE_PRIVATE);
-        SharedPreferences.Editor editor = albumPref.edit();
-        String album_name = albumPref.getString("ALBUM",null);
-        if(album_name != null && !album_name.isEmpty()){
-            ArrayList<String> albums = gson.fromJson(album_name,new TypeToken<ArrayList<String>>(){}.getType());
-            for(int i=0;i<albums.size();i++){
-                Album a = new Album(albums.get(i));
-                String album_image = albumPref.getString(albums.get(i),null);
-                ArrayList<Long> image_id = gson.fromJson(album_image,new TypeToken<ArrayList<Long>>(){}.getType());
-                if(image_id != null){
-                    for(int j = 0; j < image_id.size(); j++){
-                        if(allImagesInMap.containsKey(image_id.get(j))){
-                            a.addImageToAlbum(allImagesInMap.get(image_id.get(j)));
-                        }
+            album_list=new ArrayList<Album>();
+            album_list.add(new Album("Tải xuống",Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).toString()));
+
+            Gson gson=new Gson();
+            String picturePath = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).getAbsolutePath();
+            File sdFile = new File(picturePath);
+            final boolean[] rootExist = {false};
+            File[] foldersSd = sdFile.listFiles(new FilenameFilter() {
+                @Override
+                public boolean accept(File file, String s) {
+                    //check if exist image outside all folder in SD
+                    if(s.contains(".")){
+                        rootExist[0] =true;
                     }
+                    return !s.contains(".");
                 }
+            });
+            if(rootExist[0]){
+                String album_name=picturePath.substring(picturePath.lastIndexOf("/")+1);
+                Album a=new Album(album_name,picturePath);
                 album_list.add(a);
             }
+            for(File file:foldersSd){
+                String album_name=file.getPath().substring(file.getPath().lastIndexOf("/")+1);
+                Album a=new Album(album_name,file.getPath());
+                album_list.add(a);
+            }
+            rootExist[0]=false;
+            String dcimPath = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM).getAbsolutePath();
+            File dcimFile = new File(dcimPath);
+            File[] foldersDCIM = dcimFile.listFiles(new FilenameFilter() {
+                @Override
+                public boolean accept(File file, String s) {
+                    //check if exist image outside all folder in DCIM
+                    if(s.contains(".")){
+                        rootExist[0]=true;
+                    }
+                    return !s.contains(".");
+                }
+            });
+            for(File file:foldersDCIM){
+                Album a=new Album(file.getPath().substring(file.getPath().lastIndexOf("/")+1),file.getPath());
+                album_list.add(a);
+            }
+            if(rootExist[0]){
+                String album_name=dcimPath.substring(dcimPath.lastIndexOf("/")+1);
+                Album a=new Album(album_name,dcimPath);
+                album_list.add(a);
+            }
+
         }
-    }
 
     public void saveChangeToAlbum(Album album){
         Gson gson=new Gson();
@@ -536,6 +570,21 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
         String albumjson = gson.toJson(album_save);
         editor.putString(album.getName(),albumjson);
         editor.apply();
+    }
+    public void loadAllAlbumData(ArrayList<Image> images){
+        for(int i=0;i<images.size();i++){
+            for(int j=0;j<album_list.size();j++){
+                Image image=images.get(i);
+                Album album=album_list.get(j);
+                String imagepath=image.getPath();
+                String albumpath=album.getPath();
+                if(imagepath.contains(albumpath) &&
+                        (imagepath.lastIndexOf("/"))==albumpath.length()){
+                    album_list.get(j).addImageToAlbum(images.get(i));
+                }
+
+            }
+        }
     }
 
     public void loadDeleteImage(){

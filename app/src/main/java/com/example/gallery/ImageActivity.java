@@ -21,13 +21,16 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.util.Base64;
+import android.util.Log;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
+import com.example.gallery.fragment.AddImageToAlbumFragment;
 import com.example.gallery.fragment.EditImageFragment;
 import com.example.gallery.fragment.HidePagerFragment;
 import com.example.gallery.fragment.ImageViewFragment;
 import com.example.gallery.helper.DateConverter;
+import com.example.gallery.object.Album;
 import com.example.gallery.object.Image;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.gson.Gson;
@@ -45,7 +48,7 @@ import java.util.UUID;
 
 public class ImageActivity extends AppCompatActivity implements MainCallBacks{
     private ArrayList<Image> images;
-    private ArrayList<String> album_names;
+    public ArrayList<Album> album_list;
     private int curPos;
     private Uri tempEdited;
     Intent intent_image;
@@ -65,9 +68,9 @@ public class ImageActivity extends AppCompatActivity implements MainCallBacks{
         intent_image = intent;
         images = intent.getParcelableArrayListExtra("images");
         curPos = intent.getIntExtra("curPos", 0);
+        album_list=intent.getParcelableArrayListExtra("albums");
+
         Gson gson = new Gson();
-        String album_arr = intent.getStringExtra("ALBUM-LIST");
-        album_names = gson.fromJson(album_arr, new TypeToken<ArrayList<String>>(){}.getType());
         String hide = intent.getStringExtra("TYPE");
         if(hide!=null && hide.equals("hide")){
             HidePagerFragment hidePagerFragment = new HidePagerFragment(ImageActivity.this, images, curPos);
@@ -75,7 +78,7 @@ public class ImageActivity extends AppCompatActivity implements MainCallBacks{
         }{
             FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
             //getApplicationContext--> imageActivity.this
-            ImageViewFragment imageViewFragment = new ImageViewFragment(ImageActivity.this, images, album_names, curPos);
+            ImageViewFragment imageViewFragment = new ImageViewFragment(ImageActivity.this, images, album_list, curPos);
             ft.replace(R.id.pictureFragment, imageViewFragment);
             ft.commit();
         }
@@ -120,7 +123,6 @@ public class ImageActivity extends AppCompatActivity implements MainCallBacks{
     @Override
     public void onMsgFromFragToMain(String sender, String strValue) {
         if(sender.equals("EDIT-PHOTO")){
-            Toast.makeText(this,"Edit Feature Pos: "+strValue,Toast.LENGTH_SHORT).show();
             curPos = Integer.valueOf(strValue);
 
             try {
@@ -169,7 +171,7 @@ public class ImageActivity extends AppCompatActivity implements MainCallBacks{
         else if(sender.equals("RETURN-IMAGE-VIEW")){
             FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
             //getApplicationContext--> imageActivity.this
-            ImageViewFragment imageViewFragment = new ImageViewFragment(ImageActivity.this, images,album_names, curPos);
+            ImageViewFragment imageViewFragment = new ImageViewFragment(ImageActivity.this, images,album_list, curPos);
             ft.replace(R.id.pictureFragment, imageViewFragment); ft.commit();
         }
         else if(sender.equals("SAVE-EDITED-IMAGE")) {
@@ -209,8 +211,11 @@ public class ImageActivity extends AppCompatActivity implements MainCallBacks{
             }
             FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
             //getApplicationContext--> imageActivity.this
-            ImageViewFragment imageViewFragment = new ImageViewFragment(ImageActivity.this, images,album_names ,curPos);
+            ImageViewFragment imageViewFragment = new ImageViewFragment(ImageActivity.this, images,album_list ,curPos);
             ft.replace(R.id.pictureFragment, imageViewFragment); ft.commit();
+        }else if(sender.equals("ADD-TO-ALBUM")){
+            AddImageToAlbumFragment albumFragment=new AddImageToAlbumFragment(this,album_list,strValue) ;
+            getSupportFragmentManager().beginTransaction().replace(R.id.pictureFragment,albumFragment).addToBackStack(null).commit();
         }
     }
 

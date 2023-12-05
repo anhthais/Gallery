@@ -2,6 +2,7 @@ package com.example.gallery.object;
 
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.util.Log;
 
 public class Image implements Parcelable {
     private long idInMediaStore;
@@ -16,6 +17,7 @@ public class Image implements Parcelable {
         this.path = path;
         this.dateAdded = dateAdded;
         this.idInMediaStore = idInMediaStore;
+        Log.e("E",""+path);
     }
     public Image(String path, String dateAdded) {
         this.path = path;

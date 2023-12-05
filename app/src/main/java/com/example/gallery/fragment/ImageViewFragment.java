@@ -57,6 +57,7 @@ import com.example.gallery.ToolbarCallbacks;
 import com.example.gallery.adapter.ImageViewPagerAdapter;
 import com.example.gallery.helper.DateConverter;
 import com.example.gallery.helper.FileManager;
+import com.example.gallery.object.Album;
 import com.example.gallery.object.Image;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.gson.Gson;
@@ -84,7 +85,7 @@ public class ImageViewFragment extends Fragment implements ToolbarCallbacks {
     public ViewPager2 imageViewPager2;
     public ImageViewPagerAdapter viewPagerAdapter;
     private BottomNavigationView btnv;
-    public ArrayList<String> album_names;
+    public ArrayList<Album> album_list;
     public ArrayList<Long> addFav;
     public ArrayList<Long> removeFav;
     public ArrayList<Long> deletePos;
@@ -97,9 +98,9 @@ public class ImageViewFragment extends Fragment implements ToolbarCallbacks {
     public ImageActivity main;
     public String oldPath, newPath;
 
-    public ImageViewFragment(Context context, ArrayList<Image> images, ArrayList<String> album_names, int curPos) {
+    public ImageViewFragment(Context context, ArrayList<Image> images, ArrayList<Album> album_names, int curPos) {
         this.context = context;
-        this.album_names = album_names;
+        this.album_list = album_names;
         this.images = images;
         this.curPos = curPos;
     }
@@ -244,77 +245,10 @@ public class ImageViewFragment extends Fragment implements ToolbarCallbacks {
                     buttonNegative.setTextColor(ContextCompat.getColor(context, R.color.black));
 
                 } else if (id == R.id.btnAddToAlbum) {
-                    if (album_names == null || album_names.size() == 0) {
+                    if (album_list == null || album_list.size() == 0) {
                         Toast.makeText(context, "No album found", Toast.LENGTH_SHORT).show();
                     } else {
-                        AlertDialog.Builder builder = new AlertDialog.Builder(context);
-
-                        // Set Title.
-                        builder.setTitle("Thêm vào album");
-
-                        // Add a list
-                        String[] arr = new String[album_names.size()];
-                        for (int i = 0; i < album_names.size(); i++) {
-                            arr[i] = album_names.get(i);
-                        }
-
-                        int checkedItem = 0; // Sheep
-                        final Set<String> selectedItems = new HashSet<String>();
-                        selectedItems.add(arr[checkedItem]);
-
-                        builder.setSingleChoiceItems(arr, checkedItem, new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                // Do Something...
-                                selectedItems.clear();
-                                selectedItems.add(arr[which]);
-                            }
-                        });
-
-                        //
-                        builder.setCancelable(true);
-
-                        // Create "Yes" button with OnClickListener.
-                        builder.setPositiveButton("Thêm", new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int id) {
-                                if (selectedItems.isEmpty()) {
-                                    Toast.makeText(context, "Chọn Album", Toast.LENGTH_SHORT).show();
-                                    return;
-                                }
-                                String album_name = selectedItems.iterator().next();
-                                //put the new image to album
-                                //intent với key: tên album
-                                Intent intent = ((ImageActivity) context).getIntent();
-                                Gson gson = new Gson();
-                                String json = intent.getStringExtra(album_name);
-                                ArrayList<Long> album_image;
-                                if (json == null) {
-                                    album_image = new ArrayList<Long>();
-                                } else {
-                                    album_image = gson.fromJson(json, new TypeToken<ArrayList<Long>>() {
-                                    }.getType());
-                                }
-                                album_image.add(images.get(imageViewPager2.getCurrentItem()).getIdInMediaStore());
-                                intent.putExtra(album_name, gson.toJson(album_image));
-                                //setResult để mainActivity xử lý khi ImageActivity kết thúc
-                                ((ImageActivity) context).setResult(AppCompatActivity.RESULT_OK, intent);
-
-                                // Close Dialog
-                                dialog.dismiss();
-
-                            }
-                        });
-
-                        // Create "Cancel" button with OnClickListener.
-                        builder.setNegativeButton("Thoát", new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int id) {
-                                dialog.cancel();
-                            }
-                        });
-
-                        // Create AlertDialog:
-                        AlertDialog alert = builder.create();
-                        alert.show();
+                        ((ImageActivity)context).onMsgFromFragToMain("ADD-TO-ALBUM",images.get(imageViewPager2.getCurrentItem()).getPath());
                     }
                 } else if (id == R.id.btnReadTextInImage) {
                     Uri uriToImage = getUriFromPath(getContext(), new File(images.get(imageViewPager2.getCurrentItem()).getPath()));
