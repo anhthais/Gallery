@@ -172,7 +172,7 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHol
                         }else{
                             selectedItemsIds.delete(position);
                         }
-                        mode.setTitle("Đã chọn " + selectedItemsIds.size());
+                        mode.setTitle(R.string.selected+" " + selectedItemsIds.size());
                         notifyDataSetChanged();
                     }
                 }
@@ -195,7 +195,7 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHol
                     }else{
                         selectedItemsIds.delete(position);
                     }
-                    mode.setTitle("Đã chọn " + selectedItemsIds.size());
+                    mode.setTitle(R.string.selected+" "+ selectedItemsIds.size());
                 }
                 return true;
             }
@@ -216,7 +216,7 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHol
                         selectedItemsIds.delete(position);
                     }
                 }
-                mode.setTitle("Đã chọn " + selectedItemsIds.size());
+                mode.setTitle(R.string.selected+" "+ selectedItemsIds.size());
                 notifyDataSetChanged();
             }
         });
@@ -278,7 +278,7 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHol
 
                 }
 
-                mode.setTitle("Đã chọn " + selectedItemsIds.size());
+                mode.setTitle(R.string.selected+" " + selectedItemsIds.size());
                 notifyDataSetChanged();
                 return true;
             }

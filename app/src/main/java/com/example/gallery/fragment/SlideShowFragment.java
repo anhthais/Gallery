@@ -142,7 +142,7 @@ public class SlideShowFragment extends Fragment {
                 if(id==R.id.btnStop){
                     if(stop){
                         stop=!stop;
-                        item.setTitle("Tạm dừng");
+                        item.setTitle(R.string.stop);
                         final Handler handler = new Handler();
                         final Runnable Update = new Runnable() {
                             public void run() {
@@ -173,7 +173,7 @@ public class SlideShowFragment extends Fragment {
                         stop=!stop;
                         timer.cancel();
                         timer.purge();
-                        item.setTitle("Tiếp tục");
+                        item.setTitle(R.string.continous);
                     }
                 }
                 return false;

@@ -5,6 +5,6 @@
         android:id="@+id/btnStop"
         android:checked="true"
         app:showAsAction="always"
-        android:title="Tạm dừng"
+        android:title="@string/stop"
         />
 </menu>

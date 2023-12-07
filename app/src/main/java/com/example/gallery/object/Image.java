@@ -17,7 +17,6 @@ public class Image implements Parcelable {
         this.path = path;
         this.dateAdded = dateAdded;
         this.idInMediaStore = idInMediaStore;
-        Log.e("E",""+path);
     }
     public Image(String path, String dateAdded) {
         this.path = path;

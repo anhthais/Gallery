@@ -4,6 +4,7 @@ import android.app.Dialog;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.Environment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -26,6 +27,10 @@ import com.google.gson.Gson;
 
 import org.jetbrains.annotations.Nullable;
 
+import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 
 public class AlbumFragment extends Fragment implements FragmentCallBacks {
@@ -72,22 +77,24 @@ public class AlbumFragment extends Fragment implements FragmentCallBacks {
             @Override
             public void onClick(View v) {
                 if(editText.getText().toString().length()==0){
-                    Toast.makeText(context, "Nhập tên Album", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(context, R.string.enter_album_name, Toast.LENGTH_SHORT).show();
                 }
                 else{
                     Gson gson=new Gson();
-                    Album a=new Album(editText.getText().toString());
-                    albums.add(a);
-                    album_adapter.notifyItemInserted(albums.size()-1);
-                    SharedPreferences albumPref= context.getSharedPreferences("GALLERY",Context.MODE_PRIVATE);
-                    SharedPreferences.Editor editor=albumPref.edit();
-                    ArrayList<String> album_save=new ArrayList<>();
-                    for(int i=0;i<albums.size();i++){
-                        album_save.add(albums.get(i).getName());
+                    String dcimPath = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM).getAbsolutePath();
+                    Path albumPath= Paths.get(dcimPath,editText.getText().toString());
+                    if(Files.exists(albumPath)){
+                        Toast.makeText(context, R.string.album_existed, Toast.LENGTH_SHORT).show();
+                        return;
                     }
-                    String albumjson=gson.toJson(album_save);
-                    editor.putString("ALBUM",albumjson);
-                    editor.commit();
+                    else {
+                        File file=new File(albumPath.toString());
+                        file.mkdir();
+                        Album a=new Album(editText.getText().toString(),albumPath.toString());
+                        albums.add(a);
+                        album_adapter.notifyItemInserted(albums.size()-1);
+                    }
+
                     addDialog.cancel();
                 }
             }

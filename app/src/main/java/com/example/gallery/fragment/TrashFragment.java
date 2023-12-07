@@ -54,7 +54,7 @@ public class TrashFragment extends Fragment implements FragmentCallBacks, MultiS
 
         ((MainActivity)context).getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         ((MainActivity)context).getSupportActionBar().setHomeButtonEnabled(true);
-        ((MainActivity)context).getSupportActionBar().setTitle("Thùng rác");
+        ((MainActivity)context).getSupportActionBar().setTitle(R.string.trash_bin);
 
         return TrashFragment;
     }
@@ -70,9 +70,8 @@ public class TrashFragment extends Fragment implements FragmentCallBacks, MultiS
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        ((MainActivity)context).getSupportActionBar().setTitle("Gallery");
+        ((MainActivity)context).getSupportActionBar().setTitle(R.string.app_name);
         ((MainActivity)context).getSupportActionBar().setDisplayHomeAsUpEnabled(false);
-        ((MainActivity)context).getMenu().findItem(R.id.btnRenameAlbum).setVisible(false);
         ((MainActivity)context).getMenu().findItem(R.id.btnAddNewAlbum).setVisible(true);
 
     }

@@ -167,7 +167,7 @@ public class EditImageFragment extends Fragment {
         img_btn_save.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(context,"Save Edit Image",Toast.LENGTH_SHORT).show();
+                Toast.makeText(context,R.string.save_imahe_edit,Toast.LENGTH_SHORT).show();
                 currenBitmap = ((BitmapDrawable) imageView.getDrawable()).getBitmap();
                 ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
                 currenBitmap.compress(Bitmap.CompressFormat.PNG, 100, byteArrayOutputStream);

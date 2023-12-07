@@ -109,7 +109,7 @@ public class GalleryFragment extends Fragment implements FragmentCallBacks, Mult
         boolean isChangeTheme = myPref.getBoolean("__isChangeTheme", false);
         if(isChangeTheme){
             main.allImages = LocalStorageReader.getImagesFromLocal(getContext());
-            main.album_list=LocalStorageReader.loadAllAlbum();
+            main.loadAllAlbum();
             main.loadAllAlbumData(main.allImages);
             main.imageGroupsByDate = LocalStorageReader.getListImageGroupByDate(main.allImages);
             editor.putBoolean("__isChangeTheme", false);
@@ -133,7 +133,7 @@ public class GalleryFragment extends Fragment implements FragmentCallBacks, Mult
                 Button ok=addDialog.findViewById(R.id.btnOKAddAlbum);
                 Button cancel=addDialog.findViewById(R.id.btnCancelAddAlbum);
                 TextView textView=addDialog.findViewById(R.id.addNewAlbumTextView);
-                textView.setText("Thêm ảnh từ đường dẫn");
+                textView.setText(R.string.add_image_from_link);
                 addDialog.create();
                 addDialog.show();
 
@@ -141,7 +141,7 @@ public class GalleryFragment extends Fragment implements FragmentCallBacks, Mult
                     @Override
                     public void onClick(View v) {
                         if(editText.getText().toString().length()==0){
-                            Toast.makeText(context, "Nhập đường dẫn", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(context, R.string.enter_link, Toast.LENGTH_SHORT).show();
                         }
                         else{
                             DownloadImageFromLink(editText.getText().toString());
@@ -222,11 +222,14 @@ public class GalleryFragment extends Fragment implements FragmentCallBacks, Mult
         }
     }
     private void updateGroupListAndRecyclerView(Path childPath) {
+        if(getActivity()==null){
+            return;
+        }
         getActivity().runOnUiThread(() -> {
             main.allImages = LocalStorageReader.getImagesFromLocal(getContext());
             main.imageGroupsByDate = LocalStorageReader.getListImageGroupByDate(main.allImages);
             groupList = main.imageGroupsByDate;
-            main.album_list=LocalStorageReader.loadAllAlbum();
+            main.loadAllAlbum();
             main.loadAllAlbumData(main.allImages);
             imageGroupAdapter = new ImageGroupAdapter(context, groupList);
             recyclerView.setAdapter(imageGroupAdapter);
@@ -288,7 +291,7 @@ public class GalleryFragment extends Fragment implements FragmentCallBacks, Mult
     }
     void DownloadImageFromLink(String ImageUrl) {
         //Asynctask to create a thread to downlaod image in the background
-        Toast.makeText(context, "Downloading", Toast.LENGTH_SHORT).show();
+        Toast.makeText(context, R.string.downloading, Toast.LENGTH_SHORT).show();
         try{
             new DownLoadImage(context).execute(ImageUrl);
         }catch (Exception e){

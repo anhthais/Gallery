@@ -224,7 +224,7 @@ public class ImageGroupAdapter extends RecyclerView.Adapter<ImageGroupAdapter.Im
         for(int i = 0; i < selectedItemsIds.size(); ++i){
             totalSelected += selectedItemsIds.get(i).size();
         }
-        mode.setTitle("Đã chọn " + totalSelected);
+        mode.setTitle(R.string.selected+" " + totalSelected);
     }
 
     public ArrayList<Image> getSelectedItems(){

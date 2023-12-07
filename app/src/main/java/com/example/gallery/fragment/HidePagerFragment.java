@@ -99,7 +99,7 @@ public class HidePagerFragment extends Fragment {
                 }
 
                 else{
-                    Toast.makeText(context, "Cannot delete", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(context, R.string.cannot_delete, Toast.LENGTH_SHORT).show();
                 }
             }
         });
@@ -143,7 +143,7 @@ public class HidePagerFragment extends Fragment {
                         getActivity().finish();
                     }
                 }else{
-                    Toast.makeText(context, "Cannot un hide", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(context, R.string.cannot_unhide, Toast.LENGTH_SHORT).show();
                 }
             }
         });

@@ -174,14 +174,14 @@ public class ImageViewFragment extends Fragment implements ToolbarCallbacks {
 
                     AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
                     builder.setIcon(R.drawable.logo_app);
-                    builder.setTitle("Đặt làm hình nền");
-                    builder.setMessage("Lựa chọn nơi để đặt ảnh làm hình nền");
+                    builder.setTitle(R.string.set_as_wall);
+                    builder.setMessage(R.string.select_screen);
 
                     RadioButton homeScreenRadioButton = new RadioButton(getActivity());
-                    homeScreenRadioButton.setText("Màn hình chính");
+                    homeScreenRadioButton.setText(R.string.main_screen);
 
                     RadioButton lockScreenRadioButton = new RadioButton(getActivity());
-                    lockScreenRadioButton.setText("Màn hình khóa");
+                    lockScreenRadioButton.setText(R.string.lock_screen);
                     // Create a ColorStateList for the background tint
                     int[][] states = new int[][]{
                             new int[]{android.R.attr.state_checked},
@@ -209,10 +209,10 @@ public class ImageViewFragment extends Fragment implements ToolbarCallbacks {
                             if (homeScreenRadioButton.isChecked()) {
                                 try {
                                     wallpaperManager.setBitmap(bitmap, null, true, WallpaperManager.FLAG_SYSTEM);
-                                    Toast.makeText(context, "Setting HomeScreen's Wallpaper Successfully!!", Toast.LENGTH_SHORT).show();
+                                    Toast.makeText(context, R.string.home_screen_success, Toast.LENGTH_SHORT).show();
                                 } catch (IOException e) {
                                     e.printStackTrace();
-                                    Toast.makeText(context, "Setting HomeScreen's Wallpaper Failed!!", Toast.LENGTH_SHORT).show();
+                                    Toast.makeText(context, R.string.home_screen_fail, Toast.LENGTH_SHORT).show();
                                 }
                             } else if (lockScreenRadioButton.isChecked()) {
                                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
@@ -221,18 +221,18 @@ public class ImageViewFragment extends Fragment implements ToolbarCallbacks {
                                     } catch (IOException e) {
                                         throw new RuntimeException(e);
                                     }
-                                    Toast.makeText(context, "Setting Lockscreen's Wallpaper Successfully!!", Toast.LENGTH_SHORT).show();
+                                    Toast.makeText(context, R.string.lock_screen_success, Toast.LENGTH_SHORT).show();
                                 } else {
-                                    Toast.makeText(context, "Lock screen wallpaper not supported", Toast.LENGTH_SHORT).show();
+                                    Toast.makeText(context, R.string.lock_screen_fail, Toast.LENGTH_SHORT).show();
                                 }
                             }
                         }
                     });
-                    builder.setNegativeButton("CANCEL", new DialogInterface.OnClickListener() {
+                    builder.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
                                     dialog.dismiss();
-                                    Toast.makeText(context, "Cancel", Toast.LENGTH_SHORT).show();
+                                    Toast.makeText(context, R.string.cancel, Toast.LENGTH_SHORT).show();
                                 }
                             }
                     );
@@ -246,7 +246,7 @@ public class ImageViewFragment extends Fragment implements ToolbarCallbacks {
 
                 } else if (id == R.id.btnAddToAlbum) {
                     if (album_list == null || album_list.size() == 0) {
-                        Toast.makeText(context, "No album found", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(context, R.string.no_album_found, Toast.LENGTH_SHORT).show();
                     } else {
                         ((ImageActivity)context).onMsgFromFragToMain("ADD-TO-ALBUM",images.get(imageViewPager2.getCurrentItem()).getPath());
                     }
@@ -305,7 +305,7 @@ public class ImageViewFragment extends Fragment implements ToolbarCallbacks {
                         imageViewPager2.getAdapter().notifyItemRemoved(removeindex);
 
                     } else {
-                        Toast.makeText(context, "Cannot hide this image", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(context, R.string.cannot_hide, Toast.LENGTH_SHORT).show();
                     }
                 }
                 else if (id == R.id.btnViewInfor) {
@@ -368,15 +368,15 @@ public class ImageViewFragment extends Fragment implements ToolbarCallbacks {
             } else if (id == R.id.btnDeletePicture) {
                 if(Build.VERSION.SDK_INT <= Build.VERSION_CODES.P){
                     AlertDialog.Builder builder = new AlertDialog.Builder(context, R.style.MyDialogTheme);
-                    builder.setTitle("Chuyển ảnh vào thùng rác");
+                    builder.setTitle(R.string.move_to_trash);
                     builder.setCancelable(true);
-                    builder.setPositiveButton("Chuyển", new DialogInterface.OnClickListener() {
+                    builder.setPositiveButton(R.string.move, new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int id) {
                             deleteImage();
                         }
 
                     });
-                    builder.setNegativeButton("Thoát", new DialogInterface.OnClickListener() {
+                    builder.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int id) {
                             //  Cancel
                             dialog.cancel();
@@ -444,9 +444,9 @@ public class ImageViewFragment extends Fragment implements ToolbarCallbacks {
             newPath = folder.getAbsolutePath() + "/" + filename;
 
             if (FileManager.moveFile(main, oldPath, newPath, context)) {
-                Toast.makeText(context, "Delete photo successfully", Toast.LENGTH_SHORT).show();
+                Toast.makeText(context, R.string.delete_photo_success, Toast.LENGTH_SHORT).show();
             } else {
-                Toast.makeText(context, "Cannot delete photo", Toast.LENGTH_SHORT).show();
+                Toast.makeText(context, R.string.cannot_delete_photo, Toast.LENGTH_SHORT).show();
             }
         } catch (Exception e) {
             Log.d("error delete", e.getMessage());

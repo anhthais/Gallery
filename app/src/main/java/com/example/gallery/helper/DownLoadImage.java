@@ -12,6 +12,8 @@ import android.os.AsyncTask;
 import android.os.Environment;
 import android.widget.Toast;
 
+import com.example.gallery.R;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -85,7 +87,7 @@ public class DownLoadImage extends AsyncTask<String,Void,Void> {
     @Override
     protected void onPostExecute(Void aVoid) {
         super.onPostExecute(aVoid);
-        Toast.makeText(context,(saved)? "Saved":"Cannot save, maybe no internet", Toast.LENGTH_SHORT).show();
+        Toast.makeText(context,(saved)? R.string.saved:R.string.download_notice_fail, Toast.LENGTH_SHORT).show();
     }
     private boolean isNetworkAvailable() {
         ConnectivityManager connectivityManager

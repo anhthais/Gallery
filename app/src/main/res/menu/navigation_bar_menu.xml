@@ -3,21 +3,21 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
         android:id="@+id/btnGallery"
-        android:title="Gallery"
+        android:title="@string/gallery"
         android:checked="true"
         app:showAsAction="always"
         android:icon="@drawable/ic_image_24"
         />
     <item
         android:id="@+id/btnAlbum"
-        android:title="Album"
+        android:title="@string/album"
         android:checked="true"
         app:showAsAction="always"
         android:icon="@drawable/ic_album_24"
         />
     <item
         android:id="@+id/btnSettings"
-        android:title="Settings"
+        android:title="@string/settings"
         android:checked="true"
         app:showAsAction="always"
         android:icon="@drawable/ic_settings_24"

@@ -112,14 +112,13 @@ public class ImageFragment extends Fragment implements MultiSelectModeCallbacks 
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        ((MainActivity)context).getSupportActionBar().setTitle("Gallery");
+        ((MainActivity)context).getSupportActionBar().setTitle(R.string.app_name);
         ((MainActivity)context).getSupportActionBar().setDisplayHomeAsUpEnabled(false);
-        ((MainActivity)context).getMenu().findItem(R.id.btnRenameAlbum).setVisible(false);
         ((MainActivity)context).getMenu().findItem(R.id.btnAddNewAlbum).setVisible(true);
     }
     public void beginSlideShow(){
         if(album.getAll_album_pictures()==null||album.getAll_album_pictures().size()==0){
-            Toast.makeText(context, "Nothing to slide show", Toast.LENGTH_SHORT).show();
+            Toast.makeText(context, R.string.nothing_to_slide_show, Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -135,7 +134,7 @@ public class ImageFragment extends Fragment implements MultiSelectModeCallbacks 
             @Override
             public void onClick(View v) {
                 if(editText.getText().toString().length()==0){
-                    Toast.makeText(context, "Nhập thời gian", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(context, R.string.enter_time, Toast.LENGTH_SHORT).show();
                 }
                 else{
                     try{

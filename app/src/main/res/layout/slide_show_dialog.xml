@@ -7,7 +7,7 @@
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Thời gian chuyển ảnh"
+        android:text="@string/time_between_slide"
         android:textSize="25sp"/>
     <EditText
         android:id="@+id/slideshowEditText"
@@ -22,7 +22,7 @@
         android:layout_height="wrap_content"
         android:textColor="@color/red"
         android:visibility="invisible"
-        android:text="Thời gian chuyển ảnh không hợp lệ"
+        android:text="@string/time_between_slide_not"
         android:textSize="15sp"/>
     <LinearLayout
         android:layout_width="match_parent"
@@ -32,14 +32,14 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="OK"
+            android:text="@string/start"
             android:textColor="@color/black"/>
         <Button
             android:id="@+id/btnCancelSlideShow"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Cancel"
+            android:text="@string/cancel"
             android:textColor="@color/black"/>
     </LinearLayout>
 

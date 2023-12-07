@@ -3,14 +3,14 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
         android:id="@+id/btnRestore"
-        android:title="Khôi phục"
+        android:title="@string/restore"
         android:checked="true"
         app:showAsAction="always"
         android:icon="@drawable/baseline_restore_24"
         />
     <item
         android:id="@+id/btnDeletePermanently"
-        android:title="Xóa"
+        android:title="@string/delete"
         android:checked="true"
         app:showAsAction="always"
         android:icon="@drawable/ic_trash_24"

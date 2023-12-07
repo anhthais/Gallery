@@ -65,12 +65,12 @@ public class AddAlbumAdapter extends RecyclerView.Adapter<AddAlbumAdapter.ViewHo
                     try {
                         file.createNewFile();
                     } catch (IOException e) {
-                        Toast.makeText(context, "Không thể thêm", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(context, R.string.cannot_add, Toast.LENGTH_SHORT).show();
                     }
                     try {
                         Files.copy(source,dest, StandardCopyOption.REPLACE_EXISTING);
                     } catch (IOException e) {
-                        Toast.makeText(context, "Ảnh trùng tên đã có trong album, không thể thêm", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(context, R.string.existed_cannot_add, Toast.LENGTH_SHORT).show();
                         file.delete();
                     }
                     ((ImageActivity)context).getSupportFragmentManager().popBackStackImmediate();

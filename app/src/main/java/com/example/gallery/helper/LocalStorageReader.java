@@ -1,5 +1,7 @@
 package com.example.gallery.helper;
 
+import static android.provider.Settings.System.getString;
+
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.database.Cursor;
@@ -10,6 +12,7 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.example.gallery.Database.DatabaseHelper;
+import com.example.gallery.R;
 import com.example.gallery.object.Album;
 import com.example.gallery.object.Image;
 import com.example.gallery.object.ImageGroup;
@@ -98,58 +101,6 @@ public class LocalStorageReader {
             Log.e("getListImageGroup", e.toString());
             return new ArrayList<>();
         }
-    }
-    public static ArrayList<Album> loadAllAlbum(){
-        ArrayList <Album> album_list=new ArrayList<Album>();
-        album_list.add(new Album("Tải xuống", Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).toString()));
-
-        Gson gson=new Gson();
-        String picturePath = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).getAbsolutePath();
-        File sdFile = new File(picturePath);
-        final boolean[] rootExist = {false};
-        File[] foldersSd = sdFile.listFiles(new FilenameFilter() {
-            @Override
-            public boolean accept(File file, String s) {
-                //check if exist image outside all folder in SD
-                if(s.contains(".")){
-                    rootExist[0] =true;
-                }
-                return !s.contains(".");
-            }
-        });
-        if(rootExist[0]){
-            String album_name=picturePath.substring(picturePath.lastIndexOf("/")+1);
-            Album a=new Album(album_name,picturePath);
-            album_list.add(a);
-        }
-        for(File file:foldersSd){
-            String album_name=file.getPath().substring(file.getPath().lastIndexOf("/")+1);
-            Album a=new Album(album_name,file.getPath());
-            album_list.add(a);
-        }
-        rootExist[0]=false;
-        String dcimPath = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM).getAbsolutePath();
-        File dcimFile = new File(dcimPath);
-        File[] foldersDCIM = dcimFile.listFiles(new FilenameFilter() {
-            @Override
-            public boolean accept(File file, String s) {
-                //check if exist image outside all folder in DCIM
-                if(s.contains(".")){
-                    rootExist[0]=true;
-                }
-                return !s.contains(".");
-            }
-        });
-        for(File file:foldersDCIM){
-            Album a=new Album(file.getPath().substring(file.getPath().lastIndexOf("/")+1),file.getPath());
-            album_list.add(a);
-        }
-        if(rootExist[0]){
-            String album_name=dcimPath.substring(dcimPath.lastIndexOf("/")+1);
-            Album a=new Album(album_name,dcimPath);
-            album_list.add(a);
-        }
-        return album_list;
     }
 
 }

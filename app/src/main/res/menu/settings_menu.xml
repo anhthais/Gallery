@@ -4,32 +4,47 @@
     <item
         android:id="@+id/btnTheme"
         android:checked="true"
-        android:title="Đổi Theme">
+        android:title="@string/theme">
         <menu>
             <item
                 android:id="@+id/btnThemeLight"
                 android:checked="true"
-                android:title="Sáng"/>
+                android:title="@string/light"/>
             <item
                 android:id="@+id/btnThemeDark"
                 android:checked="true"
-                android:title="Tối"/>
+                android:title="@string/dark"/>
+        </menu>
+    </item>
+    <item
+        android:id="@+id/btnLanguage"
+        android:checked="true"
+        android:title="@string/language">
+        <menu>
+            <item
+                android:id="@+id/btnEnglish"
+                android:checked="true"
+                android:title="@string/english"/>
+            <item
+                android:id="@+id/btnVietnamese"
+                android:checked="true"
+                android:title="@string/vietnamese"/>
         </menu>
     </item>
     <item
         android:id="@+id/btnBackup"
         android:checked="true"
-        android:title="Sao lưu"/>
+        android:title="@string/backup"/>
     <item
         android:id="@+id/btnShowHideFrag"
         android:checked="true"
-        android:title="Thư mục ẩn"/>
+        android:title="@string/hidealbum"/>
     <item
         android:id="@+id/btnTrashbin"
         android:checked="true"
-        android:title="Thùng rác"/>
+        android:title="@string/trashalbum"/>
     <item
         android:id="@+id/btnFavouriteImg"
         android:checked="true"
-        android:title="Yêu thích"/>
+        android:title="@string/favouritealbum"/>
 </menu>

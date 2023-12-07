@@ -69,9 +69,8 @@ public class HideFragment extends Fragment {
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        ((MainActivity)context).getSupportActionBar().setTitle("Gallery");
+        ((MainActivity)context).getSupportActionBar().setTitle(R.string.app_name);
         ((MainActivity)context).getSupportActionBar().setDisplayHomeAsUpEnabled(false);
-        ((MainActivity)context).getMenu().findItem(R.id.btnRenameAlbum).setVisible(false);
         ((MainActivity)context).getMenu().findItem(R.id.btnAddNewAlbum).setVisible(true);
     }
     public void removeImage(ArrayList<String>path){

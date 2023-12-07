@@ -88,9 +88,9 @@ public class TrashActivity extends AppCompatActivity implements ToolbarCallbacks
                     intent.putExtra("deletePath", gson.toJson(deletePath));
                     MediaScannerConnection.scanFile(getApplicationContext(), new String[] { trashItem.getPrevPath() }, null,null);
                     setResult(AppCompatActivity.RESULT_OK, intent);
-                    Toast.makeText(this, "Restore the image successfully", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, R.string.restore_success, Toast.LENGTH_SHORT).show();
                 } catch (Exception e){
-                    Toast.makeText(this, "Cannot restore the image", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, R.string.cannot_restore, Toast.LENGTH_SHORT).show();
                 }
 
             } else if (id == R.id.btnDeletePermanently) {
@@ -104,9 +104,9 @@ public class TrashActivity extends AppCompatActivity implements ToolbarCallbacks
                     deletePath.add(trashItem.getPath());
                     intent.putExtra("deletePath", gson.toJson(deletePath));
                     setResult(AppCompatActivity.RESULT_OK, intent);
-                    Toast.makeText(this, "Permanently delete the image", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, R.string.permannently_delete, Toast.LENGTH_SHORT).show();
                 } else {
-                    Toast.makeText(this, "Cannot permanently delete the image", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, R.string.permanently_not_delete, Toast.LENGTH_SHORT).show();
                 }
             }
         });

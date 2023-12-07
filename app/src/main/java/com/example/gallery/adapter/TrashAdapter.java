@@ -114,7 +114,7 @@ public class TrashAdapter extends RecyclerView.Adapter<TrashAdapter.ViewHolder> 
                     }else{
                         selectedItemsIds.delete(position);
                     }
-                    mode.setTitle("Đã chọn " + selectedItemsIds.size());
+                    mode.setTitle(R.string.selected+" "+ selectedItemsIds.size());
                     notifyDataSetChanged();
                 }
             }
@@ -138,7 +138,7 @@ public class TrashAdapter extends RecyclerView.Adapter<TrashAdapter.ViewHolder> 
                     selectedItemsIds.delete(position);
                 }
 
-                mode.setTitle("Đã chọn " + selectedItemsIds.size());
+                mode.setTitle(R.string.selected+" " + selectedItemsIds.size());
                 notifyDataSetChanged();
             }
         });
@@ -182,7 +182,7 @@ public class TrashAdapter extends RecyclerView.Adapter<TrashAdapter.ViewHolder> 
 
                 }
 
-                mode.setTitle("Đã chọn " + selectedItemsIds.size());
+                mode.setTitle(R.string.selected+" " + selectedItemsIds.size());
                 notifyDataSetChanged();
                 return true;
             }
@@ -219,6 +219,6 @@ public class TrashAdapter extends RecyclerView.Adapter<TrashAdapter.ViewHolder> 
     public String getRemainingTime(TrashItem item){
         Date curDate = Calendar.getInstance().getTime();
         Date expiredDate = new Date(item.getDateExpires());
-        return "Còn lại " + DateConverter.getMinutesFromComputeDiff(curDate, expiredDate) + " phút";
+        return R.string.remaining+": " + DateConverter.getMinutesFromComputeDiff(curDate, expiredDate)+" " +R.string.minutes;
     }
 }

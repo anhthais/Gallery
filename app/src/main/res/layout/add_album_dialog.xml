@@ -8,7 +8,7 @@
         android:id="@+id/addNewAlbumTextView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Tên Album"
+        android:text="@string/album_name"
         android:textSize="25sp"/>
     <EditText
         android:id="@+id/addNewAlbumEditText"
@@ -32,7 +32,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Cancel"
+            android:text="@string/cancel"
             android:textColor="@color/black"/>
     </LinearLayout>
 

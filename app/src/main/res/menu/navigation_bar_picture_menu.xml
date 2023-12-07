@@ -2,7 +2,7 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
-        android:title="Yêu thích"
+        android:title="@string/favouritealbum"
         android:icon="@drawable/baseline_favorite_border_24"
         app:showAsAction="always"
         android:id="@+id/btnLovePicture"/>
@@ -11,15 +11,15 @@
         android:id="@+id/btnEditPicture"
         android:icon="@drawable/ic_edit_24"
         app:showAsAction="always"
-        android:title="Chỉnh sửa"/>
+        android:title="@string/edit"/>
     <item
         android:id="@+id/btnSharePicture"
-        android:title="Chia sẻ"
+        android:title="@string/share"
         app:showAsAction="always"
         android:icon="@drawable/ic_share_24"/>
     <item
         android:id="@+id/btnDeletePicture"
-        android:title="Xoá"
+        android:title="@string/delete"
         app:showAsAction="always"
         android:icon="@drawable/ic_trash_24"/>
 </menu>

@@ -5,20 +5,20 @@
         android:id="@+id/btnSelectAll"
         android:checked="true"
         app:showAsAction="never"
-        android:title="Chọn tất cả"/>
+        android:title="@string/select_all"/>
     <item
         android:id="@+id/btnRemoveAll"
         android:checked="true"
         app:showAsAction="never"
-        android:title="Bỏ chọn tất cả"/>
+        android:title="@string/unselect_all"/>
     <item
         android:id="@+id/btnAddMultiFromGalleryToAlbum"
         android:checked="true"
         app:showAsAction="never"
-        android:title="Xóa" />
+        android:title="@string/delete" />
     <item
         android:id="@+id/btnDeleteMultiFromGallery"
         android:checked="true"
         app:showAsAction="never"
-        android:title="Khôi phục"/>
+        android:title="@string/restore"/>
 </menu>

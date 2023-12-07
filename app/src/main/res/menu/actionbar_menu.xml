@@ -13,35 +13,25 @@
         android:id="@+id/btnChooseMulti"
         android:checked="true"
         app:showAsAction="never"
-        android:title="Chọn nhiều ảnh"/>
+        android:title="@string/select_multi"/>
     <item
         android:id="@+id/btnSlideShow"
         android:checked="true"
         app:showAsAction="never"
-        android:title="Trình chiếu"/>
-    <item
-        android:id="@+id/btnAddImageAcTion"
-        android:checked="true"
-        app:showAsAction="never"
-        android:title="Thêm ảnh"/>
+        android:title="@string/slideshow"/>
     <item
         android:id="@+id/btnStatistic"
         android:checked="true"
         app:showAsAction="never"
-        android:title="Thống kê"/>
+        android:title="@string/statistic"/>
     <item
         android:id="@+id/btnAddNewAlbum"
         android:checked="true"
         app:showAsAction="never"
-        android:title="Thêm Album"/>
-    <item
-        android:id="@+id/btnRenameAlbum"
-        android:checked="true"
-        app:showAsAction="never"
-        android:title="Đổi tên Album"/>
+        android:title="@string/new_album"/>
     <item
         android:id="@+id/btnDeleteAlbum"
         android:checked="true"
         app:showAsAction="never"
-        android:title="Xóa album"/>
+        android:title="@string/delete_album"/>
 </menu>

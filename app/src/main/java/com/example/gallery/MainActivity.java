@@ -21,9 +21,12 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.content.res.Configuration;
+import android.content.res.Resources;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.SparseBooleanArray;
 import android.view.LayoutInflater;
@@ -59,6 +62,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -90,6 +94,19 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        SharedPreferences pref=getSharedPreferences("GALLERY",MODE_PRIVATE) ;
+        String theme=pref.getString("THEME","LIGHT");
+        if(theme.equals("LIGHT")){
+            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+        }else{
+            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
+        }
+        String locale=pref.getString("LANGUAGE","en");
+        Locale myLocale = new Locale(locale);
+        Resources res = getResources();
+        DisplayMetrics dm = res.getDisplayMetrics();
+        Configuration conf = res.getConfiguration();
+        conf.locale = myLocale;
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         // set widget view
@@ -124,7 +141,6 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
             loadAllAlbum();
             loadAllAlbumData(allImages);
         }
-        Toast.makeText(this, "onResume() main", Toast.LENGTH_SHORT).show();
 
     }
 
@@ -138,7 +154,7 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
         // TODO: init first data --> all fragments in this activity retrieve data directly from properties in the activity
         allImages = LocalStorageReader.getImagesFromLocal(getApplicationContext());
         imageGroupsByDate = LocalStorageReader.getListImageGroupByDate(allImages);
-        album_list=LocalStorageReader.loadAllAlbum();
+        loadAllAlbum();
         loadAllAlbumData(allImages);
         allImagesInMap = new HashMap<>();
         for(int i = 0; i < allImages.size(); ++i){
@@ -154,7 +170,6 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
         loadDeleteImage(); // delete expired images when loading images
         loadFavouriteImage();
 
-        menu.findItem(R.id.btnRenameAlbum).setVisible(false);
         menu.findItem(R.id.btnDeleteAlbum).setVisible(false);
         menu.findItem(R.id.btnSlideShow).setVisible(false);
         FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
@@ -185,18 +200,39 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
                     @Override
                     public boolean onMenuItemClick(MenuItem item) {
                         int id=item.getItemId();
-                        if(id==R.id.btnThemeDark){
+                        if(id==R.id.btnEnglish){
+                            if(!getResources().getConfiguration().getLocales().get(0).toString().equals("en")){
+                                SharedPreferences pref=getSharedPreferences("GALLERY",MODE_PRIVATE);
+                                SharedPreferences.Editor editor=pref.edit();
+                                editor.putString("LANGUAGE","en");
+                                editor.commit();
+                                setLocale("en");
+                            }
+                        }
+                        else if(id==R.id.btnVietnamese){
+                            if(!getResources().getConfiguration().getLocales().get(0).toString().equals("vi")){
+                                SharedPreferences pref=getSharedPreferences("GALLERY",MODE_PRIVATE);
+                                SharedPreferences.Editor editor=pref.edit();
+                                editor.putString("LANGUAGE","vi");
+                                editor.commit();
+                                setLocale("vi");
+                            }
+                        }
+                        else if(id==R.id.btnThemeDark){
                             AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
                             SharedPreferences myPref = getSharedPreferences("GALLERY", Activity.MODE_PRIVATE);
                             SharedPreferences.Editor editor = myPref.edit();
                             editor.putBoolean("__isChangeTheme", true);
                             editor.apply();
+                            editor.putString("THEME","DARK").commit();
                         }else if (id==R.id.btnThemeLight){
                             AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
                             SharedPreferences myPref = getSharedPreferences("GALLERY", Activity.MODE_PRIVATE);
                             SharedPreferences.Editor editor = myPref.edit();
                             editor.putBoolean("__isChangeTheme", true);
                             editor.apply();
+                            editor.putString("THEME","LIGHT").commit();
+
                         }else if (id == R.id.btnTrashbin)
                         {
                             menu.findItem(R.id.btnAddNewAlbum).setVisible(false);
@@ -238,7 +274,7 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
                                 if(firstVisit){
                                     createPasswordHideFragmentDialog();
                                 }else{
-                                    Toast.makeText(MainActivity.this, "Comeback later, in reset countdown", Toast.LENGTH_SHORT).show();
+                                    Toast.makeText(MainActivity.this, R.string.comebacklater, Toast.LENGTH_SHORT).show();
                                 }
                             }else{
                                 showHideFragmentDialog();
@@ -260,11 +296,11 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 // permission was granted, yay! Do the contacts-related task you need to do.
                 // => transacting fragments here.
-                Toast.makeText(MainActivity.this, "Permission granted!", Toast.LENGTH_SHORT).show();
+                Toast.makeText(MainActivity.this, R.string.permission_granted, Toast.LENGTH_SHORT).show();
                 initApp();
             } else {
                 // permission denied, boo! Disable the functionality that depends on this permission.
-                Toast.makeText(MainActivity.this, "Permission denied!", Toast.LENGTH_SHORT).show();
+                Toast.makeText(MainActivity.this, R.string.permission_denied, Toast.LENGTH_SHORT).show();
 
             }
         }
@@ -305,7 +341,7 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
 
             // Build alert dialog
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setTitle("Statistic");
+            builder.setTitle(R.string.statistic);
             // User titlebar_dialog layout to be title layout
             LayoutInflater inflater = getLayoutInflater();
             View view = inflater.inflate(R.layout.titlebar_dialog, null);
@@ -316,7 +352,8 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
 
             // Convert each element of statisticListImage to String and set it to arrayAdapter
             for (int i = 0; i < statisticListImage.size(); i++) {
-                String temp = "Date: " + statisticListImage.get(i).getId() + " " + statisticListImage.get(i).getCount().toString() + " ảnh " + "Dung lượng : " + statisticListImage.get(i).getWeight().toString();
+                String temp = R.string.date+": " + statisticListImage.get(i).getId() + " " + statisticListImage.get(i).getCount().toString() + " "+R.string.images
+                        +R.string.capacity+": " + statisticListImage.get(i).getWeight().toString();
                 arrayAdapter.add(temp);
             }
 
@@ -329,9 +366,6 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
 
             AlertDialog alert=builder.create();
             alert.show();
-        }
-        else if(id==R.id.btnRenameAlbum){
-            imageFragment.RenameAlbum();
         }
         else if (id == R.id.btnDeleteAlbum)
         {
@@ -355,7 +389,6 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
             ArrayList<Image> images = new ArrayList<Image>();
             //
             menu.findItem(R.id.btnAddNewAlbum).setVisible(false);
-            menu.findItem(R.id.btnRenameAlbum).setVisible(true);
 
             menu.findItem(R.id.btnDeleteAlbum).setVisible(true);
             menu.findItem(R.id.btnSlideShow).setVisible(true);
@@ -508,7 +541,8 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
     }
     public void loadAllAlbum(){
             album_list=new ArrayList<Album>();
-            album_list.add(new Album("Tải xuống",Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).toString()));
+            String r=   getString(R.string.download);
+            album_list.add(new Album(r,Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).toString()));
 
             Gson gson=new Gson();
             String picturePath = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).getAbsolutePath();
@@ -601,11 +635,15 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
 
                 if(DateConverter.stringToDate(dataFromJson.get(1)).getTime() <= (new Date()).getTime()){
                     editor.remove(key);
+                    try{
                     File f = new File(key);
                     if(f.delete()){
                         Log.d("delete expired image", "juan e nhe: " + key);
                     } else {
                         Log.d("delete expired image", "kho e a: " + key);
+                    }}
+                    catch (Exception e){
+
                     }
                 }
                 else {
@@ -646,6 +684,18 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
         }
 
     }
+    //change language of application
+    public void setLocale(String lang) {
+        Locale myLocale = new Locale(lang);
+        Resources res = getResources();
+        DisplayMetrics dm = res.getDisplayMetrics();
+        Configuration conf = res.getConfiguration();
+        conf.locale = myLocale;
+        res.updateConfiguration(conf, dm);
+        Intent refresh = new Intent(this, MainActivity.class);
+        finish();
+        startActivity(refresh);
+    }
 
     public void showHideFragment(){
         hideFragment= HideFragment.getInstance();
@@ -670,7 +720,7 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
                     showHideFragment();
                     addDialog.cancel();
                 }else{
-                    Toast.makeText(MainActivity.this, "Sai mật khẩu", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(MainActivity.this, R.string.wrong_password, Toast.LENGTH_SHORT).show();
                 }
             }
         });
@@ -713,7 +763,7 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
                 String pass=password.getText().toString();
                 String confirm=confirmPass.getText().toString();
                 if(!pass.equals(confirm)){
-                    Toast.makeText(MainActivity.this, "Mật khẩu nhập lại không khớp", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(MainActivity.this, R.string.retype_password_not_match, Toast.LENGTH_SHORT).show();
                 }
                 else{
                     SharedPreferences hidePref=getSharedPreferences("GALLERY",MODE_PRIVATE);

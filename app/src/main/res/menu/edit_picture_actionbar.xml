@@ -5,6 +5,6 @@
     <item
         android:id="@+id/btnSaveAfterEdit"
         android:checked="true"
-        android:title="Lưu"
+        android:title="@string/save"
         app:showAsAction="always"/>
 </menu>

@@ -50,7 +50,6 @@ public class AlbumAdapter extends RecyclerView.Adapter<AlbumAdapter.ViewHolder> 
                 public void onClick(View v) {
 
                     //show all picture in album
-                    Toast.makeText(context, ""+albums.get(getAdapterPosition()).getAll_album_pictures().size(), Toast.LENGTH_SHORT).show();
                     ((MainActivity)context).onMsgFromFragToMain("ALBUM",albums.get(getAdapterPosition()).getPath());
 
                 }

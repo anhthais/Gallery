@@ -38,7 +38,7 @@ public class TextResultImageActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-        getSupportActionBar().setTitle("Read Text From Image");
+        getSupportActionBar().setTitle(R.string.read_text_from_iamge);
         setContentView(R.layout.test_from_image_result);
         textImage = findViewById(R.id.imageTextResult);
         copy = findViewById(R.id.btnCopyTextFromImage);
@@ -49,7 +49,7 @@ public class TextResultImageActivity extends AppCompatActivity {
                 ClipboardManager clipboardManager  = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
                 ClipData clipData = ClipData.newPlainText("Copy", textImage.getText().toString());
                 clipboardManager.setPrimaryClip(clipData);
-                Toast.makeText(TextResultImageActivity.this, "Copied", Toast.LENGTH_SHORT).show();
+                Toast.makeText(TextResultImageActivity.this, R.string.copied, Toast.LENGTH_SHORT).show();
             }
         });
         String uriString = getIntent().getStringExtra("uriTextImage");

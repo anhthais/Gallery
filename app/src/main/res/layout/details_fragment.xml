@@ -24,7 +24,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textSize="20dp"
-            android:text="Tên: "/>
+            android:text="@string/name"/>
 
         <TextView
             android:id="@+id/name"
@@ -41,7 +41,7 @@
             android:textSize="20dp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Ngày cập nhật: "/>
+            android:text="@string/date"/>
         <TextView
             android:textSize="20dp"
             android:id="@+id/date"
@@ -58,7 +58,7 @@
             android:textSize="20dp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Dung lượng: "/>
+            android:text="@string/capacity"/>
         <TextView
             android:textSize="20dp"
             android:id="@+id/capacity"
@@ -75,7 +75,7 @@
             android:textSize="20dp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Vị trí: "/>
+            android:text="@string/position"/>
         <TextView
             android:textSize="20dp"
             android:id="@+id/path"
@@ -92,7 +92,7 @@
             android:textSize="20dp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Kích thước: "/>
+            android:text="@string/size"/>
         <TextView
             android:textSize="20dp"
             android:id="@+id/size"
@@ -108,7 +108,7 @@
             android:textSize="20dp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Mô tả: "/>
+            android:text="@string/description"/>
 
         <EditText
             android:textSize="20dp"
@@ -124,5 +124,5 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:textColor="@color/black"
-        android:text="Lưu thay đổi"/>
+        android:text="@string/save"/>
 </LinearLayout>

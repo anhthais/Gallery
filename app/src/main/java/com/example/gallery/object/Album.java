@@ -40,6 +40,8 @@ public class Album implements Parcelable {
             return new Album[size];
         }
     };
+
+
     public String getThumbnail(){
         return this.thumbnail;
     }

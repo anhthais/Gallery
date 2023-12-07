@@ -4,36 +4,36 @@
     <item
         android:id="@+id/btnViewInfor"
         android:checked="true"
-        android:title="Thông tin"
+        android:title="@string/information"
         />
     <item
         android:id="@+id/btnCompress"
         android:checked="true"
-        android:title="Nén ảnh"
+        android:title="@string/compress_image"
         />
     <item
         android:id="@+id/btnAddToAlbum"
         android:checked="true"
-        android:title="Thêm vào Album"
+        android:title="@string/add_to_album"
         />
     <item
         android:id="@+id/btnChangeDescription"
         android:checked="true"
-        android:title="Mô tả"
+        android:title="@string/description"
         />
     <item
         android:id="@+id/btnSetAsWall"
         android:checked="true"
-        android:title="Đặt làm hình nền"
+        android:title="@string/set_as_wall"
         />
     <item
         android:id="@+id/btnReadTextInImage"
         android:checked="true"
-        android:title="Đọc ký tự"
+        android:title="@string/read_text"
         />
     <item
         android:id="@+id/btnHide"
         android:checked="true"
-        android:title="Ẩn"
+        android:title="@string/hide"
         />
 </menu>

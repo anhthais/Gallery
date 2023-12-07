@@ -70,12 +70,11 @@ public class ImageActivity extends AppCompatActivity implements MainCallBacks{
         curPos = intent.getIntExtra("curPos", 0);
         album_list=intent.getParcelableArrayListExtra("albums");
 
-        Gson gson = new Gson();
         String hide = intent.getStringExtra("TYPE");
         if(hide!=null && hide.equals("hide")){
             HidePagerFragment hidePagerFragment = new HidePagerFragment(ImageActivity.this, images, curPos);
             getSupportFragmentManager().beginTransaction().replace(R.id.pictureFragment,hidePagerFragment).commit();
-        }{
+        }else{
             FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
             //getApplicationContext--> imageActivity.this
             ImageViewFragment imageViewFragment = new ImageViewFragment(ImageActivity.this, images, album_list, curPos);
@@ -194,7 +193,7 @@ public class ImageActivity extends AppCompatActivity implements MainCallBacks{
                     decodedBitmap.compress(Bitmap.CompressFormat.JPEG, 90, out);
                     out.flush();
                     out.close();
-                    Toast.makeText(this,"Successfully save Edited Image",Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this,R.string.save_edit_success,Toast.LENGTH_SHORT).show();
 
                 } catch (Exception e) {
                     e.printStackTrace();
