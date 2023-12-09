@@ -103,7 +103,13 @@
     <string name="images">Image</string>
     <string name="wrong_password">Wrong password</string>
     <string name="retype_password_not_match">Retype password not match</string>
-
+    <string name="event">Event</string>
+    <string name="notice_date">Notice date</string>
+    <string name="anniversasy">Anniversary</string>
+    <string name="visit_our_app">Visit Gallery to watch your anniversary</string>
+    <string name="clear">Clear</string>
+    <string name="schedule">Scheduled</string>
+    <string name="invalid_time">Invalid time</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

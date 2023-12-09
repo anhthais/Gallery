@@ -104,6 +104,15 @@
     <string name="images">Ảnh</string>
     <string name="wrong_password">Sai mật khẩu</string>
     <string name="retype_password_not_match">Mật khẩu nhập lại không khớp</string>
+    <string name="event">Sự kiện</string>
+    <string name="notice_date">Ngày thông báo</string>
+    <string name="anniversasy">Kỷ niệm</string>
+    <string name="visit_our_app">Ghé thăm Gallery để xem lại kỷ niệm</string>
+    <string name="clear">Cài lại</string>
+    <string name="schedule">Đã hẹn lịch</string>
+    <string name="invalid_time">Lịch hẹn không hợp lệ</string>
+
+
 
 
 

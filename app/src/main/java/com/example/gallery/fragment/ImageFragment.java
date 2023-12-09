@@ -1,9 +1,13 @@
 package com.example.gallery.fragment;
 
+import android.app.AlarmManager;
 import android.app.Dialog;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -163,5 +167,6 @@ public class ImageFragment extends Fragment implements MultiSelectModeCallbacks 
     public void changeOnMultiChooseMode(){
         image_adapter.changeOnMultiChooseMode();
     }
+
 }
 

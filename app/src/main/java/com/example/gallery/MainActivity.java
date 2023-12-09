@@ -7,12 +7,21 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
+import androidx.appcompat.widget.AppCompatButton;
 import androidx.appcompat.widget.PopupMenu;
 import androidx.core.app.ActivityCompat;
+import androidx.core.app.NotificationCompat;
+import androidx.core.app.NotificationManagerCompat;
+import androidx.core.graphics.drawable.IconCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 import android.Manifest;
+import android.app.AlarmManager;
+import android.app.DatePickerDialog;
 import android.app.Dialog;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.app.Activity;
@@ -23,6 +32,9 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.content.res.Resources;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.drawable.Icon;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
@@ -33,8 +45,10 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.Toast;
 
@@ -47,6 +61,7 @@ import com.example.gallery.fragment.ImageFragment;
 import com.example.gallery.fragment.TrashFragment;
 import com.example.gallery.helper.DateConverter;
 import com.example.gallery.helper.LocalStorageReader;
+import com.example.gallery.helper.Notification;
 import com.example.gallery.object.Album;
 import com.example.gallery.object.Image;
 import com.example.gallery.object.ImageGroup;
@@ -58,6 +73,9 @@ import com.google.gson.reflect.TypeToken;
 
 import java.io.File;
 import java.io.FilenameFilter;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -321,8 +339,148 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         int id=item.getItemId();
+        if(id==R.id.btnEvent){
+            SharedPreferences pref=getSharedPreferences("GALLERY",MODE_PRIVATE);
+            String eventJSON=pref.getString(album_list.get(curIdxAlbum).getPath(),null);
+            Gson gson=new Gson();
+            ArrayList<String> data=null;
+            if(eventJSON!=null&&!eventJSON.isEmpty()){
+                data=gson.fromJson(eventJSON,new TypeToken<ArrayList<String>>(){}.getType());
+            }
+            String name="", descript="",date="";
+            final String channel;
+            if(data!=null){
+                name=data.get(0);
+                descript=data.get(1);
+                date=data.get(2);
+                channel=data.get(3);
+            }else{
+                channel="";
+            }
+            //show dialog
+            Dialog addDialog=new Dialog(MainActivity.this);
+            addDialog.setContentView(R.layout.create_event_dialog);
+            EditText editText=addDialog.findViewById(R.id.eventNameEditText);
+            EditText editText2=addDialog.findViewById(R.id.eventDescriptionEditText);
+            EditText editText3=addDialog.findViewById(R.id.eventDateNotice);
+            Button clear=addDialog.findViewById(R.id.btnEventClear);
 
-        if (id ==R.id.btnChooseMulti)
+            editText.setText(name);
+            editText2.setText(descript);
+            editText3.setText(date);
+            AppCompatButton calen=addDialog.findViewById(R.id.btnChooseCalendar);
+            int[] dateOfmoth={0,0,0};
+            if(date!=null && !date.isEmpty()){
+                String sub=date.substring(date.lastIndexOf("/")+1);
+                dateOfmoth[2]=Integer.parseInt(sub);
+                sub=date.substring(0,date.lastIndexOf("/"));
+
+                dateOfmoth[1]=Integer.parseInt(sub.substring(sub.lastIndexOf("/")+1))-1;
+                sub=sub.substring(0,sub.lastIndexOf("/"));
+
+                dateOfmoth[0]=Integer.parseInt(sub);
+            }
+            clear.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    editText.setText("");
+                    editText2.setText("");
+                    editText3.setText("");
+                }
+            });
+            calen.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    DatePickerDialog date_picker=new DatePickerDialog(MainActivity.this,
+                            new DatePickerDialog.OnDateSetListener() {
+                                @Override
+                                public void onDateSet(DatePicker view, int year, int month, int dayOfMonth) {
+                                    month+=1;
+                                    String date=dayOfMonth+"/"+String.format("%02d",month)+"/"+year;
+                                    editText3.setText(date);
+                                    dateOfmoth[0]=dayOfMonth;
+                                    dateOfmoth[1]=month-1;
+                                    dateOfmoth[2]=year;
+                                }
+                            },      Calendar.getInstance().get(Calendar.YEAR),
+                            Calendar.getInstance().get(Calendar.MONTH),
+                            Calendar.getInstance().get(Calendar.DAY_OF_MONTH));
+                    date_picker.show();
+                }
+            });
+            Button ok=addDialog.findViewById(R.id.btnSaveEvent);
+            Button cancel=addDialog.findViewById(R.id.btnEventCancel);
+            addDialog.create();
+            DisplayMetrics metrics = getResources().getDisplayMetrics();
+            int width = metrics.widthPixels;
+            addDialog.getWindow().setLayout((6 * width)/7, ViewGroup.LayoutParams.WRAP_CONTENT);
+            addDialog.show();
+
+            ok.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    SharedPreferences.Editor editor=pref.edit();
+                    String name_save=editText.getText().toString();
+                    String des_save=editText2.getText().toString();
+                    String date_save=editText3.getText().toString();
+                    ArrayList<String> saved=new ArrayList<>();
+                    saved.add(name_save);
+                    saved.add(des_save);
+                    saved.add(date_save);
+                    String channel_save=null;
+                    if(channel==null||channel.isEmpty()){
+                        channel_save=String.valueOf(System.currentTimeMillis());
+                    }else{
+                        channel_save=channel;
+                    }
+                    saved.add(channel_save);
+                    editor.putString(album_list.get(curIdxAlbum).getPath(),gson.toJson(saved)).apply();
+                    Toast.makeText(MainActivity.this, R.string.saved, Toast.LENGTH_SHORT).show();
+                    if(editText3.getText().toString()!=null && !editText3.getText().toString().isEmpty()){
+                        try{
+                            NotificationManagerCompat manager=NotificationManagerCompat.from(MainActivity.this);
+                            manager.cancel((int)Long.parseLong(channel_save));
+                            manager.deleteNotificationChannel(channel_save);
+                        }catch (Exception e){}
+                        createNotificationChannel(channel_save);
+                        Calendar calendar=Calendar.getInstance();
+                        calendar.set(Calendar.DAY_OF_MONTH,dateOfmoth[0]);
+                        calendar.set(Calendar.MONTH,dateOfmoth[1]);
+                        calendar.set(Calendar.YEAR,dateOfmoth[2]);
+                        calendar.set(Calendar.HOUR,0);
+                        calendar.set(Calendar.MINUTE,0);
+                        //for testing
+                        //calendar=Calendar.getInstance();
+                        //calendar.add(Calendar.SECOND,10);
+                        if(calendar.compareTo(Calendar.getInstance())<=0){
+                            Toast.makeText(MainActivity.this, R.string.invalid_time, Toast.LENGTH_SHORT).show();
+                        }
+                        else {
+                            String title = getString(R.string.app_name) + " " + getString(R.string.event) + " " + name_save;
+                            String mess = getString(R.string.visit_our_app) + ": " + des_save;
+                            Toast.makeText(MainActivity.this, R.string.schedule, Toast.LENGTH_SHORT).show();
+                            scheduleNotification(calendar, title, mess, channel_save);
+                        }
+                    }
+                    else{
+                        try{
+                            NotificationManagerCompat manager=NotificationManagerCompat.from(MainActivity.this);
+                            manager.cancel((int)Long.parseLong(channel_save));
+                            manager.deleteNotificationChannel(channel_save);
+                        }catch (Exception e){}
+                    }
+                    //addDialog.cancel();
+                }
+            });
+            cancel.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    addDialog.cancel();
+                }
+            });
+
+        }
+        else if (id ==R.id.btnChooseMulti)
         {
             Fragment frag = getSupportFragmentManager().findFragmentById(R.id.mainFragment);
             if(frag instanceof GalleryFragment ||
@@ -782,6 +940,32 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
                 addDialog.cancel();
             }
         });
+    }
+    public void scheduleNotification(Calendar calendar,String title, String message,String channel) {
+        Intent intent = new Intent(getApplicationContext(), Notification.class);
+        intent.putExtra("title", title);
+        intent.putExtra("mess", message);
+        intent.putExtra("channel",channel);
+
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(getApplicationContext(), 1, intent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+        AlarmManager alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
+
+        alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), pendingIntent);
+    }
+    private void createNotificationChannel(String CHANNEL_ID) {
+        // Create the NotificationChannel, but only on API 26+ because
+        // the NotificationChannel class is not in the Support Library.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            CharSequence name = getString(R.string.app_name);
+            String description = getString(R.string.description);
+            int importance = NotificationManager.IMPORTANCE_DEFAULT;
+            NotificationChannel channel = new NotificationChannel(CHANNEL_ID, name, importance);
+            channel.setDescription(description);
+            // Register the channel with the system; you can't change the importance
+            // or other notification behaviors after this.
+            NotificationManager notificationManager = getSystemService(NotificationManager.class);
+            notificationManager.createNotificationChannel(channel);
+        }
     }
 
 }

@@ -34,4 +34,9 @@
         android:checked="true"
         app:showAsAction="never"
         android:title="@string/delete_album"/>
+    <item
+        android:id="@+id/btnEvent"
+        android:checked="true"
+        app:showAsAction="never"
+        android:title="@string/event"/>
 </menu>
