@@ -41,4 +41,9 @@
         android:checked="true"
         android:title="@string/hide"
         />
+    <item
+        android:id="@+id/btnQRCode"
+        android:checked="true"
+        android:title="@string/QRCode"
+        />
 </menu>

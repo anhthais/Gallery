@@ -30,6 +30,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.webkit.URLUtil;
 import android.widget.Button;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
@@ -63,12 +64,22 @@ import com.example.gallery.object.Image;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import com.google.zxing.BinaryBitmap;
+import com.google.zxing.ChecksumException;
+import com.google.zxing.FormatException;
+import com.google.zxing.MultiFormatReader;
+import com.google.zxing.NotFoundException;
+import com.google.zxing.RGBLuminanceSource;
+import com.google.zxing.Reader;
+import com.google.zxing.Result;
+import com.google.zxing.common.HybridBinarizer;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.Array;
 import java.nio.channels.FileChannel;
 import java.nio.file.Files;
@@ -337,6 +348,56 @@ public class ImageViewFragment extends Fragment implements ToolbarCallbacks {
 
                     intent.putExtra("curPos",position);
                     ((ImageActivity)context).startActivityForResult(intent,4123);
+                }
+                else if (id==R.id.btnQRCode)
+                {
+
+                    Uri selectedImage = getUriFromPath(getContext(), new File(images.get(imageViewPager2.getCurrentItem()).getPath()));
+
+                    InputStream inputStream = null;
+                    try {
+                        inputStream = getContext().getContentResolver().openInputStream(selectedImage);
+                    } catch (FileNotFoundException e) {
+                        throw new RuntimeException(e);
+                    }
+                    Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
+                    if (bitmap == null)
+                    {
+                        Toast.makeText(context, R.string.noBitmap , Toast.LENGTH_SHORT).show();
+
+                    }
+                    else {
+                        int width = bitmap.getWidth(), height = bitmap.getHeight();
+                        int[] pixels = new int[width * height];
+                        bitmap.getPixels(pixels, 0, width, 0, 0, width, height);
+                        bitmap.recycle();
+                        bitmap = null;
+                        RGBLuminanceSource source = new RGBLuminanceSource(width, height, pixels);
+                        BinaryBitmap bBitmap = new BinaryBitmap(new HybridBinarizer(source));
+                        Reader reader = new MultiFormatReader();
+                        try
+                        {
+                            Result result = reader.decode(bBitmap);
+                            Toast.makeText(context,  result.getText(), Toast.LENGTH_SHORT).show();
+                            boolean isValid = URLUtil.isValidUrl( result.getText() );
+                            if (isValid)
+                            {
+                                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(result.getText()));
+                                startActivity(browserIntent);
+
+                            }
+                        }
+                        catch (NotFoundException e)
+                        {
+                            Toast.makeText(context, R.string.noQR , Toast.LENGTH_SHORT).show();
+                        }
+                        catch (ChecksumException e) {
+                            throw new RuntimeException(e);
+                        }
+                        catch (FormatException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
                 }
                 return true;
             }

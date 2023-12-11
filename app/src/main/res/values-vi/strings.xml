@@ -116,9 +116,8 @@
     <string name="loadGGMap">Đang tải Google Map</string>
     <string name="addLocationSuccess">Thêm vị trí thành công</string>
     <string name="onCancelLocation">Hủy vị trí thành công</string>
-
-
-
-
+    <string name ="QRCode">Quét mã QR</string>
+    <string name ="noQR">Ảnh này không tồn tại mã QR</string>
+    <string name ="noBitmap">Ảnh này không tồn tại Bitmap</string>
     <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

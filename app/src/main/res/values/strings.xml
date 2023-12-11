@@ -115,6 +115,9 @@
     <string name="loadGGMap">Loading Google Map</string>
     <string name="addLocationSuccess">Add location success</string>
     <string name="onCancelLocation">Remove location success</string>
+    <string name ="QRCode">QR Scanner</string>
+    <string name ="noQR">This photo does not have a QR code</string>
+    <string name ="noBitmap">This photo does not have bitmap</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>
