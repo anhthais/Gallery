@@ -64,7 +64,7 @@ public class LocalStorageReader {
                         Log.d("Path", image.getPath());
                         Log.d("NumOfImages", String.valueOf(images.size()));
                     }
-//                    if(images.size() >= 100) break; // for testing
+                    if(images.size() >= 100) break; // for testing
                 } while (cursor.moveToNext()); // Move to next row
             }
         } catch (Exception e) {

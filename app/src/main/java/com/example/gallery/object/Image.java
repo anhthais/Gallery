@@ -4,12 +4,18 @@ import android.os.Parcel;
 import android.os.Parcelable;
 import android.util.Log;
 
+import com.google.android.gms.maps.model.LatLng;
+
 public class Image implements Parcelable {
     private long idInMediaStore;
     private String path;
     private String dateAdded;
     private boolean isFavorite;
     private String tags;
+    private LatLng location;
+    private Double latitude;
+    private Double longitude;
+    private Boolean haveLocation ;
 
     public Image() {
     }
@@ -17,13 +23,19 @@ public class Image implements Parcelable {
         this.path = path;
         this.dateAdded = dateAdded;
         this.idInMediaStore = idInMediaStore;
+        this.location= null;
+        this.haveLocation = false;
     }
     public Image(String path, String dateAdded) {
         this.path = path;
         this.dateAdded = dateAdded;
+        this.location= null;
+        this.haveLocation = false;
     }
     public Image(String path) {
         this.path = path;
+        this.location= null;
+        this.haveLocation = false;
     }
 
     protected Image(Parcel in) {
@@ -32,6 +44,14 @@ public class Image implements Parcelable {
         dateAdded = in.readString();
         isFavorite = in.readByte() != 0;
         tags = in.readString();
+        haveLocation = in.readByte()!=0;
+        if (haveLocation)
+        {
+            latitude = in.readDouble();
+            longitude = in.readDouble();
+            location = new LatLng(latitude,longitude);
+        }
+
     }
 
     @Override
@@ -41,6 +61,14 @@ public class Image implements Parcelable {
         dest.writeString(dateAdded);
         dest.writeByte((byte) (isFavorite ? 1 : 0));
         dest.writeString(tags);
+        dest.writeByte((byte) (haveLocation ? 1 : 0));
+        if (haveLocation==true)
+        {
+            dest.writeDouble(latitude);
+            dest.writeDouble(longitude);
+        }
+
+        // dest.writeString(String.valueOf(location));
     }
 
     @Override
@@ -93,5 +121,27 @@ public class Image implements Parcelable {
     }
     public void setTags(String tags) {
         this.tags = tags;
+    }
+
+    public LatLng getLocation() {
+        return location;
+    }
+
+    public void setLocation(LatLng location) {
+        if (location ==null)
+        {
+            this.location = null;
+            this.latitude = null;
+            this.longitude = null;
+            this.haveLocation = false;
+        }
+        else
+        {
+            this.location = location;
+            this.latitude = location.latitude;
+            this.longitude = location.longitude;
+            this.haveLocation = true;
+        }
+
     }
 }

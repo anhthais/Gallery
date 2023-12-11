@@ -16,7 +16,7 @@
     <string name="information">Thông tin</string>
     <string name="compress_image">Nén ảnh</string>
     <string name="add_to_album">Thêm vào album</string>
-    <string name="description">Mô tả</string>
+    <string name="description">Mô tả:</string>
     <string name="hide">Ẩn</string>
     <string name="set_as_wall">Đặt làm hình nền</string>
     <string name="read_text">Đọc ký tự</string>
@@ -111,8 +111,11 @@
     <string name="clear">Cài lại</string>
     <string name="schedule">Đã hẹn lịch</string>
     <string name="invalid_time">Lịch hẹn không hợp lệ</string>
-
-
+    <string name = "location">Vị trí:</string>
+    <string name="addLocation">Thêm vị trí</string>
+    <string name="loadGGMap">Đang tải Google Map</string>
+    <string name="addLocationSuccess">Thêm vị trí thành công</string>
+    <string name="onCancelLocation">Hủy vị trí thành công</string>
 
 
 

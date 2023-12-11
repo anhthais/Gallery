@@ -103,7 +103,8 @@
     <LinearLayout
         android:layout_marginStart="10dp"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="10dp">
         <TextView
             android:textSize="20dp"
             android:layout_width="wrap_content"
@@ -117,6 +118,24 @@
             android:layout_height="match_parent"
             android:background="@android:color/transparent"
             android:hint="None" />
+    </LinearLayout>
+    <LinearLayout
+        android:layout_marginStart="10dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="10dp">
+        <TextView
+            android:textSize="20dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/location"/>
+        <TextView
+            android:textSize="20dp"
+            android:id="@+id/locationView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:hint="None"/>
+
     </LinearLayout>
     <Button
         android:id="@+id/btnSavePictureInfor"

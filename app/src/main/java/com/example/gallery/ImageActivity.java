@@ -32,6 +32,7 @@ import com.example.gallery.fragment.ImageViewFragment;
 import com.example.gallery.helper.DateConverter;
 import com.example.gallery.object.Album;
 import com.example.gallery.object.Image;
+import com.google.android.gms.maps.model.LatLng;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -53,6 +54,8 @@ public class ImageActivity extends AppCompatActivity implements MainCallBacks{
     private Uri tempEdited;
     Intent intent_image;
     Uri uri;
+    public ArrayList<Long> addLocation;
+    public ArrayList<Long> removeLocation;
     private FragmentCallBacks callback;
     public ImageViewFragment imageViewFragment = null;
 
@@ -69,7 +72,8 @@ public class ImageActivity extends AppCompatActivity implements MainCallBacks{
         images = intent.getParcelableArrayListExtra("images");
         curPos = intent.getIntExtra("curPos", 0);
         album_list=intent.getParcelableArrayListExtra("albums");
-
+        addLocation = new ArrayList<>();
+        removeLocation = new ArrayList<>();
         String hide = intent.getStringExtra("TYPE");
         if(hide!=null && hide.equals("hide")){
             HidePagerFragment hidePagerFragment = new HidePagerFragment(ImageActivity.this, images, curPos);
@@ -221,6 +225,49 @@ public class ImageActivity extends AppCompatActivity implements MainCallBacks{
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+        if(requestCode==4123)
+        {
+            Intent intent = getIntent();
+            Gson gson = new Gson();
+
+            if (resultCode==RESULT_OK)
+            {
+                curPos = data.getIntExtra("curPos",-1);
+                Double latitude = data.getDoubleExtra("latitude",-1.0);
+                Double longitude = data.getDoubleExtra("longitude",-1.0);
+                LatLng latLng = new LatLng(latitude,longitude);
+                images.get(curPos).setLocation(latLng);
+                Toast.makeText(this, R.string.addLocationSuccess, Toast.LENGTH_SHORT).show();
+                if (!addLocation.contains(images.get(curPos).getIdInMediaStore()))
+                {
+                    addLocation.add(images.get(curPos).getIdInMediaStore());
+                }
+                removeLocation.remove(Long.valueOf(images.get(curPos).getIdInMediaStore()));
+                intent.putExtra(images.get(curPos).getIdInMediaStore()+"-LATITUDE",images.get(curPos).getLocation().latitude);
+                intent.putExtra(images.get(curPos).getIdInMediaStore()+"-LONGITUDE",images.get(curPos).getLocation().longitude);
+            }
+            else if (resultCode==RESULT_CANCELED)
+            {
+                curPos = data.getIntExtra("curPos",-1);
+                images.get(curPos).setLocation(null);
+                Toast.makeText(this, R.string.onCancelLocation, Toast.LENGTH_SHORT).show();
+                if (!removeLocation.contains(images.get(curPos).getIdInMediaStore()))
+                {
+                    removeLocation.add(images.get(curPos).getIdInMediaStore());
+                }
+                addLocation.remove(Long.valueOf(images.get(curPos).getIdInMediaStore()));
+                intent.removeExtra(images.get(curPos).getIdInMediaStore()+"-LATITUDE");
+                intent.removeExtra(images.get(curPos).getIdInMediaStore()+"-LONGITUDE");
+            } else if (resultCode==-2) {
+                //Nothing to do, just return image view
+            }
+
+
+            intent.putExtra("addLocation", gson.toJson(addLocation));
+            intent.putExtra("removeLocation", gson.toJson(removeLocation));
+            setResult(AppCompatActivity.RESULT_OK, intent);
+        }
+        else
         if (resultCode == RESULT_OK && requestCode ==UCrop.REQUEST_CROP) {
 
             final Uri outputUri = UCrop.getOutput(data);

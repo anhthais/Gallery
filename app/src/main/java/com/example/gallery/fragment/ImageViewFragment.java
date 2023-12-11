@@ -47,6 +47,7 @@ import androidx.appcompat.widget.Toolbar;
 
 import com.example.gallery.Animation.ViewPagerTransformAnimation;
 import com.example.gallery.Database.DatabaseHelper;
+import com.example.gallery.GetLocationActivity;
 import com.example.gallery.ImageActivity;
 import com.example.gallery.MainActivity;
 import com.example.gallery.MainCallBackObjectData;
@@ -321,6 +322,21 @@ public class ImageViewFragment extends Fragment implements ToolbarCallbacks {
                     transaction.replace(R.id.pictureFragment, editFragment);
                     transaction.addToBackStack(null);
                     transaction.commit();
+                }
+                else if (id==R.id.btnAddLocation)
+                {
+                    Toast.makeText(context, R.string.loadGGMap, Toast.LENGTH_SHORT).show();
+                    Intent intent = new Intent(getContext(), GetLocationActivity.class);
+                    Image currentImage = images.get(imageViewPager2.getCurrentItem());
+                    if (currentImage.getLocation()!=null)
+                    {
+                        intent.putExtra("latitude",currentImage.getLocation().latitude);
+                        intent.putExtra("longitude",currentImage.getLocation().longitude);
+                    }
+                    int position = imageViewPager2.getCurrentItem();
+
+                    intent.putExtra("curPos",position);
+                    ((ImageActivity)context).startActivityForResult(intent,4123);
                 }
                 return true;
             }

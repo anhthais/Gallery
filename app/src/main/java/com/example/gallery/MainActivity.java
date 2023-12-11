@@ -67,6 +67,7 @@ import com.example.gallery.object.Image;
 import com.example.gallery.object.ImageGroup;
 import com.example.gallery.object.Statistic;
 import com.example.gallery.object.TrashItem;
+import com.google.android.gms.maps.model.LatLng;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -174,6 +175,7 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
         imageGroupsByDate = LocalStorageReader.getListImageGroupByDate(allImages);
         loadAllAlbum();
         loadAllAlbumData(allImages);
+
         allImagesInMap = new HashMap<>();
         for(int i = 0; i < allImages.size(); ++i){
             allImagesInMap.put(allImages.get(i).getIdInMediaStore(), allImages.get(i));
@@ -187,7 +189,7 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
         // - data: <oldPath, dateExpires> contains previous path of the image and time when the image will be deleted permanently (in long)
         loadDeleteImage(); // delete expired images when loading images
         loadFavouriteImage();
-
+        loadImagesLocation();
         menu.findItem(R.id.btnDeleteAlbum).setVisible(false);
         menu.findItem(R.id.btnSlideShow).setVisible(false);
         FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
@@ -632,6 +634,31 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
                     }
                     saveChangeToAlbum(album_list.get(i));
                 }
+                //TODO: handle images location
+                String addLocation = data.getStringExtra("addLocation");
+                String removeLocation = data.getStringExtra("removeLocation");
+                ArrayList<Long> addLocationId = gson.fromJson(addLocation, new TypeToken<ArrayList<Long>>() {
+                }.getType());
+                ArrayList<Long> removeLocationId = gson.fromJson(removeLocation, new TypeToken<ArrayList<Long>>() {
+                }.getType());
+                if (addLocationId != null) {
+                    for (int i = 0; i < addLocationId.size(); ++i) {
+
+                        Double latitude = data.getDoubleExtra(addLocationId.get(i).toString()+ "-LATITUDE",-1.0);
+                        Double longitude = data.getDoubleExtra(addLocationId.get(i).toString()+ "-LONGITUDE",-1.0);
+                        Image image = allImagesInMap.get(addLocationId.get(i));
+                        LatLng latLng = new LatLng(latitude,longitude);
+                        image.setLocation(latLng);
+                        Log.d("CheckImg", String.valueOf(image.getLocation()));
+                    }
+                }
+                if (removeLocationId != null) {
+                    for (int i = 0; i < removeLocationId.size(); ++i) {
+                        Image image = allImagesInMap.get(removeLocationId.get(i));
+                        image.setLocation(null);
+                    }
+                }
+                saveImagesLocation();
             }
             catch (Exception e){
                 Log.d("onActivityResult() MainActivity", e.getMessage());
@@ -967,5 +994,38 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
             notificationManager.createNotificationChannel(channel);
         }
     }
+    public void saveImagesLocation(){
+        Gson gson = new Gson();
+        SharedPreferences myPref = getSharedPreferences("GALLERY", Activity.MODE_PRIVATE);
+        SharedPreferences.Editor editor = myPref.edit();
+        ArrayList<Long> imagesLocationList = new ArrayList<>();
+        for(int i = 0; i < allImagesInMap.size(); ++i){
+            if(allImages.get(i).getLocation()!= null){
+                imagesLocationList.add(Long.valueOf(allImages.get(i).getIdInMediaStore()));
+                editor.putFloat(allImages.get(i).getIdInMediaStore() + "-LATITUDE", (float) allImages.get(i).getLocation().latitude);
+                editor.putFloat(allImages.get(i).getIdInMediaStore() + "-LONGITUDE", (float) allImages.get(i).getLocation().longitude);
+            }
+        }
+        editor.putString("IMAGES-ID-LOCATION", gson.toJson(imagesLocationList));
+        editor.apply();
+    }
 
+    public void loadImagesLocation(){
+        Gson gson = new Gson();
+        SharedPreferences myPref = getSharedPreferences("GALLERY",Activity.MODE_PRIVATE);
+        String imgIds = myPref.getString("IMAGES-ID-LOCATION", null);
+        ArrayList<Long> id = gson.fromJson(imgIds, new TypeToken<ArrayList<Long>>(){}.getType());
+        Log.d("CheckImg12", String.valueOf(id));
+        if(id != null){
+            for (int i = 0 ; i < id.size(); i++){
+                if(allImagesInMap.get(id.get(i)) != null){
+                    Float latitude = (float) myPref.getFloat(id.get(i)+"-LATITUDE",-1);
+                    Float longitude = (float) myPref.getFloat(id.get(i)+"-LONGITUDE",-1);
+                    LatLng latLng = new LatLng(latitude,longitude);
+                    allImagesInMap.get(id.get(i)).setLocation(latLng);
+
+                }
+            }
+        }
+    }
 }
