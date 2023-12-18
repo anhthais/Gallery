@@ -16,6 +16,7 @@
 - Sửa giao diện: làm 1 fragment riêng cho Setting
 - Cập nhật cách lưu dữ liệu
 - fix bugs :(
+- Sửa lại file README này mỗi khi làm gì đó mới...
 
 ### Warning
 Đừng merge tự động branch này, sửa nhiều lắm :(
