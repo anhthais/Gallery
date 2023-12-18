@@ -14,8 +14,10 @@ import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.media.ExifInterface;
 import android.media.MediaScannerConnection;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
@@ -32,8 +34,10 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.URLUtil;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -47,7 +51,6 @@ import androidx.viewpager2.widget.ViewPager2;
 import androidx.appcompat.widget.Toolbar;
 
 import com.example.gallery.Animation.ViewPagerTransformAnimation;
-import com.example.gallery.Database.DatabaseHelper;
 import com.example.gallery.GetLocationActivity;
 import com.example.gallery.ImageActivity;
 import com.example.gallery.MainActivity;
@@ -57,10 +60,13 @@ import com.example.gallery.R;
 import com.example.gallery.TextResultImageActivity;
 import com.example.gallery.ToolbarCallbacks;
 import com.example.gallery.adapter.ImageViewPagerAdapter;
+import com.example.gallery.asynctask.SetFavoriteImageTask;
 import com.example.gallery.helper.DateConverter;
 import com.example.gallery.helper.FileManager;
+import com.example.gallery.helper.LocalStorageReader;
 import com.example.gallery.object.Album;
 import com.example.gallery.object.Image;
+import com.google.android.gms.maps.model.LatLng;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -88,7 +94,9 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -100,9 +108,6 @@ public class ImageViewFragment extends Fragment implements ToolbarCallbacks {
     public ArrayList<Album> album_list;
     public ArrayList<Long> addFav;
     public ArrayList<Long> removeFav;
-    public ArrayList<Long> deletePos;
-    public ArrayList<Long> deleteTime;
-    public ArrayList<String> newDeletedImagePath;
     private Toolbar topBar;
     public ArrayList<Image> images;
     public int curPos = 0;
@@ -120,11 +125,8 @@ public class ImageViewFragment extends Fragment implements ToolbarCallbacks {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        removeFav = new ArrayList<>();
         addFav = new ArrayList<>();
-        deletePos = new ArrayList<>();
-        deleteTime = new ArrayList<>();
-        newDeletedImagePath = new ArrayList<>();
+        removeFav = new ArrayList<>();
         main = (ImageActivity) getActivity();
         main.imageViewFragment = this;
     }
@@ -157,7 +159,6 @@ public class ImageViewFragment extends Fragment implements ToolbarCallbacks {
         imageViewPager2.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
             @Override
             public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
-                if(position == 0 && positionOffset == 0) return;
                 Image image = images.get(position);
                 super.onPageScrolled(position, positionOffset, positionOffsetPixels);
                 if (image.isFavorite()) {
@@ -321,18 +322,10 @@ public class ImageViewFragment extends Fragment implements ToolbarCallbacks {
                     }
                 }
                 else if (id == R.id.btnViewInfor) {
-
                     Image currentImage = images.get(imageViewPager2.getCurrentItem());
-                    EditPictureInformationFragment editFragment = new EditPictureInformationFragment(currentImage);
+                    showInfo(currentImage);
+//
 
-                    Bundle bundle = new Bundle();
-                    bundle.putString("key", "value");
-                    editFragment.setArguments(bundle);
-                    FragmentManager fragmentManager = requireActivity().getSupportFragmentManager();
-                    FragmentTransaction transaction = fragmentManager.beginTransaction();
-                    transaction.replace(R.id.pictureFragment, editFragment);
-                    transaction.addToBackStack(null);
-                    transaction.commit();
                 }
                 else if (id==R.id.btnAddLocation)
                 {
@@ -412,12 +405,12 @@ public class ImageViewFragment extends Fragment implements ToolbarCallbacks {
 
                 if (image.isFavorite()) {
                     removeFav.add(image.getIdInMediaStore());
-                    addFav.remove(Long.valueOf(image.getIdInMediaStore()));
+                    addFav.remove(image.getIdInMediaStore());
                     image.setFavorite(false);
                     btnv.getMenu().getItem(0).setIcon(R.drawable.baseline_favorite_border_24);
                 } else {
                     addFav.add(image.getIdInMediaStore());
-                    removeFav.remove(Long.valueOf(image.getIdInMediaStore()));
+                    removeFav.remove(image.getIdInMediaStore());
                     image.setFavorite(true);
                     btnv.getMenu().getItem(0).setIcon(R.drawable.baseline_favorite_24);
                 }
@@ -449,9 +442,10 @@ public class ImageViewFragment extends Fragment implements ToolbarCallbacks {
                     builder.setCancelable(true);
                     builder.setPositiveButton(R.string.move, new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int id) {
-                            deleteImage();
+                            if(deleteImage()){
+                                saveDeleteAndUpdateView();
+                            }
                         }
-
                     });
                     builder.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int id) {
@@ -506,7 +500,13 @@ public class ImageViewFragment extends Fragment implements ToolbarCallbacks {
         }
     }
 
-    public void deleteImage(){
+    @Override
+    public void onPause(){
+        super.onPause();
+        new SetFavoriteImageTask(context).execute(images);
+    }
+
+    public boolean deleteImage(){
         try {
             Image image = images.get(imageViewPager2.getCurrentItem());
             String appFolder = getActivity().getApplicationContext().getExternalFilesDir("").getAbsolutePath();
@@ -522,11 +522,141 @@ public class ImageViewFragment extends Fragment implements ToolbarCallbacks {
 
             if (FileManager.moveFile(main, oldPath, newPath, context)) {
                 Toast.makeText(context, R.string.delete_photo_success, Toast.LENGTH_SHORT).show();
+                return true;
             } else {
                 Toast.makeText(context, R.string.cannot_delete_photo, Toast.LENGTH_SHORT).show();
+                return false;
             }
         } catch (Exception e) {
             Log.d("error delete", e.getMessage());
+            return false;
         }
+    }
+
+    public void saveDeleteAndUpdateView(){
+        Gson gson = new Gson();
+        curPos = imageViewPager2.getCurrentItem();
+        main.images.remove(curPos);
+
+        SharedPreferences myPref = context.getSharedPreferences("TRASH", Activity.MODE_PRIVATE);
+        SharedPreferences.Editor editor = myPref.edit();
+        ArrayList<String> data = new ArrayList<>(2);
+        data.add(oldPath);
+        Date dateExpires = DateConverter.plusTime(new Date(), 30, Calendar.DATE);
+        data.add(DateConverter.longToString(dateExpires.getTime()));
+        editor.putString(newPath, gson.toJson(data));
+        editor.apply();
+
+        imageViewPager2.getAdapter().notifyItemRemoved(curPos);
+    }
+
+    public void showInfo(Image image){
+        View dialogBox = LayoutInflater.from(context).inflate(R.layout.info_dialog, null);
+        TextView txtName = dialogBox.findViewById(R.id.name);
+        TextView txtPath = dialogBox.findViewById(R.id.path);
+        TextView txtSize = dialogBox.findViewById(R.id.size);
+        TextView txtLastModified = dialogBox.findViewById(R.id.lastModified);
+        TextView txtDateTaken = dialogBox.findViewById(R.id.takenDate);
+        TextView txtResolution = dialogBox.findViewById(R.id.resolution);
+        TextView txtLocation = dialogBox.findViewById(R.id.location);
+        TextView txtCamera = dialogBox.findViewById(R.id.camera);
+        TextView txtExif = dialogBox.findViewById(R.id.exif);
+        TextView txtDescription = dialogBox.findViewById(R.id.description);
+
+        File imageFile = new File(image.getPath());
+        txtName.setText(imageFile.getName());
+        txtPath.setText(image.getPath());
+        String size = imageFile.length()/1024 + " kB";
+        txtSize.setText(size);
+
+        try{
+            Cursor cursor = context.getApplicationContext().getContentResolver().query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                    new String[]{
+                    MediaStore.Images.Media._ID,
+                    MediaStore.Images.Media.DATE_ADDED,
+                    MediaStore.Images.Media.DATE_TAKEN},
+                    MediaStore.Images.Media._ID + "=?",
+                    new String[]{String.valueOf(image.getIdInMediaStore())},
+                    null);
+            if(cursor != null && cursor.moveToFirst()){
+                int dateAddedIdx = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATE_ADDED);
+                int dateTakenColIdx = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATE_TAKEN);
+                long dateTaken = cursor.getLong(dateTakenColIdx);
+                long dateAdded = cursor.getLong(dateAddedIdx) * 1000L;
+                txtLastModified.setText(DateConverter.longToString(dateAdded));
+                txtDateTaken.setText(DateConverter.longToString(dateTaken));
+                cursor.close();
+            }
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+
+        try{
+            ExifInterface exifInterface = new ExifInterface(image.getPath());
+            String resolution = exifInterface.getAttribute(ExifInterface.TAG_IMAGE_LENGTH) + "x" + exifInterface.getAttribute(ExifInterface.TAG_IMAGE_WIDTH);
+            txtResolution.setText(resolution);
+            String elementCamera = "";
+            String camera = "";
+            if((elementCamera = exifInterface.getAttribute(ExifInterface.TAG_MODEL)) != null){
+                camera += elementCamera;
+            }
+            if((elementCamera = exifInterface.getAttribute(ExifInterface.TAG_MAKE)) != null){
+                camera += ", " + elementCamera;
+            }
+            txtCamera.setText(camera);
+            String elementExif = "";
+            String exif = "";
+            if((elementExif = exifInterface.getAttribute(ExifInterface.TAG_ISO_SPEED_RATINGS)) != null){
+                exif += "ISO" + elementExif + " ";
+            }
+            if((elementExif = exifInterface.getAttribute(ExifInterface.TAG_F_NUMBER)) != null){
+                exif += "F/" + elementExif + " ";
+            }
+            if((elementExif = exifInterface.getAttribute(ExifInterface.TAG_EXPOSURE_TIME)) != null){
+                exif += elementExif + "s ";
+            }
+            txtExif.setText(exif);
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+
+        try{
+            LatLng latLng = image.getLocation();
+            String check, value;
+            try {
+                check = GetLocationActivity.getAddressFromLatLng(context, latLng.latitude, latLng.longitude);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+            if (check==null) {
+                value = latLng.latitude + "," + latLng.longitude;
+            } else {
+                value = check;
+            }
+            txtLocation.setText(value);
+        }
+        catch (Exception e){
+            e.printStackTrace();
+        }
+
+        SharedPreferences myPref = context.getSharedPreferences("DESCRIPTION", Activity.MODE_PRIVATE);
+        String description = myPref.getString(String.valueOf(image.getIdInMediaStore()), "");
+        txtDescription.setText(description);
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        builder.setView(dialogBox)
+                .setTitle(R.string.InfoDialogTitle)
+                .setPositiveButton(R.string.dialog_close, null)
+                .setNegativeButton(R.string.dialog_edit, new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int whichOne) {
+                        EditPictureInformationFragment editFragment = new EditPictureInformationFragment(image);
+                        FragmentManager fragmentManager = requireActivity().getSupportFragmentManager();
+                        FragmentTransaction transaction = fragmentManager.beginTransaction();
+                        transaction.replace(R.id.pictureFragment, editFragment);
+                        transaction.addToBackStack("DETAIL");
+                        transaction.commit();
+                    }})
+                .show();
+
     }
 }

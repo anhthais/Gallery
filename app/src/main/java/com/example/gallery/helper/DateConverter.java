@@ -14,7 +14,8 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 public class DateConverter {
-    public static String simpleLongToString(long input){
+    // Warning: the returned string can not be parsed to Date
+    public static String longToSimpleString(long input){
         Calendar myCal = Calendar.getInstance();
         SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy");
         myCal.setTimeInMillis(input);
@@ -62,30 +63,24 @@ public class DateConverter {
         return result;
     }
 
-    public static Long getMinutesFromComputeDiff(Date date1, Date date2){
+    public static Long getDatesFromComputeDiff(Date date1, Date date2){
         Map<TimeUnit, Long> res = computeDiff(date1, date2);
-        return res.get(TimeUnit.MINUTES);
+        return res.get(TimeUnit.DAYS);
     }
 
-    public static Date plusDays(Date current, int numOfDays){
-        Calendar cal = Calendar.getInstance();
-        cal.setTimeInMillis(current.getTime());
-        cal.add(Calendar.DATE, numOfDays);
-        return cal.getTime();
-    }
-
-    public static Date plusHours(Date current, int numOfHours){
-        Calendar cal = Calendar.getInstance();
-        cal.setTimeInMillis(current.getTime());
-        cal.add(Calendar.HOUR, numOfHours);
-        return cal.getTime();
-    }
-
-    public static Date plusMinutes(Date current, int numOfMinutes){
-        Calendar cal = Calendar.getInstance();
-        cal.setTimeInMillis(current.getTime());
-        cal.add(Calendar.MINUTE, numOfMinutes);
-        return cal.getTime();
+    public static Date plusTime(Date current, int amount, int unit){
+        if(unit == Calendar.DATE  ||
+                unit == Calendar.HOUR ||
+                unit == Calendar.MINUTE ||
+                unit == Calendar.MONTH ||
+                unit == Calendar.SECOND ||
+                unit == Calendar.YEAR){
+            Calendar cal = Calendar.getInstance();
+            cal.setTimeInMillis(current.getTime());
+            cal.add(unit, amount);
+            return cal.getTime();
+        }
+        else return current;
     }
 
 }

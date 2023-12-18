@@ -73,38 +73,50 @@ public class TrashActivity extends AppCompatActivity implements ToolbarCallbacks
             int id = item.getItemId();
             Gson gson = new Gson();
             if (id == R.id.btnRestore) {
-                TrashItem trashItem = trashItems.get(imageViewPager2.getCurrentItem());
+                curPos = imageViewPager2.getCurrentItem();
+                TrashItem trashItem = trashItems.get(curPos);
                 File from = new File(trashItem.getPath());
                 File to = new File(trashItem.getPrevPath());
                 if(!from.exists()) return;
                 try{
                     StorageUtil.exportFile(from, to);
+                    from.delete();
                     SharedPreferences myPref = getSharedPreferences("TRASH", Activity.MODE_PRIVATE);
                     SharedPreferences.Editor editor = myPref.edit();
                     editor.remove(trashItem.getPath());
                     editor.apply();
-                    from.delete();
-                    deletePath.add(trashItem.getPath());
-                    intent.putExtra("deletePath", gson.toJson(deletePath));
-                    MediaScannerConnection.scanFile(getApplicationContext(), new String[] { trashItem.getPrevPath() }, null,null);
+                    trashItems.remove(curPos);
+                    trashItemFakeImages.remove(curPos);
+                    viewPagerAdapter.notifyItemRemoved(curPos);
+                    intent.putParcelableArrayListExtra("trashItems", trashItems);
                     setResult(AppCompatActivity.RESULT_OK, intent);
+                    MediaScannerConnection.scanFile(getApplicationContext(), new String[] { trashItem.getPrevPath() }, null,null);
                     Toast.makeText(this, R.string.restore_success, Toast.LENGTH_SHORT).show();
+                    if(trashItemFakeImages.size() == 0){
+                        finish();
+                    }
                 } catch (Exception e){
                     Toast.makeText(this, R.string.cannot_restore, Toast.LENGTH_SHORT).show();
                 }
 
             } else if (id == R.id.btnDeletePermanently) {
-                TrashItem trashItem = trashItems.get(imageViewPager2.getCurrentItem());
+                curPos = imageViewPager2.getCurrentItem();
+                TrashItem trashItem = trashItems.get(curPos);
                 File f = new File(trashItem.getPath());
                 if(f.delete()){
                     SharedPreferences myPref = getSharedPreferences("TRASH", Activity.MODE_PRIVATE);
                     SharedPreferences.Editor editor = myPref.edit();
                     editor.remove(trashItem.getPath());
                     editor.apply();
-                    deletePath.add(trashItem.getPath());
-                    intent.putExtra("deletePath", gson.toJson(deletePath));
+                    trashItems.remove(curPos);
+                    trashItemFakeImages.remove(curPos);
+                    viewPagerAdapter.notifyItemRemoved(curPos);
+                    intent.putParcelableArrayListExtra("trashItems", trashItems);
                     setResult(AppCompatActivity.RESULT_OK, intent);
                     Toast.makeText(this, R.string.permannently_delete, Toast.LENGTH_SHORT).show();
+                    if(trashItemFakeImages.size() == 0){
+                        finish();
+                    }
                 } else {
                     Toast.makeText(this, R.string.permanently_not_delete, Toast.LENGTH_SHORT).show();
                 }

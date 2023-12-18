@@ -2,6 +2,10 @@ package com.example.gallery;
 
 import static android.app.PendingIntent.getActivity;
 
+import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
+import static java.nio.file.StandardWatchEventKinds.ENTRY_DELETE;
+import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
@@ -15,6 +19,9 @@ import androidx.core.app.NotificationManagerCompat;
 import androidx.core.graphics.drawable.IconCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
+import androidx.loader.app.LoaderManager;
+import androidx.loader.content.Loader;
+
 import android.Manifest;
 import android.app.AlarmManager;
 import android.app.DatePickerDialog;
@@ -22,6 +29,8 @@ import android.app.Dialog;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.app.Service;
+import android.content.ContentUris;
 import android.content.Context;
 import android.content.Intent;
 import android.app.Activity;
@@ -34,10 +43,14 @@ import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.drawable.Icon;
+import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.FileObserver;
+import android.os.IBinder;
+import android.provider.MediaStore;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.SparseBooleanArray;
@@ -52,7 +65,7 @@ import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import com.example.gallery.Database.DatabaseHelper;
+import com.example.gallery.fragment.AddImageToAlbumFragment;
 import com.example.gallery.fragment.AlbumFragment;
 import com.example.gallery.fragment.FavouriteImageFragment;
 import com.example.gallery.fragment.GalleryFragment;
@@ -60,8 +73,10 @@ import com.example.gallery.fragment.HideFragment;
 import com.example.gallery.fragment.ImageFragment;
 import com.example.gallery.fragment.TrashFragment;
 import com.example.gallery.helper.DateConverter;
+import com.example.gallery.helper.ImageLoader;
 import com.example.gallery.helper.LocalStorageReader;
 import com.example.gallery.helper.Notification;
+import com.example.gallery.helper.SortUtil;
 import com.example.gallery.object.Album;
 import com.example.gallery.object.Image;
 import com.example.gallery.object.ImageGroup;
@@ -74,27 +89,33 @@ import com.google.gson.reflect.TypeToken;
 
 import java.io.File;
 import java.io.FilenameFilter;
+import java.io.IOException;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.WatchEvent;
+import java.nio.file.WatchKey;
+import java.nio.file.WatchService;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
-public class MainActivity extends AppCompatActivity implements MainCallBacks,MainCallBackObjectData {
+public class MainActivity extends AppCompatActivity implements MainCallBacks,MainCallBackObjectData, LoaderManager.LoaderCallbacks<ArrayList<Image>> {
+    private static final int IMAGE_LOADER_ID = 1;
     private static final int PERMISSION_REQUEST_READ_CODE = 1;
     // TODO: init data used in all fragments in MainActivity
     public ArrayList<Image> allImages;
     public ArrayList<ImageGroup> imageGroupsByDate;
     public Map<Long, Image> allImagesInMap;
     public ArrayList<TrashItem> trashItems;
-    public boolean isResetView = false;
-    FragmentTransaction ft;
     Menu menu;
+    Fragment currentFragment = null;
     GalleryFragment gallery_fragment = null;
     AlbumFragment album_fragment = null;
     TrashFragment trashFragment = null;
@@ -107,6 +128,9 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
     public ArrayList<Album> album_list;
     public int curIdxAlbum;
     String onChooseAlbum = "";
+    public boolean updateViewManually = false;
+    public int sortOrder = SortUtil.TypeDESC;
+
     public ArrayList<Album> getAlbum_list(){
         return album_list;
     }
@@ -131,84 +155,68 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
         // set widget view
         action_bar=getSupportActionBar();
         action_bar.setDisplayShowHomeEnabled(true);
+        // fragments
+        this.favouriteImageFragment = FavouriteImageFragment.getInstance();
+        this.gallery_fragment = GalleryFragment.getInstance();
+        this.trashFragment = TrashFragment.getInstance();
+        this.album_fragment = AlbumFragment.getInstance();
         // request permission
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU){
             ActivityCompat.requestPermissions(MainActivity.this,
                     new String[]{
                             Manifest.permission.READ_MEDIA_IMAGES,
+                            Manifest.permission.WRITE_EXTERNAL_STORAGE,
                             Manifest.permission.INTERNET},
                     PERMISSION_REQUEST_READ_CODE);
         } else {
             ActivityCompat.requestPermissions(MainActivity.this,
                     new String[]{
                             android.Manifest.permission.READ_EXTERNAL_STORAGE,
+                            Manifest.permission.WRITE_EXTERNAL_STORAGE,
                             Manifest.permission.INTERNET},
                     PERMISSION_REQUEST_READ_CODE);
         }
     }
 
     @Override
-    protected void onResume(){
-        super.onResume();
-        if(isResetView){
-            allImages = LocalStorageReader.getImagesFromLocal(getApplicationContext());
-            imageGroupsByDate = LocalStorageReader.getListImageGroupByDate(allImages);
-            allImagesInMap = new HashMap<>();
-            for(int i = 0; i < allImages.size(); ++i){
-                allImagesInMap.put(allImages.get(i).getIdInMediaStore(), allImages.get(i));
-            }
-            loadAllAlbum();
-            loadAllAlbumData(allImages);
-        }
-
+    public Loader<ArrayList<Image>> onCreateLoader(int id, Bundle args) {
+        return new ImageLoader(this);
     }
 
     @Override
-    protected void onDestroy(){
-        super.onDestroy();
-//        this.getContentResolver().unregisterContentObserver(observer);
+    public void onLoadFinished(Loader<ArrayList<Image>> loader, ArrayList<Image> data) {
+        if(data != allImages){
+            new ImageLoaderTask(this).execute(data);
+        }
+    }
+
+    @Override
+    public void onLoaderReset(Loader<ArrayList<Image>> loader) {
     }
 
     private void initApp(){
-        // TODO: init first data --> all fragments in this activity retrieve data directly from properties in the activity
-        allImages = LocalStorageReader.getImagesFromLocal(getApplicationContext());
-        imageGroupsByDate = LocalStorageReader.getListImageGroupByDate(allImages);
-        loadAllAlbum();
-        loadAllAlbumData(allImages);
+        LoaderManager.getInstance(this).initLoader(IMAGE_LOADER_ID, null, this);
+        loadDeleteImage();
 
-        allImagesInMap = new HashMap<>();
-        for(int i = 0; i < allImages.size(); ++i){
-            allImagesInMap.put(allImages.get(i).getIdInMediaStore(), allImages.get(i));
-        }
-        // TODO: Load SharedPref
-        // 1. GALLERY:
-        // 1.1 FAVORITE: idInMediaStore of favorite images
-        // 1.2 ALBUM ...
-        // 2. TRASH: <newPath, data>
-        // - newPath: path of image after being moved to app specific external storage
-        // - data: <oldPath, dateExpires> contains previous path of the image and time when the image will be deleted permanently (in long)
-        loadDeleteImage(); // delete expired images when loading images
-        loadFavouriteImage();
-        loadImagesLocation();
         menu.findItem(R.id.btnDeleteAlbum).setVisible(false);
         menu.findItem(R.id.btnSlideShow).setVisible(false);
         FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-        this.favouriteImageFragment = FavouriteImageFragment.getInstance();
-        this.gallery_fragment = GalleryFragment.getInstance();
-        this.trashFragment = TrashFragment.getInstance();
-        this.album_fragment = AlbumFragment.getInstance();
-        ft.replace(R.id.mainFragment, gallery_fragment); ft.commit();
+        ft.replace(R.id.mainFragment, gallery_fragment); ft.commit(); // TODO: change to the latest fragment
         btnv=findViewById(R.id.navigationBar);
         btnv.setOnNavigationItemSelectedListener(item -> {
             int id=item.getItemId();
             if(id==R.id.btnGallery){
                 menu.findItem(R.id.btnAddNewAlbum).setVisible(false);
                 menu.findItem(R.id.btnChooseMulti).setVisible(true);
+                menu.findItem(R.id.btnDeleteAlbum).setVisible(false);
+                menu.findItem(R.id.btnSlideShow).setVisible(false);
                 getSupportFragmentManager().beginTransaction().replace(R.id.mainFragment,this.gallery_fragment).commit();
             }
             else if (R.id.btnAlbum==id){
                 menu.findItem(R.id.btnAddNewAlbum).setVisible(true);
                 menu.findItem(R.id.btnChooseMulti).setVisible(false);
+                menu.findItem(R.id.btnDeleteAlbum).setVisible(false);
+                menu.findItem(R.id.btnSlideShow).setVisible(false);
                 getSupportFragmentManager().beginTransaction().replace(R.id.mainFragment,this.album_fragment).commit();
             }
             else if (R.id.btnSettings==id){
@@ -242,17 +250,12 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
                             AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
                             SharedPreferences myPref = getSharedPreferences("GALLERY", Activity.MODE_PRIVATE);
                             SharedPreferences.Editor editor = myPref.edit();
-                            editor.putBoolean("__isChangeTheme", true);
-                            editor.apply();
-                            editor.putString("THEME","DARK").commit();
+                            editor.putString("THEME","DARK").apply();
                         }else if (id==R.id.btnThemeLight){
                             AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
                             SharedPreferences myPref = getSharedPreferences("GALLERY", Activity.MODE_PRIVATE);
                             SharedPreferences.Editor editor = myPref.edit();
-                            editor.putBoolean("__isChangeTheme", true);
-                            editor.apply();
-                            editor.putString("THEME","LIGHT").commit();
-
+                            editor.putString("THEME","LIGHT").apply();
                         }else if (id == R.id.btnTrashbin)
                         {
                             menu.findItem(R.id.btnAddNewAlbum).setVisible(false);
@@ -306,6 +309,7 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
             }
             return true;
         });
+
     }
 
     @Override
@@ -321,10 +325,8 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
             } else {
                 // permission denied, boo! Disable the functionality that depends on this permission.
                 Toast.makeText(MainActivity.this, R.string.permission_denied, Toast.LENGTH_SHORT).show();
-
             }
         }
-
     }
 
     @Override
@@ -334,6 +336,7 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
         this.menu = menu;
         return super.onCreateOptionsMenu(menu);
     }
+
     public Menu getMenu(){
         return menu;
     }
@@ -493,12 +496,9 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
         }
         else if(id==R.id.btnAddNewAlbum){
             album_fragment.addNewAlbum();
-        }else if(id==R.id.btnAddImage){
-
         }
         // choose Statistic in ItemSelected
         else if(id == R.id.btnStatistic) {
-
             // Build alert dialog
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
             builder.setTitle(R.string.statistic);
@@ -529,12 +529,173 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
         }
         else if (id == R.id.btnDeleteAlbum)
         {
-            boolean checkDeleteAlbum = album_fragment.deleteAlbum(onChooseAlbum);
+            if(album_fragment.deleteAlbum(onChooseAlbum)){
+                Toast.makeText(this, "Delete album successfully", Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(this, "Cannot delete album", Toast.LENGTH_SHORT).show();
+            }
         }
         else if(id==R.id.btnSlideShow){
             imageFragment.beginSlideShow();
         }
+//        else if(id == R.id.btnSort){
+//            View v = findViewById(R.id.btnSort);
+//            PopupMenu pm = new PopupMenu(MainActivity.this, v);
+//            pm.getMenuInflater().inflate(R.menu.multi_select_menu_gallery, pm.getMenu());
+//            pm.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+//                @Override
+//                public boolean onMenuItemClick(MenuItem item) {
+//                    int id1 = item.getItemId();
+//                    if(id1 == R.id.btnSortByDateIncrease){
+//                        Fragment frag = getSupportFragmentManager().findFragmentById(R.id.mainFragment);
+//                        if(frag instanceof GalleryFragment && frag.isVisible()){
+//                            updateAllListsInSort(SortUtil.CriterionDateAdded, SortUtil.TypeASC);
+//                            ((GalleryFragment) frag).updateView();
+//                        }
+//                        else if(frag instanceof ImageFragment && frag.isVisible()){
+//                            updateCurAlbumInSort(album_list.get(curIdxAlbum), SortUtil.CriterionDateAdded, SortUtil.TypeASC);
+//                            ((ImageFragment) frag).updateView();
+//                        }
+//                        Toast.makeText(getApplicationContext(), "sort date asc", Toast.LENGTH_SHORT).show();
+//                    }
+//                    else if(id1 == R.id.btnSortByDateDecrease){
+//                        Fragment frag = getSupportFragmentManager().findFragmentById(R.id.mainFragment);
+//                        if(frag instanceof GalleryFragment && frag.isVisible()){
+//                            updateAllListsInSort(SortUtil.CriterionDateAdded, SortUtil.TypeDESC);
+//                            ((GalleryFragment) frag).updateView();
+//                        }
+//                        else if(frag instanceof ImageFragment && frag.isVisible()){
+//                            updateCurAlbumInSort(album_list.get(curIdxAlbum), SortUtil.CriterionDateAdded, SortUtil.TypeDESC);
+//                            ((ImageFragment) frag).updateView();
+//                        }
+//                        Toast.makeText(getApplicationContext(), "sort date desc", Toast.LENGTH_SHORT).show();
+//                    }
+//                    else if(id1 == R.id.btnSortByNameIncrease){
+//                        Fragment frag = getSupportFragmentManager().findFragmentById(R.id.mainFragment);
+//                        if(frag instanceof GalleryFragment && frag.isVisible()){
+//                            updateListByEachGroupInSort(SortUtil.CriterionName, SortUtil.TypeASC);
+//                            ((GalleryFragment) frag).updateView();
+//                        }
+//                        else if(frag instanceof ImageFragment && frag.isVisible()){
+//                            updateCurAlbumInSort(album_list.get(curIdxAlbum), SortUtil.CriterionName, SortUtil.TypeASC);
+//                            ((ImageFragment) frag).updateView();
+//                        }
+//                        Toast.makeText(getApplicationContext(), "sort name asc", Toast.LENGTH_SHORT).show();
+//                    }
+//                    else if(id1 == R.id.btnSortByNameDecrease){
+//                        Fragment frag = getSupportFragmentManager().findFragmentById(R.id.mainFragment);
+//                        if(frag instanceof GalleryFragment && frag.isVisible()){
+//                            updateListByEachGroupInSort(SortUtil.CriterionName, SortUtil.TypeDESC);
+//                            ((GalleryFragment) frag).updateView();
+//                        }
+//                        else if(frag instanceof ImageFragment && frag.isVisible()){
+//                            updateCurAlbumInSort(album_list.get(curIdxAlbum), SortUtil.CriterionName, SortUtil.TypeDESC);
+//                            ((ImageFragment) frag).updateView();
+//                        }
+//                        Toast.makeText(getApplicationContext(), "sort name desc", Toast.LENGTH_SHORT).show();
+//                    }
+//                    else if(id1 == R.id.btnSortByFileSizeIncrease){
+//                        Fragment frag = getSupportFragmentManager().findFragmentById(R.id.mainFragment);
+//                        if(frag instanceof GalleryFragment && frag.isVisible()){
+//                            updateListByEachGroupInSort(SortUtil.CriterionFileSize, SortUtil.TypeASC);
+//                            ((GalleryFragment) frag).updateView();
+//                        }
+//                        else if(frag instanceof ImageFragment && frag.isVisible()){
+//                            updateCurAlbumInSort(album_list.get(curIdxAlbum), SortUtil.CriterionFileSize, SortUtil.TypeASC);
+//                            ((ImageFragment) frag).updateView();
+//                        }
+//                        Toast.makeText(getApplicationContext(), "sort file asc", Toast.LENGTH_SHORT).show();
+//                    }
+//                    else if(id1 == R.id.btnSortByFileSizeDecrease){
+//                        Fragment frag = getSupportFragmentManager().findFragmentById(R.id.mainFragment);
+//                        if(frag instanceof GalleryFragment && frag.isVisible()){
+//                            updateListByEachGroupInSort(SortUtil.CriterionFileSize, SortUtil.TypeDESC);
+//                            ((GalleryFragment) frag).updateView();
+//                        }
+//                        else if(frag instanceof ImageFragment && frag.isVisible()){
+//                            updateCurAlbumInSort(album_list.get(curIdxAlbum), SortUtil.CriterionFileSize, SortUtil.TypeDESC);
+//                            ((ImageFragment) frag).updateView();
+//                        }
+//                        Toast.makeText(getApplicationContext(), "sort file desc", Toast.LENGTH_SHORT).show();
+//                    }
+//                    pm.show();
+//                    return true;
+//                }
+//            });
+//        }
         //special case: back-arrow on action bar
+        else if(id == R.id.btnSortByDateIncrease){
+            Fragment frag = getSupportFragmentManager().findFragmentById(R.id.mainFragment);
+            if(frag instanceof GalleryFragment && frag.isVisible()){
+                updateAllListsInSort(SortUtil.CriterionDateAdded, SortUtil.TypeASC);
+                ((GalleryFragment) frag).forceUpdateView();
+            }
+            else if(frag instanceof ImageFragment && frag.isVisible()){
+                updateCurAlbumInSort(album_list.get(curIdxAlbum), SortUtil.CriterionDateAdded, SortUtil.TypeASC);
+                ((ImageFragment) frag).updateView();
+            }
+            Toast.makeText(getApplicationContext(), "sort date asc", Toast.LENGTH_SHORT).show();
+        }
+        else if(id == R.id.btnSortByDateDecrease){
+            Fragment frag = getSupportFragmentManager().findFragmentById(R.id.mainFragment);
+            if(frag instanceof GalleryFragment && frag.isVisible()){
+                updateAllListsInSort(SortUtil.CriterionDateAdded, SortUtil.TypeDESC);
+                ((GalleryFragment) frag).forceUpdateView();
+            }
+            else if(frag instanceof ImageFragment && frag.isVisible()){
+                updateCurAlbumInSort(album_list.get(curIdxAlbum), SortUtil.CriterionDateAdded, SortUtil.TypeDESC);
+                ((ImageFragment) frag).updateView();
+            }
+            Toast.makeText(getApplicationContext(), "sort date desc", Toast.LENGTH_SHORT).show();
+        }
+        else if(id == R.id.btnSortByNameIncrease){
+            Fragment frag = getSupportFragmentManager().findFragmentById(R.id.mainFragment);
+            if(frag instanceof GalleryFragment && frag.isVisible()){
+                updateListByEachGroupInSort(SortUtil.CriterionName, SortUtil.TypeASC);
+                ((GalleryFragment) frag).forceUpdateView();
+            }
+            else if(frag instanceof ImageFragment && frag.isVisible()){
+                updateCurAlbumInSort(album_list.get(curIdxAlbum), SortUtil.CriterionName, SortUtil.TypeASC);
+                ((ImageFragment) frag).updateView();
+            }
+            Toast.makeText(getApplicationContext(), "sort name asc", Toast.LENGTH_SHORT).show();
+        }
+        else if(id == R.id.btnSortByNameDecrease){
+            Fragment frag = getSupportFragmentManager().findFragmentById(R.id.mainFragment);
+            if(frag instanceof GalleryFragment && frag.isVisible()){
+                updateListByEachGroupInSort(SortUtil.CriterionName, SortUtil.TypeDESC);
+                ((GalleryFragment) frag).forceUpdateView();
+            }
+            else if(frag instanceof ImageFragment && frag.isVisible()){
+                updateCurAlbumInSort(album_list.get(curIdxAlbum), SortUtil.CriterionName, SortUtil.TypeDESC);
+                ((ImageFragment) frag).updateView();
+            }
+            Toast.makeText(getApplicationContext(), "sort name desc", Toast.LENGTH_SHORT).show();
+        }
+        else if(id == R.id.btnSortByFileSizeIncrease){
+            Fragment frag = getSupportFragmentManager().findFragmentById(R.id.mainFragment);
+            if(frag instanceof GalleryFragment && frag.isVisible()){
+                updateListByEachGroupInSort(SortUtil.CriterionFileSize, SortUtil.TypeASC);
+                ((GalleryFragment) frag).forceUpdateView();
+            }
+            else if(frag instanceof ImageFragment && frag.isVisible()){
+                updateCurAlbumInSort(album_list.get(curIdxAlbum), SortUtil.CriterionFileSize, SortUtil.TypeASC);
+                ((ImageFragment) frag).updateView();
+            }
+            Toast.makeText(getApplicationContext(), "sort file asc", Toast.LENGTH_SHORT).show();
+        }
+        else if(id == R.id.btnSortByFileSizeDecrease){
+            Fragment frag = getSupportFragmentManager().findFragmentById(R.id.mainFragment);
+            if(frag instanceof GalleryFragment && frag.isVisible()){
+                updateListByEachGroupInSort(SortUtil.CriterionFileSize, SortUtil.TypeDESC);
+                ((GalleryFragment) frag).forceUpdateView();
+            }
+            else if(frag instanceof ImageFragment && frag.isVisible()){
+                updateCurAlbumInSort(album_list.get(curIdxAlbum), SortUtil.CriterionFileSize, SortUtil.TypeDESC);
+                ((ImageFragment) frag).updateView();
+            }
+            Toast.makeText(getApplicationContext(), "sort file desc", Toast.LENGTH_SHORT).show();
+        }
         else{
             getSupportFragmentManager().popBackStackImmediate();
         }
@@ -546,18 +707,26 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
         if(sender.equals("ALBUM")){
             //strValue is Album's name
             //get all Images in Album
-            ArrayList<Image> images = new ArrayList<Image>();
-            //
             menu.findItem(R.id.btnAddNewAlbum).setVisible(false);
-
+            menu.findItem(R.id.btnSort).setVisible(true);
             menu.findItem(R.id.btnDeleteAlbum).setVisible(true);
             menu.findItem(R.id.btnSlideShow).setVisible(true);
+            menu.findItem(R.id.btnSort).setVisible(false);
             //2nd argument is album
             curIdxAlbum = 0;
             for(int i=0;i<album_list.size();i++){
                 if(album_list.get(i).getPath().equals(strValue)){
                     curIdxAlbum=i;
                     break;
+                }
+            }
+            SharedPreferences myPref = getSharedPreferences("ALBUM", Activity.MODE_PRIVATE);
+            String dataStr = myPref.getString(album_list.get(curIdxAlbum).getName(), null);
+            if(dataStr != null){
+                Gson gson = new Gson();
+                ArrayList<Integer> data = gson.fromJson(dataStr, new TypeToken<ArrayList<Integer>>() {}.getType());
+                if(data.get(0) != SortUtil.CriterionDateAdded && data.get(1) != SortUtil.TypeDESC){
+                    updateCurAlbumInSort(album_list.get(curIdxAlbum), data.get(0), data.get(1));
                 }
             }
             ImageFragment imageFragment = new ImageFragment(this, album_list.get(curIdxAlbum));
@@ -570,7 +739,17 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
         }
         else if (sender.equals("DELETE-ALBUM"))
         {
-            getSupportFragmentManager().popBackStackImmediate();
+            getSupportFragmentManager().popBackStack();
+        }
+        else if (sender.equals("ADD-TO-ALBUM")){
+            Log.d("ADD-TO-AlBUM", "AddToAlbum");
+            Gson gson = new Gson();
+            ArrayList<String> paths = gson.fromJson(strValue, new TypeToken<ArrayList<String>>() {}.getType());
+            AddImageToAlbumFragment addImageToAlbumFragment = new AddImageToAlbumFragment(this, album_list, paths);
+            FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+            ft.replace(R.id.mainFragment, addImageToAlbumFragment);
+            ft.addToBackStack("ALBUM-FRAG");
+            ft.commit();
         }
     }
 
@@ -580,60 +759,24 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
         if(requestCode==1122 && resultCode==AppCompatActivity.RESULT_OK){
             try{
                 Gson gson = new Gson();
-
                 // TODO: handle favorite images
                 String addFavorite = data.getStringExtra("addFav");
                 String removeFavorite = data.getStringExtra("removeFav");
-                ArrayList<Long> addFavId = gson.fromJson(addFavorite, new TypeToken<ArrayList<Long>>() {
-                }.getType());
-                ArrayList<Long> removeFavId = gson.fromJson(removeFavorite, new TypeToken<ArrayList<Long>>() {
-                }.getType());
+                ArrayList<Long> addFavId = gson.fromJson(addFavorite, new TypeToken<ArrayList<Long>>() {}.getType());
+                ArrayList<Long> removeFavId = gson.fromJson(removeFavorite, new TypeToken<ArrayList<Long>>() {}.getType());
                 if (addFavId != null) {
                     for (int i = 0; i < addFavId.size(); ++i) {
                         Image image = allImagesInMap.get(addFavId.get(i));
-                        image.setFavorite(true);
+                        if(image != null) image.setFavorite(true);
                     }
                 }
                 if (removeFavId != null) {
                     for (int i = 0; i < removeFavId.size(); ++i) {
                         Image image = allImagesInMap.get(removeFavId.get(i));
-                        image.setFavorite(false);
+                        if(image != null) image.setFavorite(false);
                     }
-                }
-                saveFavoriteImages();
-
-                // TODO: handle delete images
-                String addDelete = data.getStringExtra("addDelete");
-                String addDeleteTime = data.getStringExtra("addDeleteTime");
-                String addDeleteNewPath = data.getStringExtra("addDeleteNewPath");
-                ArrayList<Long> addDeletePos = gson.fromJson(addDelete, new TypeToken<ArrayList<Long>>(){}.getType());
-                ArrayList<Long> addDeletePosTime = gson.fromJson(addDeleteTime, new TypeToken<ArrayList<Long>>(){}.getType());
-                ArrayList<String> addDeletePosNewPath = gson.fromJson(addDeleteNewPath, new TypeToken<ArrayList<String>>(){}.getType());
-                if(addDeletePos != null && addDeletePosTime != null && addDeletePosNewPath != null){
-                    for(int i = 0; i < addDeletePos.size(); ++i){
-                        Image image = allImagesInMap.get(addDeletePos.get(i));
-                        trashItems.add(new TrashItem(addDeletePosNewPath.get(i), image.getPath(), DateConverter.plusMinutes(new Date(addDeletePosTime.get(i)), 10).getTime()));
-//                        album_list.get(curIdxAlbum).deleteImageFromAlbum(image.getPath());
-                    }
-                    isResetView = true;
                 }
 
-                // TODO: handle album
-                for(int i=0; i<album_list.size(); i++){
-                    //lấy danh sách ảnh được thêm vào album
-                    String add_paths = data.getStringExtra(album_list.get(i).getName());
-                    if(add_paths!=null && !add_paths.isEmpty()){
-                        ArrayList<Long> imageIds = gson.fromJson(add_paths,new TypeToken<ArrayList<Long>>(){}.getType());
-                        for(int j=0; j<imageIds.size(); j++){
-                            //tìm ảnh cùng path và thêm vào album
-                            Image image = allImagesInMap.get(imageIds.get(j));
-                            if(image != null){
-                                album_list.get(i).addImageToAlbum(image);
-                            }
-                        }
-                    }
-                    saveChangeToAlbum(album_list.get(i));
-                }
                 //TODO: handle images location
                 String addLocation = data.getStringExtra("addLocation");
                 String removeLocation = data.getStringExtra("removeLocation");
@@ -643,7 +786,6 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
                 }.getType());
                 if (addLocationId != null) {
                     for (int i = 0; i < addLocationId.size(); ++i) {
-
                         Double latitude = data.getDoubleExtra(addLocationId.get(i).toString()+ "-LATITUDE",-1.0);
                         Double longitude = data.getDoubleExtra(addLocationId.get(i).toString()+ "-LONGITUDE",-1.0);
                         Image image = allImagesInMap.get(addLocationId.get(i));
@@ -663,21 +805,8 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
             catch (Exception e){
                 Log.d("onActivityResult() MainActivity", e.getMessage());
             }
-        }
-        else if(requestCode == 2233 && resultCode==AppCompatActivity.RESULT_OK){
-            Gson gson = new Gson();
-            String deletePathJson = data.getStringExtra("deletePath");
-            ArrayList<String> deletePath = gson.fromJson(deletePathJson, new TypeToken<ArrayList<String>>(){}.getType());
-            if(deletePath != null){
-                for(int i = 0; i < deletePath.size(); ++i){
-                    for(int j = 0; j < trashItems.size(); ++j){
-                        if(trashItems.get(j).getPath().equals(deletePath.get(i))){
-                            trashItems.remove(j);
-                        }
-                    }
-                }
-                isResetView = true;
-            }
+        }else if(requestCode == 2233 && resultCode==AppCompatActivity.RESULT_OK){
+            trashItems = data.getParcelableArrayListExtra("trashItems");
         } else if(requestCode==1123 && resultCode==AppCompatActivity.RESULT_OK) {
             String delete = data.getStringExtra("Trash");
             Gson gson = new Gson();
@@ -688,7 +817,7 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
                 hideFragment.removeImage(delete_paths);
                 //xoá các ảnh cần xoá
                 for (int i = 0; i < delete_paths.size(); i++) {
-                    gallery_fragment.deleteImage(delete_paths.get(i));
+//                    gallery_fragment.deleteImage(delete_paths.get(i));
 
                     //xoá trong các album
                     for (int j = 0; j < album_list.size(); j++) {
@@ -704,7 +833,7 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
                 ArrayList<String> add_paths = gson.fromJson(added, new TypeToken<ArrayList<String>>() {
                 }.getType());
                 //xoá các ảnh cần xoá
-                gallery_fragment.addImage(add_paths);
+//                gallery_fragment.addImage(add_paths);
                 hideFragment.removeImage(add_paths);
                 for (int i = 0; i < add_paths.size(); i++) {
                     //xoá trong các album
@@ -717,8 +846,19 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
                     }
                 }
             }
+        } else if(resultCode == AppCompatActivity.RESULT_OK && requestCode == 1){
+            if(Build.VERSION.SDK_INT == Build.VERSION_CODES.Q){
+                Gson gson = new Gson();
+                String urisStr = data.getStringExtra("delete-uris");
+                ArrayList<Uri> urisArr = gson.fromJson(urisStr, new TypeToken<ArrayList<Uri>>() {}.getType());
+                for(int i = 0; i < urisArr.size(); ++i){
+                    getContentResolver().delete(urisArr.get(i), null, null);
+                }
+            }
+            Toast.makeText(this, R.string.delete_photo_success, Toast.LENGTH_SHORT).show();
         }
     }
+
     // receive statisticListImage fragment GalleryFragment
     @Override
     public void onObjectPassed(ArrayList<Statistic> statisticList) {
@@ -777,19 +917,6 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
             }
 
         }
-
-    public void saveChangeToAlbum(Album album){
-        Gson gson=new Gson();
-        SharedPreferences albumPref= getSharedPreferences("GALLERY", Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor=albumPref.edit();
-        ArrayList<Long> album_save = new ArrayList<>();
-        for(int i=0;i<album.getAll_album_pictures().size();i++){
-            album_save.add(album.getAll_album_pictures().get(i).getIdInMediaStore());
-        }
-        String albumjson = gson.toJson(album_save);
-        editor.putString(album.getName(),albumjson);
-        editor.apply();
-    }
     public void loadAllAlbumData(ArrayList<Image> images){
         for(int i=0;i<images.size();i++){
             for(int j=0;j<album_list.size();j++){
@@ -840,20 +967,6 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
         editor.apply();
     }
 
-    public void saveFavoriteImages(){
-        Gson gson = new Gson();
-        SharedPreferences myPref = getSharedPreferences("GALLERY", Activity.MODE_PRIVATE);
-        SharedPreferences.Editor editor = myPref.edit();
-
-        ArrayList<Long> favList = new ArrayList<>();
-        for(int i = 0; i < allImages.size(); ++i){
-            if(allImages.get(i).isFavorite()){
-                favList.add(Long.valueOf(allImages.get(i).getIdInMediaStore()));
-            }
-        }
-        editor.putString("FAVORITE", gson.toJson(favList));
-        editor.apply();
-    }
     public void loadFavouriteImage() {
         Gson gson = new Gson();
         SharedPreferences myPref = getSharedPreferences("GALLERY",Activity.MODE_PRIVATE);
@@ -1015,7 +1128,6 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
         SharedPreferences myPref = getSharedPreferences("GALLERY",Activity.MODE_PRIVATE);
         String imgIds = myPref.getString("IMAGES-ID-LOCATION", null);
         ArrayList<Long> id = gson.fromJson(imgIds, new TypeToken<ArrayList<Long>>(){}.getType());
-        Log.d("CheckImg12", String.valueOf(id));
         if(id != null){
             for (int i = 0 ; i < id.size(); i++){
                 if(allImagesInMap.get(id.get(i)) != null){
@@ -1027,5 +1139,110 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
                 }
             }
         }
+    }
+
+    public void updateListByEachGroupInSort(int criterion, int type){
+        SharedPreferences myPref = getSharedPreferences("GALLERY", Activity.MODE_PRIVATE);
+        SharedPreferences.Editor editor = myPref.edit();
+        allImages = new ArrayList<>();
+        for(int i = 0; i < imageGroupsByDate.size(); ++i){
+            ArrayList<Image> images = SortUtil.sort(imageGroupsByDate.get(i).getList(), criterion, type);
+            imageGroupsByDate.get(i).setList(images);
+            allImages.addAll(images);
+        }
+        editor.putInt("SORT-GROUP-CRITERION", criterion);
+        editor.putInt("SORT-GROUP-TYPE", type);
+        editor.apply();
+    }
+
+    public void updateAllListsInSort(int criterion, int type){
+        SharedPreferences myPref = getSharedPreferences("GALLERY", Activity.MODE_PRIVATE);
+        SharedPreferences.Editor editor = myPref.edit();
+        SortUtil.sort(allImages, criterion, type);
+        imageGroupsByDate = LocalStorageReader.getListImageGroupByDate(allImages);
+        editor.putInt("SORT-CRITERION", criterion);
+        editor.putInt("SORT-TYPE", type);
+        editor.apply();
+    }
+
+    public void updateCurAlbumInSort(Album album, int criterion, int type){
+        SharedPreferences myPref = getSharedPreferences("ALBUM", Activity.MODE_PRIVATE);
+        SharedPreferences.Editor editor = myPref.edit();
+        SortUtil.sort(album.getAll_album_pictures(), criterion, type);
+        Gson gson = new Gson();
+        ArrayList<Integer> data = new ArrayList<>();
+        data.add(criterion);
+        data.add(type);
+        editor.putString(album.getName(), gson.toJson(data));
+        editor.apply();
+    }
+
+    public class ImageLoaderTask extends AsyncTask<ArrayList<Image>, Void, Void> {
+        private Context context;
+
+        public ImageLoaderTask(Context context) {
+            this.context = context;
+        }
+
+        @Override
+        protected Void doInBackground(ArrayList<Image>... params) {
+            allImages = params[0];
+
+            SharedPreferences myPref = getSharedPreferences("GALLERY", Activity.MODE_PRIVATE);
+            int sortCriterion = myPref.getInt("SORT-CRITERION", -1);
+            int sortType = myPref.getInt("SORT-TYPE", -1);
+            int sortGroupCriterion = myPref.getInt("SORT-GROUP-CRITERION", -1);
+            int sortGroupType = myPref.getInt("SORT-GROUP-TYPE", -1);
+            if(sortCriterion == SortUtil.CriterionDateAdded && sortType == SortUtil.TypeASC){
+                SortUtil.sort(allImages, sortCriterion, sortType);
+            }
+            imageGroupsByDate = LocalStorageReader.getListImageGroupByDate(allImages);
+            if (sortGroupCriterion != -1 && sortGroupType != -1){
+                allImages = new ArrayList<>();
+                for(int i = 0; i < imageGroupsByDate.size(); ++i){
+                    ArrayList<Image> images = SortUtil.sort(imageGroupsByDate.get(i).getList(), sortGroupCriterion, sortGroupType);
+                    imageGroupsByDate.get(i).setList(images);
+                    allImages.addAll(images);
+                }
+            }
+
+            loadAllAlbum();
+            loadAllAlbumData(allImages);
+
+            allImagesInMap = new HashMap<>();
+            for (int i = 0; i < allImages.size(); ++i) {
+                allImagesInMap.put(allImages.get(i).getIdInMediaStore(), allImages.get(i));
+            }
+            if(!updateViewManually){
+                loadDeleteImage(); // delete expired images when loading images
+            }
+            loadFavouriteImage();
+            loadImagesLocation();
+
+
+            Fragment frag = getSupportFragmentManager().findFragmentById(R.id.mainFragment);
+            if(frag instanceof ImageFragment && frag.isVisible()){
+                SharedPreferences albumPref = getSharedPreferences("ALBUM", Activity.MODE_PRIVATE);
+                String dataStr = albumPref.getString(album_list.get(curIdxAlbum).getName(), null);
+                if(dataStr != null){
+                    Gson gson = new Gson();
+                    ArrayList<Integer> data = gson.fromJson(dataStr, new TypeToken<ArrayList<Integer>>() {}.getType());
+                    if(data.get(0) != SortUtil.CriterionDateAdded && data.get(1) != SortUtil.TypeDESC){
+                        updateCurAlbumInSort(album_list.get(curIdxAlbum), data.get(0), data.get(1));
+                    }
+                }
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void result) {
+            gallery_fragment.updateView();
+            album_fragment.updateView();
+            if (imageFragment != null) {
+                imageFragment.updateView();
+            }
+        }
+
     }
 }

@@ -9,6 +9,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -21,6 +22,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.gallery.ImageActivity;
@@ -34,6 +36,7 @@ import com.example.gallery.object.Image;
 import com.google.gson.Gson;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class ImageFragment extends Fragment implements MultiSelectModeCallbacks {
     private ImageAdapter image_adapter;
@@ -56,9 +59,6 @@ public class ImageFragment extends Fragment implements MultiSelectModeCallbacks 
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         main = (MainActivity) getActivity();
-//        main.getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-//        main.getSupportActionBar().setHomeButtonEnabled(true);
-//        main.getSupportActionBar().setTitle(album.getName());
     }
 
     @Nullable
@@ -66,22 +66,35 @@ public class ImageFragment extends Fragment implements MultiSelectModeCallbacks 
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view=inflater.inflate(R.layout.image_fragment,container,false);
         recyclerView = view.findViewById(R.id.image_fragment_list);
-        recyclerView.setLayoutManager(new GridLayoutManager(context,3));
+        if(main != null && main.album_list != null && main.album_list.get(main.curIdxAlbum) != null){
+            album = main.album_list.get(main.curIdxAlbum);
+            image_adapter = new ImageAdapter(context, album.getAll_album_pictures());
+        } else {
+            image_adapter = new ImageAdapter(context, new ArrayList<>());
+        }
+        recyclerView.setAdapter(image_adapter);
+        recyclerView.setLayoutManager(new WrapContentGridLayoutManager(context,3));
 
         ((MainActivity)context).getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         ((MainActivity)context).getSupportActionBar().setHomeButtonEnabled(true);
         ((MainActivity)context).getSupportActionBar().setTitle(album.getName());
+
         return view;
     }
     @Override
     public void onResume(){
         super.onResume();
-//        if(main.isResetView){
-            album = main.album_list.get(main.curIdxAlbum);
-            image_adapter = new ImageAdapter(context, album.getAll_album_pictures());
-            recyclerView.setAdapter(image_adapter);
-//        }
     }
+
+    public void updateView(){
+        if(main.album_list.get(main.curIdxAlbum) != null){
+            album = main.album_list.get(main.curIdxAlbum);
+            image_adapter.submitList(album.getAll_album_pictures());
+        } else {
+            image_adapter.submitList(new ArrayList<>());
+        }
+    }
+
     public void RenameAlbum(){
         Dialog addDialog=new Dialog(context);
         addDialog.setContentView(R.layout.add_album_dialog);
@@ -168,5 +181,18 @@ public class ImageFragment extends Fragment implements MultiSelectModeCallbacks 
         image_adapter.changeOnMultiChooseMode();
     }
 
+    public class WrapContentGridLayoutManager extends GridLayoutManager {
+        public WrapContentGridLayoutManager(Context context, int count){
+            super(context, count);
+        }
+        @Override
+        public void onLayoutChildren(RecyclerView.Recycler recycler, RecyclerView.State state) {
+            try {
+                super.onLayoutChildren(recycler, state);
+            } catch (IndexOutOfBoundsException e) {
+                Log.e("TAG", "meet a IOOBE in RecyclerView");
+            }
+        }
+    }
 }
 

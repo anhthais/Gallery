@@ -12,27 +12,39 @@ import android.widget.CheckBox;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.view.ActionMode;
+import androidx.recyclerview.widget.DefaultItemAnimator;
+import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.ListAdapter;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.gallery.MainActivity;
 import com.example.gallery.MultiSelectCallbacks;
 import com.example.gallery.R;
+import com.example.gallery.asynctask.DeleteTask;
+import com.example.gallery.helper.DateConverter;
 import com.example.gallery.object.Image;
 import com.example.gallery.object.ImageGroup;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.gson.Gson;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 
-public class ImageGroupAdapter extends RecyclerView.Adapter<ImageGroupAdapter.ImageGroupViewHolder> implements MultiSelectCallbacks {
+public class ImageGroupAdapter extends ListAdapter<ImageGroup, ImageGroupAdapter.ImageGroupViewHolder> implements MultiSelectCallbacks {
     private final int COL_SPAN_VIEW = 3;
     private Context context;
     private ArrayList<ImageGroup> listGroups;
     private boolean onChooseMulti = false;
     private ArrayList<SparseBooleanArray> selectedItemsIds;
-    private ActionMode mode;
+    private ArrayList<ImageAdapter> imageAdapters;
+    private ActionMode multiMode;
+    private int selectedCount = 0;
     BottomNavigationView btnv;
 
     public class ImageGroupViewHolder extends RecyclerView.ViewHolder {
@@ -45,15 +57,45 @@ public class ImageGroupAdapter extends RecyclerView.Adapter<ImageGroupAdapter.Im
             txtId = view.findViewById(R.id.gallery_fragment_item_textView);
             imgList = view.findViewById(R.id.gallery_fragment_item_image_groups);
             checkBox = view.findViewById(R.id.checkBoxGroupItem);
+            imgList.setItemAnimator(new DefaultItemAnimator());
         }
     }
 
     public ImageGroupAdapter(Context context, ArrayList<ImageGroup> groupList) {
+        super(new DiffUtil.ItemCallback<ImageGroup>() {
+            @Override
+            public boolean areItemsTheSame(@NonNull ImageGroup oldItem, @NonNull ImageGroup newItem) {
+                return oldItem.getId().equals(newItem.getId());
+            }
+
+            @Override
+            public boolean areContentsTheSame(@NonNull ImageGroup oldItem, @NonNull ImageGroup newItem) {
+                for(int i = 0; i < oldItem.getList().size() && i < newItem.getList().size(); ++i){
+                    if(oldItem.getList().get(i).getIdInMediaStore() != newItem.getList().get(i).getIdInMediaStore()){
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+        });
         this.context = context;
         this.listGroups = groupList;
+        this.imageAdapters = new ArrayList<>(listGroups.size());
         this.selectedItemsIds = new ArrayList<>();
         for(int i = 0; i < groupList.size(); ++i){
             SparseBooleanArray idsInGroup = new SparseBooleanArray();;
+            selectedItemsIds.add(idsInGroup);
+        }
+    }
+
+    @Override
+    public void submitList(@Nullable List<ImageGroup> list) {
+        super.submitList(list);
+        this.listGroups = (ArrayList<ImageGroup>) list;
+        this.selectedItemsIds = new ArrayList<>();
+        for(int i = 0; i < listGroups.size(); ++i){
+            SparseBooleanArray idsInGroup = new SparseBooleanArray();
             selectedItemsIds.add(idsInGroup);
         }
     }
@@ -66,7 +108,7 @@ public class ImageGroupAdapter extends RecyclerView.Adapter<ImageGroupAdapter.Im
 
     @Override
     public void onBindViewHolder(ImageGroupViewHolder holder, int position) {
-        ImageGroup group = listGroups.get(position);
+        ImageGroup group = listGroups.get(holder.getAdapterPosition());
         if (group == null)
             return;
 
@@ -75,7 +117,7 @@ public class ImageGroupAdapter extends RecyclerView.Adapter<ImageGroupAdapter.Im
 
         ImageAdapter imgList = new ImageAdapter(context, group.getList());
         imgList.setListGroups(listGroups);
-        imgList.setGroupPos(position);
+        imgList.setGroupPos(holder.getAdapterPosition());
         imgList.setMultiSelectCallbacks(this);
 
         imgList.changeMultiMode(onChooseMulti);
@@ -83,11 +125,7 @@ public class ImageGroupAdapter extends RecyclerView.Adapter<ImageGroupAdapter.Im
 
         if(onChooseMulti){
             holder.checkBox.setVisibility(View.VISIBLE);
-            if(selectedItemsIds.get(position).size() == listGroups.get(position).getList().size()){
-                holder.checkBox.setChecked(true);
-            } else {
-                holder.checkBox.setChecked(false);
-            }
+            holder.checkBox.setChecked(selectedItemsIds.get(holder.getAdapterPosition()).size() == listGroups.get(holder.getAdapterPosition()).getList().size());
         }else{
             holder.checkBox.setVisibility(View.INVISIBLE);
             holder.checkBox.setChecked(false);
@@ -97,22 +135,23 @@ public class ImageGroupAdapter extends RecyclerView.Adapter<ImageGroupAdapter.Im
             @Override
             public void onClick(View v) {
                 if(holder.checkBox.isChecked()){
-                    for(int i = 0; i < listGroups.get(position).getList().size(); ++i){
-                        if(!selectedItemsIds.get(position).get(i)){
-                            selectedItemsIds.get(position).put(i, true);
+                    for(int i = 0; i < listGroups.get(holder.getAdapterPosition()).getList().size(); ++i){
+                        if(!selectedItemsIds.get(holder.getAdapterPosition()).get(i)){
+                            selectedItemsIds.get(holder.getAdapterPosition()).put(i, true);
+                            selectedCount++;
                         }
                     }
                 }
                 else{
-                    for(int i = 0; i < listGroups.get(position).getList().size(); ++i){
-                        if(selectedItemsIds.get(position).get(i)){
-                            selectedItemsIds.get(position).delete(i);
+                    for(int i = 0; i < listGroups.get(holder.getAdapterPosition()).getList().size(); ++i){
+                        if(selectedItemsIds.get(holder.getAdapterPosition()).get(i)){
+                            selectedItemsIds.get(holder.getAdapterPosition()).delete(i);
+                            selectedCount--;
                         }
                     }
                 }
-
-                updateActionTitle();
-                notifyDataSetChanged();
+                multiMode.setTitle(context.getString(R.string.selected) + " " + selectedCount);
+                notifyItemChanged(holder.getAdapterPosition());
             }
         });
       
@@ -132,9 +171,10 @@ public class ImageGroupAdapter extends RecyclerView.Adapter<ImageGroupAdapter.Im
     public void changeOnMultiChooseMode() {
         //start action mode
         AppCompatActivity ma = (AppCompatActivity) context;
-        mode = ma.startSupportActionMode(new ActionMode.Callback() {
+        multiMode = ma.startSupportActionMode(new ActionMode.Callback() {
             @Override
             public boolean onCreateActionMode(ActionMode mode, Menu menu) {
+                selectedCount = 0;
                 onChooseMulti = true;
                 mode.getMenuInflater().inflate(R.menu.multi_select_menu_gallery, menu);
                 btnv = ((AppCompatActivity) context).findViewById(R.id.navigationBar);
@@ -157,27 +197,44 @@ public class ImageGroupAdapter extends RecyclerView.Adapter<ImageGroupAdapter.Im
                         for(int j = 0; j < listGroups.get(i).getList().size(); ++j){
                             if(!selectedItemsIds.get(i).get(j)){
                                 selectedItemsIds.get(i).put(j, true);
+                                selectedCount++;
+                            }
+                        }
+                    }
+                }
+                else if(id == R.id.btnDeselectAll){
+                    for(int i = 0; i < listGroups.size(); ++i){
+                        for(int j = 0; j < listGroups.get(i).getList().size(); ++j){
+                            if(selectedItemsIds.get(i).get(j)){
+                                selectedItemsIds.get(i).delete(j);
+                                selectedCount--;
                             }
                         }
                     }
                 }
                 else if(id == R.id.btnAddMultiFromGalleryToAlbum){
-
+                    ArrayList<String> selectedPaths = new ArrayList<>();
+                    for(int i = 0; i < getSelectedItems().size(); ++i){
+                        selectedPaths.add(getSelectedItems().get(i).getPath());
+                    }
+                    Gson gson = new Gson();
+                    ((MainActivity)context).onMsgFromFragToMain("ADD-TO-ALBUM", gson.toJson(selectedPaths));
+                    mode.finish();
                 }
                 else if(id == R.id.btnDeleteMultiFromGallery){
-
+                    new DeleteTask(context).execute(getSelectedItems());
+                    mode.finish();
                 }
 
-                updateActionTitle();
                 notifyDataSetChanged();
+                mode.setTitle(context.getString(R.string.selected) + " " + selectedCount);
                 return true;
             }
 
             @Override
             public void onDestroyActionMode(ActionMode mode) {
                 onChooseMulti = false;
-                mode = null;
-                Log.d("multiSelect", selectedItemsIds.toString());
+                multiMode = null;
                 for(int i = 0; i < listGroups.size(); ++i){
                     selectedItemsIds.get(i).clear();
                 }
@@ -200,31 +257,22 @@ public class ImageGroupAdapter extends RecyclerView.Adapter<ImageGroupAdapter.Im
 
         if(!selectedItemsIds.get(groupPos).get(imagePos)){
             selectedItemsIds.get(groupPos).put(imagePos, true);
+            selectedCount++;
         } else{
             selectedItemsIds.get(groupPos).delete(imagePos);
+            selectedCount--;
         }
 
         if(selectedItemsIds.get(groupPos).size() == listGroups.get(groupPos).getList().size() || oldPos == listGroups.get(groupPos).getList().size()){
-            notifyDataSetChanged();
+            notifyItemChanged(groupPos);
         }
 
-        updateActionTitle();
+        multiMode.setTitle(context.getString(R.string.selected) + " " + selectedCount);
     }
 
     @Override
     public boolean isSelectedItem(int imagePos, int groupPos){
-        if(selectedItemsIds.get(groupPos).get(imagePos)){
-            return true;
-        }
-        return false;
-    }
-
-    public void updateActionTitle(){
-        int totalSelected = 0;
-        for(int i = 0; i < selectedItemsIds.size(); ++i){
-            totalSelected += selectedItemsIds.get(i).size();
-        }
-        mode.setTitle(R.string.selected+" " + totalSelected);
+        return selectedItemsIds.get(groupPos).get(imagePos);
     }
 
     public ArrayList<Image> getSelectedItems(){
@@ -238,28 +286,5 @@ public class ImageGroupAdapter extends RecyclerView.Adapter<ImageGroupAdapter.Im
         Log.d("selected", selected.toString());
         return selected;
     }
-    //find & delete an image
-    public void deleteImage(String path){
-        for(int i=0;i<listGroups.size();i++){
-            if(listGroups.get(i).deleteImage(path)){
-                notifyItemChanged(i);
-                return;
-            }
-        }
-    }
 
-    public void addImage(ArrayList<String> path){
-        if(listGroups==null ||listGroups.get(0)==null){
-            listGroups=new ArrayList<>();
-            Calendar calendar=Calendar.getInstance();
-            int date=calendar.get(Calendar.DATE);
-            int month=calendar.get(Calendar.MONTH);
-            int year=calendar.get(Calendar.YEAR);
-
-            listGroups.add(new ImageGroup(""+date+"-"+month+"-"+year,new ArrayList<>()));
-        }
-        for(int i=0;i<path.size();i++){
-            listGroups.get(listGroups.size()-1).addImg(new Image(path.get(i)));
-        }
-    }
 }

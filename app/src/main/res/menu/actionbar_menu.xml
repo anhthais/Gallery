@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
-
     <item
         android:id="@+id/btnFind"
         android:checked="true"
@@ -39,4 +38,36 @@
         android:checked="true"
         app:showAsAction="never"
         android:title="@string/event"/>
+    <item
+        android:id="@+id/btnSort"
+        android:checked="true"
+        app:showAsAction="never"
+        android:title="@string/sort">
+        <menu>
+            <item
+                android:id="@+id/btnSortByDateIncrease"
+                android:checked="true"
+                android:title="@string/sortByDateIncrease"/>
+            <item
+                android:id="@+id/btnSortByDateDecrease"
+                android:checked="true"
+                android:title="@string/sortByDateDecrease"/>
+            <item
+                android:id="@+id/btnSortByNameIncrease"
+                android:checked="true"
+                android:title="@string/sortByNameIncrease"/>
+            <item
+                android:id="@+id/btnSortByNameDecrease"
+                android:checked="true"
+                android:title="@string/sortByNameDecrease"/>
+            <item
+                android:id="@+id/btnSortByFileSizeIncrease"
+                android:checked="true"
+                android:title="@string/sortByFileSizeIncrease"/>
+            <item
+                android:id="@+id/btnSortByFileSizeDecrease"
+                android:checked="true"
+                android:title="@string/sortByFileSizeDecrease"/>
+        </menu>
+    </item>
 </menu>

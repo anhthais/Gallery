@@ -44,11 +44,12 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.UUID;
 
 public class ImageActivity extends AppCompatActivity implements MainCallBacks{
-    private ArrayList<Image> images;
+    public ArrayList<Image> images;
     public ArrayList<Album> album_list;
     private int curPos;
     private Uri tempEdited;
@@ -84,42 +85,6 @@ public class ImageActivity extends AppCompatActivity implements MainCallBacks{
             ImageViewFragment imageViewFragment = new ImageViewFragment(ImageActivity.this, images, album_list, curPos);
             ft.replace(R.id.pictureFragment, imageViewFragment);
             ft.commit();
-        }
-    }
-
-    public void updateImageViewFragment(ImageViewFragment frag){
-        Gson gson = new Gson();
-        // update images list
-        curPos = frag.imageViewPager2.getCurrentItem();
-        // set result for main activity
-        frag.deletePos.add(frag.images.get(curPos).getIdInMediaStore());
-        frag.deleteTime.add((new Date()).getTime());
-        frag.newDeletedImagePath.add(frag.newPath);
-        images.remove(curPos);
-        if (curPos == images.size()) {
-            curPos--;
-        } else curPos++;
-        //update viewpagerAdapter
-        frag.imageViewPager2.setCurrentItem(curPos, false);
-        frag.imageViewPager2.getAdapter().notifyDataSetChanged();
-
-        Intent intent = getIntent();
-        intent.putExtra("addDelete", gson.toJson(frag.deletePos));
-        intent.putExtra("addDeleteTime", gson.toJson(frag.deleteTime));
-        intent.putExtra("addDeleteNewPath", gson.toJson(frag.newDeletedImagePath));
-        setResult(AppCompatActivity.RESULT_OK, intent);
-
-        SharedPreferences myPref = getSharedPreferences("TRASH", Activity.MODE_PRIVATE);
-        SharedPreferences.Editor editor = myPref.edit();
-        ArrayList<String> data = new ArrayList<>(2);
-        data.add(frag.oldPath);
-        Date dateExpires = DateConverter.plusMinutes(new Date(), 10);
-        data.add(DateConverter.longToString(dateExpires.getTime()));
-        editor.putString(frag.newPath, gson.toJson(data));
-        editor.apply();
-
-        if (images.size() == 0) {
-            finish();
         }
     }
 
@@ -186,9 +151,6 @@ public class ImageActivity extends AppCompatActivity implements MainCallBacks{
 
             try {
                 // Create a new File object for the output file
-                Date currentDate = new Date();
-                SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy");
-                String date = dateFormat.format(currentDate);
                 String fname = new StringBuilder(UUID.randomUUID().toString()).append(".jpg").toString();
                 File file = new File(pathWithoutFilename, fname);
 
@@ -204,7 +166,7 @@ public class ImageActivity extends AppCompatActivity implements MainCallBacks{
                 }
                 String pathImage = pathWithoutFilename + "/" + fname;
 
-                Image editedImage = new Image(pathImage, date);
+                Image editedImage = new Image(pathImage, new Date().getTime());
                 images.add(editedImage);
                 curPos = images.size() - 1;
                 dataSend = pathImage;
@@ -217,7 +179,9 @@ public class ImageActivity extends AppCompatActivity implements MainCallBacks{
             ImageViewFragment imageViewFragment = new ImageViewFragment(ImageActivity.this, images,album_list ,curPos);
             ft.replace(R.id.pictureFragment, imageViewFragment); ft.commit();
         }else if(sender.equals("ADD-TO-ALBUM")){
-            AddImageToAlbumFragment albumFragment=new AddImageToAlbumFragment(this,album_list,strValue) ;
+            ArrayList<String> paths = new ArrayList<>();
+            paths.add(strValue);
+            AddImageToAlbumFragment albumFragment = new AddImageToAlbumFragment(this,album_list,paths) ;
             getSupportFragmentManager().beginTransaction().replace(R.id.pictureFragment,albumFragment).addToBackStack(null).commit();
         }
     }
@@ -261,8 +225,6 @@ public class ImageActivity extends AppCompatActivity implements MainCallBacks{
             } else if (resultCode==-2) {
                 //Nothing to do, just return image view
             }
-
-
             intent.putExtra("addLocation", gson.toJson(addLocation));
             intent.putExtra("removeLocation", gson.toJson(removeLocation));
             setResult(AppCompatActivity.RESULT_OK, intent);
@@ -292,7 +254,7 @@ public class ImageActivity extends AppCompatActivity implements MainCallBacks{
             if(Build.VERSION.SDK_INT == Build.VERSION_CODES.Q){
                 getContentResolver().delete(ContentUris.withAppendedId(MediaStore.Images.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY), Long.valueOf(imageViewFragment.images.get(imageViewFragment.imageViewPager2.getCurrentItem()).getIdInMediaStore())), null, null);
             }
-            updateImageViewFragment(imageViewFragment);
+            imageViewFragment.saveDeleteAndUpdateView();
         }
     }
 

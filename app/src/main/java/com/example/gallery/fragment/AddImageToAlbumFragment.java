@@ -24,14 +24,14 @@ public class AddImageToAlbumFragment extends Fragment{
     private Context context;
     private AddAlbumAdapter album_adapter;
     private ArrayList<Album> albums;
-    public String path;
+    public ArrayList<String> paths;
     private RecyclerView album_recyclerView;
     private boolean isDel = false;
     private int index = -1;
-    public AddImageToAlbumFragment(Context context, ArrayList<Album> albums,String path){
+    public AddImageToAlbumFragment(Context context, ArrayList<Album> albums,ArrayList<String> paths){
         this.context=context;
         this.albums=albums;
-        this.path=path;
+        this.paths=paths;
     }
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -48,7 +48,7 @@ public class AddImageToAlbumFragment extends Fragment{
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View AddImageToAlbumFragment=inflater.inflate(R.layout.album_fragment,container,false);
-        album_adapter=new AddAlbumAdapter(context,albums,path);
+        album_adapter=new AddAlbumAdapter(context,albums,paths);
         album_recyclerView=AddImageToAlbumFragment.findViewById(R.id.albumFragmentRecyclerView);
         album_recyclerView.setAdapter(album_adapter);
         album_recyclerView.setLayoutManager(new GridLayoutManager(context,2));

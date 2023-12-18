@@ -3,9 +3,12 @@ package com.example.gallery.fragment;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.FileObserver;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
@@ -21,6 +24,7 @@ import com.example.gallery.object.TrashItem;
 
 import org.jetbrains.annotations.Nullable;
 
+import java.io.File;
 import java.util.ArrayList;
 
 public class TrashFragment extends Fragment implements FragmentCallBacks, MultiSelectModeCallbacks {
@@ -43,6 +47,7 @@ public class TrashFragment extends Fragment implements FragmentCallBacks, MultiS
         } catch (IllegalStateException e) {
             throw new IllegalStateException("MainActivity must implement callbacks");
         }
+
     }
 
     @Nullable
@@ -50,22 +55,30 @@ public class TrashFragment extends Fragment implements FragmentCallBacks, MultiS
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View TrashFragment = inflater.inflate(R.layout.trash_fragment, container, false);
         trash_RecyclerView = TrashFragment.findViewById(R.id.trashFragmentRecyclerView);
-        trash_RecyclerView.setLayoutManager(new GridLayoutManager(context, 3));
+        trashItems = new ArrayList<>();
+        if (main != null && main.trashItems != null) {
+            trashItems = main.trashItems;
+        }
+        trash_adapter = new TrashAdapter(context, trashItems);
+        trash_RecyclerView.setLayoutManager(new WrapContentGridLayoutManager(context, 3));
+        trash_RecyclerView.setAdapter(trash_adapter);
 
-        ((MainActivity)context).getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        ((MainActivity)context).getSupportActionBar().setHomeButtonEnabled(true);
-        ((MainActivity)context).getSupportActionBar().setTitle(R.string.trash_bin);
+        ((MainActivity) context).getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        ((MainActivity) context).getSupportActionBar().setHomeButtonEnabled(true);
+        ((MainActivity) context).getSupportActionBar().setTitle(R.string.trash_bin);
 
         return TrashFragment;
     }
 
-    @Override
     public void onResume(){
         super.onResume();
-        trashItems = main.trashItems;
-        trash_adapter = new TrashAdapter(context, trashItems);
-        trash_RecyclerView.setAdapter(trash_adapter);
+        if(main != null && main.trashItems != null){
+            trashItems = main.trashItems;
+            trash_adapter.submitList(trashItems);
+        }
     }
+
+
 
     @Override
     public void onDestroyView() {
@@ -83,5 +96,19 @@ public class TrashFragment extends Fragment implements FragmentCallBacks, MultiS
     @Override
     public void changeOnMultiChooseMode(){
         trash_adapter.changeOnMultiChooseMode();
+    }
+
+    public static class WrapContentGridLayoutManager extends GridLayoutManager {
+        public WrapContentGridLayoutManager(Context context, int count){
+            super(context, count);
+        }
+        @Override
+        public void onLayoutChildren(RecyclerView.Recycler recycler, RecyclerView.State state) {
+            try {
+                super.onLayoutChildren(recycler, state);
+            } catch (IndexOutOfBoundsException e) {
+                Log.e("TAG", "meet a IOOBE in RecyclerView");
+            }
+        }
     }
 }

@@ -90,7 +90,7 @@ public class HidePagerFragment extends Fragment {
                     }
                     deletePaths.add(images.get(pos).getPath());
                     intent.putExtra("Trash",gson.toJson(deletePaths));
-                    ((ImageActivity)context).setResult(AppCompatActivity.RESULT_OK,intent);
+                    ((ImageActivity)context).setResult(AppCompatActivity.RESULT_OK, intent);
                     images.remove(imageViewPager2.getCurrentItem());
                     imageViewPager2.getAdapter().notifyItemRemoved(pos);
                     if(images.size()==0){
@@ -115,7 +115,6 @@ public class HidePagerFragment extends Fragment {
                 ArrayList<String> hideBefore=gson.fromJson(hideBeforeJSON,new TypeToken<ArrayList<String>>(){}.getType());
                 String beforePath=hideBefore.get(pos);
                 if(FileManager.moveFile(getActivity(),images.get(pos).getPath(),beforePath,context)){
-
                     hideBefore.remove(pos);
                     hideCurrent.remove(pos);
                     hideBeforeJSON=gson.toJson(hideBefore);

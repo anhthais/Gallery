@@ -8,6 +8,8 @@ import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.util.Log;
@@ -21,8 +23,13 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
+import androidx.loader.app.LoaderManager;
+import androidx.loader.content.CursorLoader;
+import androidx.loader.content.Loader;
+import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.recyclerview.widget.SimpleItemAnimator;
 
 import com.example.gallery.FragmentCallBacks;
 import com.example.gallery.MainActivity;
@@ -30,6 +37,7 @@ import com.example.gallery.MainCallBackObjectData;
 import com.example.gallery.MultiSelectModeCallbacks;
 import com.example.gallery.R;
 import com.example.gallery.adapter.ImageGroupAdapter;
+import com.example.gallery.helper.DateConverter;
 import com.example.gallery.helper.LocalStorageReader;
 import com.example.gallery.object.Image;
 import com.example.gallery.object.ImageGroup;
@@ -54,10 +62,7 @@ public class GalleryFragment extends Fragment implements FragmentCallBacks, Mult
     private RecyclerView recyclerView;
     private ImageGroupAdapter imageGroupAdapter;
     private ArrayList<ImageGroup> groupList;
-    private  ArrayList<Statistic> statisticList;
-    private WatchService watchService;
-    private Path imageFolderPath;
-    private  ArrayList<String> listMediaFolderImage;
+    private ArrayList<Statistic> statisticList;
     private Context context;
     private MainActivity main;
     private FloatingActionButton addImageFromLink;
@@ -88,14 +93,22 @@ public class GalleryFragment extends Fragment implements FragmentCallBacks, Mult
         }
     }
 
-    @Override
-    public void onResume(){
-        super.onResume();
-        if(main.isResetView){
+    public void updateView(){
+        if(main != null){
+            groupList = main.imageGroupsByDate;
+            imageGroupAdapter.submitList(groupList);
+            statisticList = getStatisticGroupList(groupList);
+            passObjectToActivity(statisticList);
+        }
+    }
+
+    public void forceUpdateView(){
+        if(main != null){
             groupList = main.imageGroupsByDate;
             imageGroupAdapter = new ImageGroupAdapter(context, groupList);
             recyclerView.setAdapter(imageGroupAdapter);
-            main.isResetView = false;
+            statisticList = getStatisticGroupList(groupList);
+            passObjectToActivity(statisticList);
         }
     }
 
@@ -104,23 +117,11 @@ public class GalleryFragment extends Fragment implements FragmentCallBacks, Mult
         View view = inflater.inflate(R.layout.gallery_fragment, container, false);
         recyclerView = view.findViewById(R.id.recycleImages);
         addImageFromLink = view.findViewById(R.id.btnAddImage);
-        SharedPreferences myPref = getActivity().getSharedPreferences("GALLERY", Activity.MODE_PRIVATE);
-        SharedPreferences.Editor editor = myPref.edit();
-        boolean isChangeTheme = myPref.getBoolean("__isChangeTheme", false);
-        if(isChangeTheme){
-            main.allImages = LocalStorageReader.getImagesFromLocal(getContext());
-            main.loadAllAlbum();
-            main.loadAllAlbumData(main.allImages);
-            main.imageGroupsByDate = LocalStorageReader.getListImageGroupByDate(main.allImages);
-            editor.putBoolean("__isChangeTheme", false);
-        }
-        editor.apply();
         groupList = main.imageGroupsByDate;
+        if(groupList == null) groupList = new ArrayList<>();
         imageGroupAdapter = new ImageGroupAdapter(context, groupList);
         recyclerView.setAdapter(imageGroupAdapter);
-        recyclerView.setLayoutManager(new LinearLayoutManager(getContext(), RecyclerView.VERTICAL, false));
-        listMediaFolderImage = findMediaStoreImageFolder(groupList);
-        listenerUpdateMediaStore(listMediaFolderImage);
+        recyclerView.setLayoutManager(new WrapContentLinearLayoutManager(getContext(), RecyclerView.VERTICAL, false));
         // Tính dung lượng và số lượng của mỗi group list,
         statisticList = getStatisticGroupList(groupList);
         passObjectToActivity(statisticList);
@@ -145,7 +146,6 @@ public class GalleryFragment extends Fragment implements FragmentCallBacks, Mult
                         }
                         else{
                             DownloadImageFromLink(editText.getText().toString());
-
                             addDialog.cancel();
                         }
                     }
@@ -160,82 +160,7 @@ public class GalleryFragment extends Fragment implements FragmentCallBacks, Mult
         });
         return view;
     }
-    private ArrayList<String> findMediaStoreImageFolder(ArrayList<ImageGroup> groupList){
-        ArrayList<String> result = new ArrayList<String>();
-        for(int i=0;i<groupList.size();i++){
-            for(int j=0;j<groupList.get(i).getList().size();j++){
-                String path = groupList.get(i).getList().get(j).getPath();
-                String pathWithoutFilename = path.substring(0, path.lastIndexOf("/"));
-                if(result.isEmpty()){
-                    result.add(pathWithoutFilename);
-                }
-                else if(!result.contains(pathWithoutFilename)){
-                    result.add(pathWithoutFilename);
-                }
-            }
-        }
-        return result;
 
-    }
-    private void listenerUpdateMediaStore(ArrayList<String> listPaths){
-
-        for(int i=0;i<listPaths.size();i++) {
-
-            String path = listPaths.get(i);
-            imageFolderPath = Paths.get(path);
-
-            try {
-                watchService = FileSystems.getDefault().newWatchService();
-                imageFolderPath.register(watchService, ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
-            new Thread(() -> {
-                while (true) {
-                    WatchKey watchKey = null;
-                    try {
-                        watchKey = watchService.take();
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-
-                    for (WatchEvent event : watchKey.pollEvents()) {
-                        Path watchedPath = ((WatchEvent<Path>) event).context();
-                        Path childPath = imageFolderPath.resolve(watchedPath);
-
-                        WatchEvent.Kind kind = event.kind();
-                        if (kind.equals(ENTRY_CREATE)) {
-                            updateGroupListAndRecyclerView(childPath);
-                        } else if (kind.equals(ENTRY_DELETE)) {
-                            updateGroupListAndRecyclerView(childPath);
-                        } else if (kind.equals(ENTRY_MODIFY)) {
-                            updateGroupListAndRecyclerView(childPath);
-                        }
-                    }
-
-                    if (!watchKey.reset()) {
-                        break;
-                    }
-                }
-            }).start();
-        }
-    }
-    private void updateGroupListAndRecyclerView(Path childPath) {
-        if(getActivity()==null){
-            return;
-        }
-        getActivity().runOnUiThread(() -> {
-            main.allImages = LocalStorageReader.getImagesFromLocal(getContext());
-            main.imageGroupsByDate = LocalStorageReader.getListImageGroupByDate(main.allImages);
-            groupList = main.imageGroupsByDate;
-            main.loadAllAlbum();
-            main.loadAllAlbumData(main.allImages);
-            imageGroupAdapter = new ImageGroupAdapter(context, groupList);
-            recyclerView.setAdapter(imageGroupAdapter);
-            recyclerView.setLayoutManager(new LinearLayoutManager(getContext(), RecyclerView.VERTICAL, false));
-        });
-    }
     // TODO: delete and adjust the code below: statistic and delete
     private  ArrayList<Statistic> getStatisticGroupList(ArrayList<ImageGroup> groupList) {
         ArrayList<Statistic> result = new ArrayList<Statistic>();
@@ -272,25 +197,8 @@ public class GalleryFragment extends Fragment implements FragmentCallBacks, Mult
         }
     }
 
-    //xoá 1 ảnh gallery fragment---> image adapter--->image group
-    public void deleteImage(String path){
-        imageGroupAdapter.deleteImage(path);
-    }
-
-    public Image findImageByPath(String path){
-        File file = new File(path);
-        if(file.exists()){
-            for(int i=0;i<groupList.size();i++){
-                Image image=groupList.get(i).findImageByPath(path);
-                if(image!=null){
-                    return image;
-                }
-            }
-        }
-        return null;
-    }
     void DownloadImageFromLink(String ImageUrl) {
-        //Asynctask to create a thread to downlaod image in the background
+        //Asynctask to create a thread to download image in the background
         Toast.makeText(context, R.string.downloading, Toast.LENGTH_SHORT).show();
         try{
             new DownLoadImage(context).execute(ImageUrl);
@@ -300,8 +208,6 @@ public class GalleryFragment extends Fragment implements FragmentCallBacks, Mult
     }
     @Override
     public void onMsgFromMainToFragment(String strValue) {
-        groupList = main.imageGroupsByDate;
-        getActivity().getSupportFragmentManager().beginTransaction().detach(this).attach(this).commit();
     }
 
     @Override
@@ -310,7 +216,19 @@ public class GalleryFragment extends Fragment implements FragmentCallBacks, Mult
         imageGroupAdapter.changeOnMultiChooseMode();
     }
 
-    public void addImage(ArrayList<String> path){
-        imageGroupAdapter.addImage(path);
+    public class WrapContentLinearLayoutManager extends LinearLayoutManager {
+        public WrapContentLinearLayoutManager(Context context, int orientation, boolean reverserLayout){
+            super(context, orientation, reverserLayout);
+        }
+        @Override
+        public void onLayoutChildren(RecyclerView.Recycler recycler, RecyclerView.State state) {
+            try {
+                super.onLayoutChildren(recycler, state);
+            } catch (IndexOutOfBoundsException e) {
+                Log.e("TAG", "meet a IOOBE in RecyclerView");
+            }
+        }
     }
+
 }
+

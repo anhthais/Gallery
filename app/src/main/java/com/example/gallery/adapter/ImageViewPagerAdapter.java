@@ -1,17 +1,14 @@
 package com.example.gallery.adapter;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
-import androidx.core.view.WindowInsetsControllerCompat;
 import androidx.recyclerview.widget.RecyclerView;
-import androidx.viewpager.widget.ViewPager;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.DecodeFormat;
@@ -20,8 +17,8 @@ import com.bumptech.glide.request.target.Target;
 import com.example.gallery.R;
 import com.example.gallery.ToolbarCallbacks;
 import com.example.gallery.object.Image;
+import com.ortiz.touchview.TouchImageView;
 
-import java.io.File;
 import java.util.ArrayList;
 
 public class ImageViewPagerAdapter extends RecyclerView.Adapter<ImageViewPagerAdapter.ViewHolder> {
@@ -40,10 +37,10 @@ public class ImageViewPagerAdapter extends RecyclerView.Adapter<ImageViewPagerAd
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder {
-        private ImageView imageView;
+        private TouchImageView imageView;
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
-            imageView = (ImageView)itemView.findViewById(R.id.full_image_view);
+            imageView = (TouchImageView)itemView.findViewById(R.id.full_image_view);
         }
         public View getView(){
             return this.imageView;
@@ -58,6 +55,8 @@ public class ImageViewPagerAdapter extends RecyclerView.Adapter<ImageViewPagerAd
         return new ViewHolder(view);
     }
 
+
+    @SuppressLint("ClickableViewAccessibility")
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         Image image = images.get(position);
@@ -68,7 +67,6 @@ public class ImageViewPagerAdapter extends RecyclerView.Adapter<ImageViewPagerAd
                         .format(DecodeFormat.PREFER_ARGB_8888)
                         .override(Target.SIZE_ORIGINAL))
                 .into(holder.imageView);
-
         holder.imageView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -76,6 +74,13 @@ public class ImageViewPagerAdapter extends RecyclerView.Adapter<ImageViewPagerAd
                 toolbarCallbacks.showOrHideToolbars(isSystemUiVisible);
             }
         });
+       holder.imageView.setOnTouchListener(new View.OnTouchListener() {
+           @Override
+           public boolean onTouch(View v, MotionEvent event) {
+               holder.imageView.getParent().requestDisallowInterceptTouchEvent(holder.imageView.isZoomed());
+               return false;
+           }
+       });
     }
 
     @Override

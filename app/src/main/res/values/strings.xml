@@ -27,7 +27,7 @@
     <string name="album">Album</string>
     <string name="settings">Settings</string>
     <string name="select_all">Select all</string>
-    <string name="unselect_all">Unselect all</string>
+    <string name="deselect_all">Deselect all</string>
     <string name="cut_and_rotate">Cut/Rotate</string>
     <string name="light_up">Light up</string>
     <string name="constract">Constract</string>
@@ -48,7 +48,6 @@
     <string name="name">Name</string>
     <string name="date">Date</string>
     <string name="capacity">Capacity</string>
-    <string name="path">path</string>
     <string name="size">Size</string>
     <string name="position">Position</string>
     <string name="delete_this_album">Delete this album?</string>
@@ -61,7 +60,7 @@
     <string name="cannot_add">Cannot add</string>
     <string name="existed_cannot_add">There was an image has the same name, cannot add.</string>
     <string name="selected">Selected</string>
-    <string name="minutes">minutes</string>
+    <string name="days">days</string>
     <string name="remaining">Remaining</string>
     <string name="enter_album_name">Please enter album name</string>
     <string name="album_existed">Album existed</string>
@@ -105,7 +104,6 @@
     <string name="retype_password_not_match">Retype password not match</string>
     <string name="event">Event</string>
     <string name="notice_date">Notice date</string>
-    <string name="anniversasy">Anniversary</string>
     <string name="visit_our_app">Visit Gallery to watch your anniversary</string>
     <string name="clear">Clear</string>
     <string name="schedule">Scheduled</string>
@@ -118,6 +116,27 @@
     <string name ="QRCode">QR Scanner</string>
     <string name ="noQR">This photo does not have a QR code</string>
     <string name ="noBitmap">This photo does not have bitmap</string>
+    <string name ="moveToTrash">Move photos to the trash bin…</string>
+    <string name ="restoreFromTrash">Restore photos from the trash bin…</string>
+    <string name ="deleteFromTrash">Delete photos from the trash bin…</string>
+    <string name ="add_to_album_success">Add photo to album successfully</string>
+    <string name ="copyMultiToAlbum">Copy photos to album folder…</string>
+    <string name ="lastModified">Last Modified: </string>
+    <string name ="takenDate">Date Taken: </string>
+    <string name ="resolution">Resolution: </string>
+    <string name ="exif">EXIF: </string>
+    <string name ="camera">Camera: </string>
+    <string name ="path">Path: </string>
+    <string name ="save_description_success">Save description successfully!</string>
+    <string name ="InfoDialogTitle">INFORMATION</string>
+    <string name ="dialog_close">Close</string>
+    <string name ="dialog_edit">Edit</string>
+    <string name ="sort">Sort</string>
+    <string name ="sortByDateIncrease">By date (increase)</string>
+    <string name ="sortByDateDecrease">By date (decrease)</string>
+    <string name ="sortByNameIncrease">By name (increase)</string>
+    <string name ="sortByNameDecrease">By name (decrease)</string>
+    <string name ="sortByFileSizeIncrease">By file size (increase)</string>
+    <string name ="sortByFileSizeDecrease">By file size (decrease)</string>
     <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

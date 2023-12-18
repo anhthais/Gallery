@@ -25,9 +25,8 @@ import java.util.List;
 public class FileManager {
     public static boolean deleteFromPath(String path, Context context, Activity activity){
         try{
-            long id=getFilePathToMediaID(path,context);
-            final Uri uri = ContentUris.withAppendedId( MediaStore.Images.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY),
-                    Long.valueOf(id));
+            long id = getFilePathToMediaID(path,context);
+            final Uri uri = ContentUris.withAppendedId( MediaStore.Images.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY), Long.valueOf(id));
             final Uri[] uris={uri};
             delete(activity,uris,1);
         }
@@ -37,14 +36,13 @@ public class FileManager {
 
         return true;
     }
-    public static boolean moveFile(final Activity activity,String sourcePath, String desPath, Context context){
-        Path source= Paths.get(sourcePath);
-        Path dest=Paths.get(desPath);
-        long id=getFilePathToMediaID(sourcePath,context);
-        final Uri uri = ContentUris.withAppendedId( MediaStore.Images.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY),
-                Long.valueOf(id));
-        final Uri[] uris={uri};
-        File file=new File(dest.toString());
+    public static boolean moveFile(final Activity activity, String sourcePath, String desPath, Context context){
+        Path source = Paths.get(sourcePath);
+        Path dest = Paths.get(desPath);
+        long id = getFilePathToMediaID(sourcePath,context);
+        final Uri uri = Uri.withAppendedPath(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, "" + id);
+        final Uri[] uris = { uri };
+        File file = new File(dest.toString());
         if(file.exists()){
             return false;
         }
@@ -54,14 +52,15 @@ public class FileManager {
             return false;
         }
         try {
-            Files.copy(source,dest, StandardCopyOption.REPLACE_EXISTING);
-            FileManager.delete(activity,uris,1);
+            Files.copy(source, dest, StandardCopyOption.REPLACE_EXISTING);
+            FileManager.delete(activity, uris, 1);
         } catch (Exception e) {
             file.delete();
             return false;
         }
         return true;
     }
+
     public static void delete(final Activity activity, final Uri[] uriList, final int requestCode)
             throws SecurityException, IntentSender.SendIntentException, IllegalArgumentException
     {
@@ -135,7 +134,6 @@ public class FileManager {
         String selection = MediaStore.Images.Media.DATA;
         String[] selectionArgs = {imagePath};
         String[] projection = {MediaStore.Images.Media._ID};
-        String sortOrder = MediaStore.Images.Media.TITLE + " ASC";
 
         Cursor cursor = cr.query(uri, projection, selection + "=?", selectionArgs, null);
 

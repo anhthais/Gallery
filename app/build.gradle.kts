@@ -49,5 +49,6 @@ dependencies {
     implementation ("com.google.android.gms:play-services-mlkit-text-recognition:19.0.0")
     implementation("com.google.android.gms:play-services-maps:18.2.0")
     implementation("com.google.zxing:core:3.2.1")
+    implementation ("com.github.MikeOrtiz:TouchImageView:1.4.1")
 
 }

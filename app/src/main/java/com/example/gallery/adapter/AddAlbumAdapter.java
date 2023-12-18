@@ -20,7 +20,9 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.gallery.ImageActivity;
 import com.example.gallery.MainActivity;
 import com.example.gallery.R;
+import com.example.gallery.asynctask.CopyTask;
 import com.example.gallery.object.Album;
+import com.example.gallery.object.Image;
 
 import java.io.File;
 import java.io.IOException;
@@ -34,46 +36,33 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class AddAlbumAdapter extends RecyclerView.Adapter<AddAlbumAdapter.ViewHolder> {
     private Context context;
     private ArrayList<Album> albums;
-    private String path;
+    private ArrayList<String> paths;
 
-    public AddAlbumAdapter(Context context,ArrayList<Album> albums_list, String path){
+    public AddAlbumAdapter(Context context,ArrayList<Album> albums_list, ArrayList<String> paths){
         this.albums=albums_list;
         this.context=context;
-        this.path=path;
+        this.paths=paths;
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder{
         private ImageView itemImageView;
         private TextView albumNameTxtView,albumImageAmountTextView;
 
-
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
-
             itemImageView=itemView.findViewById(R.id.imageAlbumItem);
             albumNameTxtView=itemView.findViewById(R.id.albumNameTextView);
             albumImageAmountTextView=itemView.findViewById(R.id.albumImageAmount);
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    //handle add to album
-                    Path source=Paths.get(path);
-                    Path dest=Paths.get(albums.get(getAdapterPosition()).getPath(),
-                            path.substring(path.lastIndexOf("/")+1));
-
-                    File file=new File(dest.toString());
-                    try {
-                        file.createNewFile();
-                    } catch (IOException e) {
-                        Toast.makeText(context, R.string.cannot_add, Toast.LENGTH_SHORT).show();
+                    new CopyTask(context, albums.get(getAdapterPosition())).execute(paths);
+                    if(context instanceof ImageActivity){
+                        ((ImageActivity) context).getSupportFragmentManager().popBackStack();
                     }
-                    try {
-                        Files.copy(source,dest, StandardCopyOption.REPLACE_EXISTING);
-                    } catch (IOException e) {
-                        Toast.makeText(context, R.string.existed_cannot_add, Toast.LENGTH_SHORT).show();
-                        file.delete();
+                    else if(context instanceof MainActivity){
+                        ((MainActivity) context).getSupportFragmentManager().popBackStack();
                     }
-                    ((ImageActivity)context).getSupportFragmentManager().popBackStackImmediate();
                 }
             });
 

@@ -16,32 +16,38 @@ import android.widget.CheckBox;
 import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.view.ActionMode;
+import androidx.recyclerview.widget.DiffUtil;
+import androidx.recyclerview.widget.ListAdapter;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.gallery.ImageActivity;
 import com.example.gallery.MultiSelectCallbacks;
 import com.example.gallery.MainActivity;
 import com.example.gallery.R;
+import com.example.gallery.asynctask.DeleteTask;
 import com.example.gallery.object.Album;
 import com.example.gallery.object.Image;
 
 import com.bumptech.glide.Glide;
 import com.example.gallery.object.ImageGroup;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.android.material.card.MaterialCardView;
 import com.google.gson.Gson;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.List;
 
 
-public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHolder> {
+public class ImageAdapter extends ListAdapter<Image ,ImageAdapter.ImageViewHolder> {
     private ArrayList<Image> listImages;
     private Context context;
     private SparseBooleanArray selectedItemsIds;
     private MultiSelectCallbacks multiSelectCallbacks = null;
-    private ActionMode mode = null;
+    private ActionMode multiMode = null;
     BottomNavigationView btnv;
     private boolean checkBoxEnable = false;
     private ArrayList<ImageGroup> listGroups = null; // contains listImages
@@ -52,15 +58,16 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHol
      * (custom ViewHolder).
      */
     public class ImageViewHolder extends RecyclerView.ViewHolder {
+        private MaterialCardView cardView;
         private ImageView image;
         private CheckBox checkBox;
 
         public ImageViewHolder(View view) {
             super(view);
             // Define click listener for the ViewHolder's View
+            cardView = (MaterialCardView)view.findViewById(R.id.cardImage);
             image = (ImageView)view.findViewById(R.id.picture_item);
             checkBox = itemView.findViewById(R.id.checkBoxImageItem);
-
         }
     }
 
@@ -68,6 +75,17 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHol
      * Initialize the dataset of the Adapter.
      */
     public ImageAdapter(Context context, ArrayList<Image> listImages) {
+        super(new DiffUtil.ItemCallback<Image>() {
+            @Override
+            public boolean areItemsTheSame(@NonNull Image oldItem, @NonNull Image newItem) {
+                return oldItem.getIdInMediaStore() == newItem.getIdInMediaStore();
+            }
+
+            @Override
+            public boolean areContentsTheSame(@NonNull Image oldItem, @NonNull Image newItem) {
+                return oldItem.getIdInMediaStore() == newItem.getIdInMediaStore();
+            }
+        });
         this.context = context;
         this.listImages = listImages;
         selectedItemsIds = new SparseBooleanArray();
@@ -80,9 +98,15 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHol
     public void setGroupPos(int groupPos){
         this.groupPos = groupPos;
     }
-
-    public void setMultiSelectCallbacks(MultiSelectCallbacks multiSelectCallbacks){
+    public void setMultiSelectCallbacks(MultiSelectCallbacks multiSelectCallbacks) {
         this.multiSelectCallbacks = multiSelectCallbacks;
+    }
+
+    @Override
+    public void submitList(@Nullable List<Image> list) {
+        super.submitList(list);
+        this.listImages = (ArrayList<Image>) list;
+        this.selectedItemsIds = new SparseBooleanArray();
     }
 
     // Create new views (invoked by the layout manager)
@@ -94,7 +118,7 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHol
     // Replace the contents of a view (invoked by the layout manager)
     @Override
     public void onBindViewHolder(ImageViewHolder holder, int position) {
-        Image image = listImages.get(position);
+        Image image = listImages.get(holder.getAdapterPosition());
         if (image == null) {
             return;
         }
@@ -109,9 +133,9 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHol
         }
 
         if(multiSelectCallbacks != null){
-            holder.checkBox.setChecked(multiSelectCallbacks.isSelectedItem(position, groupPos));
+            holder.checkBox.setChecked(multiSelectCallbacks.isSelectedItem(holder.getAdapterPosition(), groupPos));
         } else {
-            holder.checkBox.setChecked(selectedItemsIds.get(position));
+            holder.checkBox.setChecked(selectedItemsIds.get(holder.getAdapterPosition()));
         }
 
         holder.image.setOnClickListener(new View.OnClickListener() {
@@ -127,7 +151,7 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHol
                                 newPosition += listGroups.get(i).getList().size();
                             }
                         }
-                        newPosition += position;
+                        newPosition += holder.getAdapterPosition();
                         Intent intent = new Intent(context, ImageActivity.class);
                         intent.putParcelableArrayListExtra("images", images);
                         intent.putParcelableArrayListExtra("albums",((MainActivity)context).getAlbum_list());
@@ -145,7 +169,7 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHol
                     } else {
                         Intent intent = new Intent(context, ImageActivity.class);
                         intent.putParcelableArrayListExtra("images", listImages);
-                        intent.putExtra("curPos", position);
+                        intent.putExtra("curPos", holder.getAdapterPosition());
                         //đưa danh sách tên các album qua imageactivity
                         ArrayList<String> album_name = new ArrayList<String>();
                         ArrayList<Album> albums=((MainActivity)context).album_list;
@@ -162,19 +186,19 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHol
                     // nested adapter --> use callbacks implemented in parent adapter
                     if(multiSelectCallbacks != null){
                         holder.checkBox.setChecked(!holder.checkBox.isChecked());
-                        multiSelectCallbacks.onItemClick(position, groupPos);
+                        multiSelectCallbacks.onItemClick(holder.getAdapterPosition(), groupPos);
                     }
                     // no nested adapter
                     else{
                         holder.checkBox.setChecked(!holder.checkBox.isChecked());
-                        if(!selectedItemsIds.get(position)){
-                            selectedItemsIds.put(position, true);
+                        if(!selectedItemsIds.get(holder.getAdapterPosition())){
+                            selectedItemsIds.put(holder.getAdapterPosition(), true);
                         }else{
-                            selectedItemsIds.delete(position);
+                            selectedItemsIds.delete(holder.getAdapterPosition());
                         }
-                        mode.setTitle(R.string.selected+" " + selectedItemsIds.size());
-                        notifyDataSetChanged();
+                        multiMode.setTitle(context.getString(R.string.selected) + " " + selectedItemsIds.size());
                     }
+                    notifyItemChanged(holder.getAdapterPosition());
                 }
             }
         });
@@ -189,13 +213,13 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHol
                 }
                 // no nested adapter
                 else{
-                    changeOnMultiChooseMode();
-                    if(!selectedItemsIds.get(position)){
-                        selectedItemsIds.put(position, true);
+                    if(!selectedItemsIds.get(holder.getAdapterPosition())){
+                        selectedItemsIds.put(holder.getAdapterPosition(), true);
                     }else{
-                        selectedItemsIds.delete(position);
+                        selectedItemsIds.delete(holder.getAdapterPosition());
                     }
-                    mode.setTitle(R.string.selected+" "+ selectedItemsIds.size());
+                    changeOnMultiChooseMode();
+                    multiMode.setTitle(context.getString(R.string.selected) + " " + selectedItemsIds.size());
                 }
                 return true;
             }
@@ -210,14 +234,14 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHol
                 }
                 // no nested adapter
                 else{
-                    if(!selectedItemsIds.get(position)){
-                        selectedItemsIds.put(position, true);
+                    if(!selectedItemsIds.get(holder.getAdapterPosition())){
+                        selectedItemsIds.put(holder.getAdapterPosition(), true);
                     }else{
-                        selectedItemsIds.delete(position);
+                        selectedItemsIds.delete(holder.getAdapterPosition());
                     }
+                    multiMode.setTitle(context.getString(R.string.selected) + " " + selectedItemsIds.size());
                 }
-                mode.setTitle(R.string.selected+" "+ selectedItemsIds.size());
-                notifyDataSetChanged();
+                notifyItemChanged(holder.getAdapterPosition());
             }
         });
     }
@@ -232,19 +256,13 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHol
     }
 
     public boolean changeMultiMode(boolean isMultichoose) {
-        if (isMultichoose) {
-            checkBoxEnable = true;
-        }
-        else {
-            checkBoxEnable = false;
-        }
-        notifyDataSetChanged();
+        checkBoxEnable = isMultichoose;
         return true;
     }
     public void changeOnMultiChooseMode() {
         //start action mode
         AppCompatActivity ma = (AppCompatActivity) context;
-        mode = ma.startSupportActionMode(new ActionMode.Callback() {
+        multiMode = ma.startSupportActionMode(new ActionMode.Callback() {
             @Override
             public boolean onCreateActionMode(ActionMode mode, Menu menu) {
                 checkBoxEnable = true;
@@ -271,27 +289,40 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHol
                         }
                     }
                 }
+                else if (id == R.id.btnDeselectAll){
+                    for(int i = 0; i < listImages.size(); ++i){
+                        if(selectedItemsIds.get(i)){
+                            selectedItemsIds.delete(i);
+                        }
+                    }
+                }
                 else if(id == R.id.btnAddMultiFromGalleryToAlbum){
-
+                    ArrayList<String> selectedPaths = new ArrayList<>();
+                    for(int i = 0; i < getSelectedItems().size(); ++i){
+                        selectedPaths.add(getSelectedItems().get(i).getPath());
+                    }
+                    Gson gson = new Gson();
+                    ((MainActivity)context).onMsgFromFragToMain("ADD-TO-ALBUM", gson.toJson(selectedPaths));
+                    mode.finish();
                 }
                 else if(id == R.id.btnDeleteMultiFromGallery){
-
+                    new DeleteTask(context).execute(getSelectedItems());
+                    mode.finish();
                 }
 
-                mode.setTitle(R.string.selected+" " + selectedItemsIds.size());
                 notifyDataSetChanged();
+                mode.setTitle(context.getString(R.string.selected) + " " + selectedItemsIds.size());
                 return true;
             }
 
             @Override
             public void onDestroyActionMode(ActionMode mode) {
                 checkBoxEnable = false;
-                mode = null;
+                multiMode = null;
                 Log.d("multiSelect", selectedItemsIds.toString());
                 selectedItemsIds.clear();
                 btnv.setVisibility(View.VISIBLE);
                 notifyDataSetChanged();
-
             }
         });
     }
@@ -303,10 +334,5 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHol
         }
         Log.d("selected", selected.toString());
         return selected;
-    }
-
-    public void removeFavImage()
-    {
-        notifyDataSetChanged();
     }
 }

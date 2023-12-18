@@ -28,7 +28,7 @@
     <string name="album">Thư mục</string>
     <string name="settings">Cài đặt</string>
     <string name="select_all">Chọn tất cả</string>
-    <string name="unselect_all">Bỏ chọn tất cả</string>
+    <string name="deselect_all">Bỏ chọn tất cả</string>
     <string name="cut_and_rotate">Cắt/Xoay</string>
     <string name="light_up">Độ sáng</string>
     <string name="constract">Tương phản</string>
@@ -46,11 +46,10 @@
     <string name="time_between_slide_not">Thời gian chuyển ảnh không hợp lệ</string>
     <string name="start">Bắt đầu</string>
     <string name="cancel">Thoát</string>
-    <string name="name">Tên</string>
+    <string name="name">Tên: </string>
     <string name="date">Ngày</string>
     <string name="capacity">Dung lượng</string>
-    <string name="path">Đường dẫn</string>
-    <string name="size">Kích thước</string>
+    <string name="size">Kích thước: </string>
     <string name="position">Vị trí</string>
     <string name="delete_this_album">Bạn muốn xoá album này</string>
     <string name="create_password_hide">Tạo mật khẩu-Thư mục ẩn</string>
@@ -62,7 +61,7 @@
     <string name="cannot_add">Không thể thêm</string>
     <string name="existed_cannot_add">Đã có ảnh trùng tên trong album, không thể thêm.</string>
     <string name="selected">Đã chọn</string>
-    <string name="minutes">phút</string>
+    <string name="days">ngày</string>
     <string name="remaining">Còn lại</string>
     <string name="enter_album_name">Nhập tên album</string>
     <string name="album_existed">Album đã tồn tại</string>
@@ -106,7 +105,6 @@
     <string name="retype_password_not_match">Mật khẩu nhập lại không khớp</string>
     <string name="event">Sự kiện</string>
     <string name="notice_date">Ngày thông báo</string>
-    <string name="anniversasy">Kỷ niệm</string>
     <string name="visit_our_app">Ghé thăm Gallery để xem lại kỷ niệm</string>
     <string name="clear">Cài lại</string>
     <string name="schedule">Đã hẹn lịch</string>
@@ -119,5 +117,26 @@
     <string name ="QRCode">Quét mã QR</string>
     <string name ="noQR">Ảnh này không tồn tại mã QR</string>
     <string name ="noBitmap">Ảnh này không tồn tại Bitmap</string>
-    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name ="moveToTrash">Đang chuyển các ảnh vào thùng rác…</string>
+    <string name ="restoreFromTrash">Khôi phục các ảnh từ thùng rác…</string>
+    <string name ="deleteFromTrash">Xóa các ảnh từ thùng rác…</string>
+    <string name ="add_to_album_success">Thêm ảnh vào album thành công</string>
+    <string name ="copyMultiToAlbum">Sao chép các ảnh vào album…</string>
+    <string name ="lastModified">Lần sửa cuối: </string>
+    <string name ="takenDate">Ngày chụp: </string>
+    <string name ="resolution">Phân giải: </string>
+    <string name ="exif">EXIF: </string>
+    <string name ="camera">Máy ảnh: </string>
+    <string name ="path">Đường dẫn: </string>
+    <string name ="save_description_success">Lưu thông tin ảnh thành công!</string>
+    <string name ="InfoDialogTitle">THÔNG TIN</string>
+    <string name ="dialog_close">Đóng</string>
+    <string name ="dialog_edit">Sửa</string>
+    <string name ="sort">Sắp xếp</string>
+    <string name ="sortByDateIncrease">Theo ngày (tăng dần)</string>
+    <string name ="sortByDateDecrease">Theo ngày (giảm dần)</string>
+    <string name ="sortByNameIncrease">Theo tên (tăng dần)</string>
+    <string name ="sortByNameDecrease">Theo tên (giảm dần)</string>
+    <string name ="sortByFileSizeIncrease">Theo kích thước file (tăng dần)</string>
+    <string name ="sortByFileSizeDecrease">Theo kích thước file (giảm dần)</string>
 </resources>

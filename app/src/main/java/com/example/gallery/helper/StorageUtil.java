@@ -15,12 +15,12 @@ public class StorageUtil {
         FileChannel inChannel = null;
         FileChannel outChannel = null;
 
-        try {
+//        try {
             inChannel = new FileInputStream(src).getChannel();
             outChannel = new FileOutputStream(dst).getChannel();
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
+//        } catch (FileNotFoundException e) {
+//            e.printStackTrace();
+//        }
 
         try {
             inChannel.transferTo(0, inChannel.size(), outChannel);

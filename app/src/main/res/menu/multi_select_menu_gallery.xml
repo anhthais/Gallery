@@ -7,6 +7,11 @@
         app:showAsAction="never"
         android:title="@string/select_all"/>
     <item
+        android:id="@+id/btnDeselectAll"
+        android:checked="true"
+        app:showAsAction="never"
+        android:title="@string/deselect_all"/>
+    <item
         android:id="@+id/btnAddMultiFromGalleryToAlbum"
         android:checked="true"
         app:showAsAction="never"

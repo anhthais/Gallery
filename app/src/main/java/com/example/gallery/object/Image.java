@@ -6,27 +6,29 @@ import android.util.Log;
 
 import com.google.android.gms.maps.model.LatLng;
 
+import java.util.Comparator;
+
 public class Image implements Parcelable {
     private long idInMediaStore;
     private String path;
-    private String dateAdded;
+    private long dateAdded;
     private boolean isFavorite;
     private String tags;
     private LatLng location;
     private Double latitude;
     private Double longitude;
-    private Boolean haveLocation ;
+    private Boolean haveLocation;
 
     public Image() {
     }
-    public Image(String path, String dateAdded, long idInMediaStore) {
+    public Image(String path, Long dateAdded, long idInMediaStore) {
         this.path = path;
         this.dateAdded = dateAdded;
         this.idInMediaStore = idInMediaStore;
         this.location= null;
         this.haveLocation = false;
     }
-    public Image(String path, String dateAdded) {
+    public Image(String path, Long dateAdded) {
         this.path = path;
         this.dateAdded = dateAdded;
         this.location= null;
@@ -41,7 +43,7 @@ public class Image implements Parcelable {
     protected Image(Parcel in) {
         idInMediaStore = in.readLong();
         path = in.readString();
-        dateAdded = in.readString();
+        dateAdded = in.readLong();
         isFavorite = in.readByte() != 0;
         tags = in.readString();
         haveLocation = in.readByte()!=0;
@@ -58,7 +60,7 @@ public class Image implements Parcelable {
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeLong(idInMediaStore);
         dest.writeString(path);
-        dest.writeString(dateAdded);
+        dest.writeLong(dateAdded);
         dest.writeByte((byte) (isFavorite ? 1 : 0));
         dest.writeString(tags);
         dest.writeByte((byte) (haveLocation ? 1 : 0));
@@ -102,10 +104,10 @@ public class Image implements Parcelable {
         this.path = path;
     }
 
-    public String getDate() {
+    public Long getDate() {
         return dateAdded;
     }
-    public void setDate(String date) {
+    public void setDate(long date) {
         this.dateAdded = date;
     }
 

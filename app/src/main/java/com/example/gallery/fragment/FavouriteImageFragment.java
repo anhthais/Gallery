@@ -51,16 +51,17 @@ public class FavouriteImageFragment extends Fragment implements FragmentCallBack
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view=inflater.inflate(R.layout.favourite_image_fragment,container,false);
         recyclerView = view.findViewById(R.id.recycleFavouriteImages);
-        recyclerView.setLayoutManager(new GridLayoutManager(context,3));
-//        allImages = ((MainActivity)context).allImages;
-//        favImages = new ArrayList<>();
-//        for(int i = 0 ; i < allImages.size(); ++i){
-//            if(allImages.get(i).isFavorite()){
-//                favImages.add(allImages.get(i));
-//            }
-//        }
-//        imageAdapter = new ImageAdapter(context, favImages);
-//        recyclerView.setAdapter(new ImageAdapter(context, favImages));
+        favImages = new ArrayList<>();
+        if(main != null && main.allImages != null){
+            for(int i = 0 ; i < main.allImages.size(); ++i){
+                if(main.allImages.get(i).isFavorite()){
+                    favImages.add(main.allImages.get(i));
+                }
+            }
+        }
+        imageAdapter = new ImageAdapter(context, favImages);
+        recyclerView.setLayoutManager(new WrapContentGridLayoutManager(context,3));
+        recyclerView.setAdapter(imageAdapter);
 
         ((MainActivity)context).getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         ((MainActivity)context).getSupportActionBar().setHomeButtonEnabled(true);
@@ -68,18 +69,18 @@ public class FavouriteImageFragment extends Fragment implements FragmentCallBack
 
         return view;
     }
-    @Override
+
     public void onResume(){
         super.onResume();
-        allImages = ((MainActivity)context).allImages;
-        favImages = new ArrayList<>();
-        for(int i = 0 ; i < allImages.size(); ++i){
-            if(allImages.get(i).isFavorite()){
-                favImages.add(allImages.get(i));
+        if(main != null && main.allImages != null){
+            favImages = new ArrayList<>();
+            for(int i = 0 ; i < main.allImages.size(); ++i){
+                if(main.allImages.get(i).isFavorite()){
+                    favImages.add(main.allImages.get(i));
+                }
             }
+            imageAdapter.submitList(favImages);
         }
-        imageAdapter = new ImageAdapter(context, favImages);
-        recyclerView.setAdapter(imageAdapter);
     }
 
     @Override
@@ -98,5 +99,19 @@ public class FavouriteImageFragment extends Fragment implements FragmentCallBack
     @Override
     public void changeOnMultiChooseMode(){
         imageAdapter.changeOnMultiChooseMode();
+    }
+
+    public class WrapContentGridLayoutManager extends GridLayoutManager {
+        public WrapContentGridLayoutManager(Context context, int count){
+            super(context, count);
+        }
+        @Override
+        public void onLayoutChildren(RecyclerView.Recycler recycler, RecyclerView.State state) {
+            try {
+                super.onLayoutChildren(recycler, state);
+            } catch (IndexOutOfBoundsException e) {
+                Log.e("TAG", "meet a IOOBE in RecyclerView");
+            }
+        }
     }
 }

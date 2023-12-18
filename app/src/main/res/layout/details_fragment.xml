@@ -1,10 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical">
-
 
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/topAppBar"
@@ -12,136 +11,56 @@
         android:layout_height="?attr/actionBarSize"
         android:background="?attr/colorOnPrimary"
         android:fitsSystemWindows="true"
-        app:navigationIcon="@drawable/baseline_arrow_back_ios_24" />
-
-    <LinearLayout
+        app:navigationIcon="@drawable/baseline_arrow_back_ios_24"
+        android:layout_alignParentTop="true"/>
+    <ScrollView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
-        android:layout_marginBottom="10dp"
-        android:layout_marginStart="10dp">
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textSize="20dp"
-            android:text="@string/name"/>
-
-        <TextView
-            android:id="@+id/name"
-            android:textSize="20dp"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"/>
-    </LinearLayout>
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="10dp"
-        android:layout_marginBottom="10dp">
-        <TextView
-            android:textSize="20dp"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/date"/>
-        <TextView
-            android:textSize="20dp"
-            android:id="@+id/date"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:hint="None"/>
-    </LinearLayout>
-    <LinearLayout
-        android:layout_marginStart="10dp"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="10dp">
-        <TextView
-            android:textSize="20dp"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/capacity"/>
-        <TextView
-            android:textSize="20dp"
-            android:id="@+id/capacity"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:hint="None"/>
-    </LinearLayout>
-    <LinearLayout
-        android:layout_marginStart="10dp"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="10dp">
-        <TextView
-            android:textSize="20dp"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/position"/>
-        <TextView
-            android:textSize="20dp"
-            android:id="@+id/path"
+        android:orientation="vertical"
+        android:scrollbarAlwaysDrawVerticalTrack="true"
+        android:scrollbars="vertical"
+        android:id="@+id/scrollView"
+        android:layout_below="@+id/topAppBar">
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="None"/>
-    </LinearLayout>
-    <LinearLayout
-        android:layout_marginStart="10dp"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="10dp">
-        <TextView
-            android:textSize="20dp"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/size"/>
-        <TextView
-            android:textSize="20dp"
-            android:id="@+id/size"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:hint="None"/>
-    </LinearLayout>
-    <LinearLayout
-        android:layout_marginStart="10dp"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="10dp">
-        <TextView
-            android:textSize="20dp"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/description"/>
-
-        <EditText
-            android:textSize="20dp"
-            android:id="@+id/description"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:background="@android:color/transparent"
-            android:hint="None" />
-    </LinearLayout>
-    <LinearLayout
-        android:layout_marginStart="10dp"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="10dp">
-        <TextView
-            android:textSize="20dp"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/location"/>
-        <TextView
-            android:textSize="20dp"
-            android:id="@+id/locationView"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:hint="None"/>
-
-    </LinearLayout>
-    <Button
-        android:id="@+id/btnSavePictureInfor"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:textColor="@color/black"
-        android:text="@string/save"/>
-</LinearLayout>
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="8dp"
+            android:orientation="vertical">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:text="@string/name"/>
+            <EditText
+                android:id="@+id/edittextName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/custom_edittext"
+                android:padding="8dp"/>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:text="@string/description"
+                android:layout_marginTop="8dp"/>
+            <EditText
+                android:id="@+id/edittextDescription"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/custom_edittext"
+                android:inputType="textImeMultiLine|textMultiLine"
+                android:padding="8dp"/>
+            <Button
+                android:id="@+id/btnSavePictureInfor"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:textColor="@color/black"
+                android:text="@string/save"
+                android:layout_marginTop="8dp"/>
+        </LinearLayout>
+    </ScrollView>
+</RelativeLayout>
