@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+
+        <Preference
+            android:icon="@drawable/baseline_brightness_6_24"
+            android:title="@string/theme"
+            android:key="btnTheme"
+
+           >
+        </Preference>
+        <Preference
+            android:icon="@drawable/baseline_language_24"
+            android:title="@string/language"
+            android:key="btnLanguage">
+
+        </Preference>
+        <Preference
+            android:icon="@drawable/baseline_backup_24"
+            android:title="@string/backup"
+            android:key="btnBackup">
+        </Preference>
+        <Preference
+            android:icon="@drawable/baseline_album_lock_24"
+            android:defaultValue="@string/hide"
+            android:title="@string/hide"
+            android:key="btnHide">
+
+        </Preference>
+        <Preference
+            android:title="@string/trashalbum"
+            android:key="btnTrash"
+            app:icon="@drawable/baseline_delete_outline_24"
+          >
+
+        </Preference>
+        <Preference
+            android:defaultValue="@string/favouritealbum"
+            android:title="@string/favouritealbum"
+            android:icon="@drawable/baseline_favorite_24"
+            android:key="btnFavourite">
+
+        </Preference>
+
+
+</PreferenceScreen>

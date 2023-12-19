@@ -71,6 +71,7 @@ import com.example.gallery.fragment.FavouriteImageFragment;
 import com.example.gallery.fragment.GalleryFragment;
 import com.example.gallery.fragment.HideFragment;
 import com.example.gallery.fragment.ImageFragment;
+import com.example.gallery.fragment.SettingFragment;
 import com.example.gallery.fragment.TrashFragment;
 import com.example.gallery.helper.DateConverter;
 import com.example.gallery.helper.ImageLoader;
@@ -120,6 +121,7 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
     AlbumFragment album_fragment = null;
     TrashFragment trashFragment = null;
     ImageFragment imageFragment = null;
+    SettingFragment settingFragment = null;
     FavouriteImageFragment favouriteImageFragment = null;
     HideFragment hideFragment = null;
     BottomNavigationView btnv;
@@ -130,9 +132,18 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
     String onChooseAlbum = "";
     public boolean updateViewManually = false;
     public int sortOrder = SortUtil.TypeDESC;
-
     public ArrayList<Album> getAlbum_list(){
         return album_list;
+    }
+    public HideFragment getHideFragment() {
+        return this.hideFragment;
+    }
+    public FavouriteImageFragment getFavouriteImageFragment() {
+        return this.favouriteImageFragment;
+    }
+
+    public TrashFragment getTrashFragment() {
+        return this.trashFragment;
     }
 
     @Override
@@ -141,8 +152,11 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
         String theme=pref.getString("THEME","LIGHT");
         if(theme.equals("LIGHT")){
             AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
-        }else{
+        }else if(theme.equals("DARK")){
             AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
+        }else
+        {
+            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM);
         }
         String locale=pref.getString("LANGUAGE","en");
         Locale myLocale = new Locale(locale);
@@ -160,6 +174,7 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
         this.gallery_fragment = GalleryFragment.getInstance();
         this.trashFragment = TrashFragment.getInstance();
         this.album_fragment = AlbumFragment.getInstance();
+        this.settingFragment = SettingFragment.getInstance();
         // request permission
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU){
             ActivityCompat.requestPermissions(MainActivity.this,
@@ -219,94 +234,96 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
                 menu.findItem(R.id.btnSlideShow).setVisible(false);
                 getSupportFragmentManager().beginTransaction().replace(R.id.mainFragment,this.album_fragment).commit();
             }
-            else if (R.id.btnSettings==id){
-                View v=findViewById(R.id.btnSettings);
-                PopupMenu pm = new PopupMenu(this, v);
-                pm.getMenuInflater().inflate(R.menu.settings_menu, pm.getMenu());
-
-                pm.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
-                    @Override
-                    public boolean onMenuItemClick(MenuItem item) {
-                        int id=item.getItemId();
-                        if(id==R.id.btnEnglish){
-                            if(!getResources().getConfiguration().getLocales().get(0).toString().equals("en")){
-                                SharedPreferences pref=getSharedPreferences("GALLERY",MODE_PRIVATE);
-                                SharedPreferences.Editor editor=pref.edit();
-                                editor.putString("LANGUAGE","en");
-                                editor.commit();
-                                setLocale("en");
-                            }
-                        }
-                        else if(id==R.id.btnVietnamese){
-                            if(!getResources().getConfiguration().getLocales().get(0).toString().equals("vi")){
-                                SharedPreferences pref=getSharedPreferences("GALLERY",MODE_PRIVATE);
-                                SharedPreferences.Editor editor=pref.edit();
-                                editor.putString("LANGUAGE","vi");
-                                editor.commit();
-                                setLocale("vi");
-                            }
-                        }
-                        else if(id==R.id.btnThemeDark){
-                            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
-                            SharedPreferences myPref = getSharedPreferences("GALLERY", Activity.MODE_PRIVATE);
-                            SharedPreferences.Editor editor = myPref.edit();
-                            editor.putString("THEME","DARK").apply();
-                        }else if (id==R.id.btnThemeLight){
-                            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
-                            SharedPreferences myPref = getSharedPreferences("GALLERY", Activity.MODE_PRIVATE);
-                            SharedPreferences.Editor editor = myPref.edit();
-                            editor.putString("THEME","LIGHT").apply();
-                        }else if (id == R.id.btnTrashbin)
-                        {
-                            menu.findItem(R.id.btnAddNewAlbum).setVisible(false);
-                            menu.findItem(R.id.btnChooseMulti).setVisible(true);
-                            FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-                            ft.replace(R.id.mainFragment,trashFragment);
-                            ft.addToBackStack("FRAG");
-                            ft.commit();
-                        }else if (id == R.id.btnFavouriteImg)
-                        {
-                            FragmentTransaction ft=getSupportFragmentManager().beginTransaction();
-                            ft.replace(R.id.mainFragment, favouriteImageFragment);
-                            ft.addToBackStack("FRAG");
-                            ft.commit();
-                        }else if(id==R.id.btnShowHideFrag){
-                            SharedPreferences hidePref=getSharedPreferences("GALLERY",MODE_PRIVATE);
-                            String password=hidePref.getString("PASSWORD",null);
-                            if(password==null){
-                                //show add new album frag
-                                int opendate=hidePref.getInt("OPEN-DATE",0);
-                                int openyear=hidePref.getInt("OPEN-YEAR",0);
-                                int openmoth=hidePref.getInt("OPEN-MONTH",0);
-                                Calendar calendar=Calendar.getInstance();
-                                int curr_date=calendar.get(Calendar.DATE);
-                                int curr_month=calendar.get(Calendar.MONTH);
-                                int curr_year=calendar.get(Calendar.YEAR);
-                                boolean firstVisit=true;
-                                if(curr_year<openyear){
-                                    firstVisit=false;
-                                }else if(curr_year==openyear){
-                                    if(curr_month<openmoth){
-                                        firstVisit=false;
-                                    }else if(curr_month==openmoth){
-                                        if(curr_date<opendate){
-                                            firstVisit=false;
-                                        }
-                                    }
-                                }
-                                if(firstVisit){
-                                    createPasswordHideFragmentDialog();
-                                }else{
-                                    Toast.makeText(MainActivity.this, R.string.comebacklater, Toast.LENGTH_SHORT).show();
-                                }
-                            }else{
-                                showHideFragmentDialog();
-                            }
-                        }
-                        return true;
-                    }
-                }); pm.show();
+            else if (R.id.btnSettings==id) {
+                View v = findViewById(R.id.btnSettings);
+                getSupportFragmentManager().beginTransaction().replace(R.id.mainFragment,this.settingFragment).commit();
+//                PopupMenu pm = new PopupMenu(this, v);
+//                pm.getMenuInflater().inflate(R.menu.settings_menu, pm.getMenu());
+//
+//                pm.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+//                    @Override
+//                    public boolean onMenuItemClick(MenuItem item) {
+//                        int id=item.getItemId();
+//                        if(id==R.id.btnEnglish){
+//                            if(!getResources().getConfiguration().getLocales().get(0).toString().equals("en")){
+//                                SharedPreferences pref=getSharedPreferences("GALLERY",MODE_PRIVATE);
+//                                SharedPreferences.Editor editor=pref.edit();
+//                                editor.putString("LANGUAGE","en");
+//                                editor.commit();
+//                                setLocale("en");
+//                            }
+//                        }
+//                        else if(id==R.id.btnVietnamese){
+//                            if(!getResources().getConfiguration().getLocales().get(0).toString().equals("vi")){
+//                                SharedPreferences pref=getSharedPreferences("GALLERY",MODE_PRIVATE);
+//                                SharedPreferences.Editor editor=pref.edit();
+//                                editor.putString("LANGUAGE","vi");
+//                                editor.commit();
+//                                setLocale("vi");
+//                            }
+//                        }
+//                        else if(id==R.id.btnThemeDark){
+//                            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
+//                            SharedPreferences myPref = getSharedPreferences("GALLERY", Activity.MODE_PRIVATE);
+//                            SharedPreferences.Editor editor = myPref.edit();
+//                            editor.putString("THEME","DARK").apply();
+//                        }else if (id==R.id.btnThemeLight){
+//                            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+//                            SharedPreferences myPref = getSharedPreferences("GALLERY", Activity.MODE_PRIVATE);
+//                            SharedPreferences.Editor editor = myPref.edit();
+//                            editor.putString("THEME","LIGHT").apply();
+//                        }else if (id == R.id.btnTrashbin)
+//                        {
+//                            menu.findItem(R.id.btnAddNewAlbum).setVisible(false);
+//                            menu.findItem(R.id.btnChooseMulti).setVisible(true);
+//                            FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+//                            ft.replace(R.id.mainFragment,trashFragment);
+//                            ft.addToBackStack("FRAG");
+//                            ft.commit();
+//                        }else if (id == R.id.btnFavouriteImg)
+//                        {
+//                            FragmentTransaction ft=getSupportFragmentManager().beginTransaction();
+//                            ft.replace(R.id.mainFragment, favouriteImageFragment);
+//                            ft.addToBackStack("FRAG");
+//                            ft.commit();
+//                        }else if(id==R.id.btnShowHideFrag){
+//                            SharedPreferences hidePref=getSharedPreferences("GALLERY",MODE_PRIVATE);
+//                            String password=hidePref.getString("PASSWORD",null);
+//                            if(password==null){
+//                                //show add new album frag
+//                                int opendate=hidePref.getInt("OPEN-DATE",0);
+//                                int openyear=hidePref.getInt("OPEN-YEAR",0);
+//                                int openmoth=hidePref.getInt("OPEN-MONTH",0);
+//                                Calendar calendar=Calendar.getInstance();
+//                                int curr_date=calendar.get(Calendar.DATE);
+//                                int curr_month=calendar.get(Calendar.MONTH);
+//                                int curr_year=calendar.get(Calendar.YEAR);
+//                                boolean firstVisit=true;
+//                                if(curr_year<openyear){
+//                                    firstVisit=false;
+//                                }else if(curr_year==openyear){
+//                                    if(curr_month<openmoth){
+//                                        firstVisit=false;
+//                                    }else if(curr_month==openmoth){
+//                                        if(curr_date<opendate){
+//                                            firstVisit=false;
+//                                        }
+//                                    }
+//                                }
+//                                if(firstVisit){
+//                                    createPasswordHideFragmentDialog();
+//                                }else{
+//                                    Toast.makeText(MainActivity.this, R.string.comebacklater, Toast.LENGTH_SHORT).show();
+//                                }
+//                            }else{
+//                                showHideFragmentDialog();
+//                            }
+//                        }
+//                        return true;
+//                    }
+//                }); pm.show();
             }
+
             return true;
         });
 

@@ -113,30 +113,45 @@
     <string name="loadGGMap">Loading Google Map</string>
     <string name="addLocationSuccess">Add location success</string>
     <string name="onCancelLocation">Remove location success</string>
-    <string name ="QRCode">QR Scanner</string>
-    <string name ="noQR">This photo does not have a QR code</string>
-    <string name ="noBitmap">This photo does not have bitmap</string>
-    <string name ="moveToTrash">Move photos to the trash bin…</string>
-    <string name ="restoreFromTrash">Restore photos from the trash bin…</string>
-    <string name ="deleteFromTrash">Delete photos from the trash bin…</string>
-    <string name ="add_to_album_success">Add photo to album successfully</string>
-    <string name ="copyMultiToAlbum">Copy photos to album folder…</string>
-    <string name ="lastModified">Last Modified: </string>
-    <string name ="takenDate">Date Taken: </string>
-    <string name ="resolution">Resolution: </string>
-    <string name ="exif">EXIF: </string>
-    <string name ="camera">Camera: </string>
-    <string name ="path">Path: </string>
-    <string name ="save_description_success">Save description successfully!</string>
-    <string name ="InfoDialogTitle">INFORMATION</string>
-    <string name ="dialog_close">Close</string>
-    <string name ="dialog_edit">Edit</string>
-    <string name ="sort">Sort</string>
-    <string name ="sortByDateIncrease">By date (increase)</string>
-    <string name ="sortByDateDecrease">By date (decrease)</string>
-    <string name ="sortByNameIncrease">By name (increase)</string>
-    <string name ="sortByNameDecrease">By name (decrease)</string>
-    <string name ="sortByFileSizeIncrease">By file size (increase)</string>
-    <string name ="sortByFileSizeDecrease">By file size (decrease)</string>
+    <string name="QRCode">QR Scanner</string>
+    <string name="noQR">This photo does not have a QR code</string>
+    <string name="noBitmap">This photo does not have bitmap</string>
+    <string name="moveToTrash">Move photos to the trash bin…</string>
+    <string name="restoreFromTrash">Restore photos from the trash bin…</string>
+    <string name="deleteFromTrash">Delete photos from the trash bin…</string>
+    <string name="add_to_album_success">Add photo to album successfully</string>
+    <string name="copyMultiToAlbum">Copy photos to album folder…</string>
+    <string name="lastModified">Last Modified: </string>
+    <string name="takenDate">Date Taken: </string>
+    <string name="resolution">Resolution: </string>
+    <string name="exif">EXIF: </string>
+    <string name="camera">Camera: </string>
+    <string name="path">Path: </string>
+    <string name="save_description_success">Save description successfully!</string>
+    <string name="InfoDialogTitle">INFORMATION</string>
+    <string name="dialog_close">Close</string>
+    <string name="dialog_edit">Edit</string>
+    <string name="sort">Sort</string>
+    <string name="sortByDateIncrease">By date (increase)</string>
+    <string name="sortByDateDecrease">By date (decrease)</string>
+    <string name="sortByNameIncrease">By name (increase)</string>
+    <string name="sortByNameDecrease">By name (decrease)</string>
+    <string name="sortByFileSizeIncrease">By file size (increase)</string>
+    <string name="sortByFileSizeDecrease">By file size (decrease)</string>
+    <string name="same_as_system">Same as system</string>
+    <!-- Preference Titles -->
+    <string name="messages_header">Messages</string>
+    <string name="sync_header">Sync</string>
+
+    <!-- Messages Preferences -->
+    <string name="signature_title">Your signature</string>
+    <string name="reply_title">Default reply action</string>
+
+    <!-- Sync Preferences -->
+    <string name="sync_title">Sync email periodically</string>
+    <string name="attachment_title">Download incoming attachments</string>
+    <string name="attachment_summary_on">Automatically download attachments for incoming emails
+    </string>
+    <string name="attachment_summary_off">Only download attachments when manually requested</string>
     <!-- TODO: Remove or change this placeholder text -->
 </resources>

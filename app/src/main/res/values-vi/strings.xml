@@ -139,4 +139,5 @@
     <string name ="sortByNameDecrease">Theo tên (giảm dần)</string>
     <string name ="sortByFileSizeIncrease">Theo kích thước file (tăng dần)</string>
     <string name ="sortByFileSizeDecrease">Theo kích thước file (giảm dần)</string>
+    <string name="same_as_system">Theo hệ thống</string>
 </resources>
