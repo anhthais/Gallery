@@ -18,6 +18,7 @@ public class Image implements Parcelable {
     private Double latitude;
     private Double longitude;
     private Boolean haveLocation;
+    private String stringLocation;
 
     public Image() {
     }
@@ -52,6 +53,7 @@ public class Image implements Parcelable {
             latitude = in.readDouble();
             longitude = in.readDouble();
             location = new LatLng(latitude,longitude);
+            stringLocation = in.readString();
         }
 
     }
@@ -68,6 +70,7 @@ public class Image implements Parcelable {
         {
             dest.writeDouble(latitude);
             dest.writeDouble(longitude);
+            dest.writeString(stringLocation);
         }
 
         // dest.writeString(String.valueOf(location));
@@ -129,13 +132,14 @@ public class Image implements Parcelable {
         return location;
     }
 
-    public void setLocation(LatLng location) {
+    public void setLocation(LatLng location,String stringLocation) {
         if (location ==null)
         {
             this.location = null;
             this.latitude = null;
             this.longitude = null;
             this.haveLocation = false;
+            this.stringLocation = null;
         }
         else
         {
@@ -143,7 +147,13 @@ public class Image implements Parcelable {
             this.latitude = location.latitude;
             this.longitude = location.longitude;
             this.haveLocation = true;
+            this.stringLocation = stringLocation;
+
         }
 
+    }
+
+    public String getStringLocation() {
+        return stringLocation;
     }
 }

@@ -7,6 +7,7 @@ import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY;
 import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.Uri;
@@ -129,12 +130,11 @@ public class GalleryFragment extends Fragment implements FragmentCallBacks, Mult
             @Override
             public void onClick(View v) {
                 Dialog addDialog=new Dialog(context);
-                addDialog.setContentView(R.layout.add_album_dialog);
+                addDialog.setContentView(R.layout.add_image_dialog);
                 EditText editText=addDialog.findViewById(R.id.addNewAlbumEditText);
                 Button ok=addDialog.findViewById(R.id.btnOKAddAlbum);
                 Button cancel=addDialog.findViewById(R.id.btnCancelAddAlbum);
-                TextView textView=addDialog.findViewById(R.id.addNewAlbumTextView);
-                textView.setText(R.string.add_image_from_link);
+                Button camera = addDialog.findViewById(R.id.btnAddImgFromCamera);
                 addDialog.create();
                 addDialog.show();
 
@@ -146,6 +146,7 @@ public class GalleryFragment extends Fragment implements FragmentCallBacks, Mult
                         }
                         else{
                             DownloadImageFromLink(editText.getText().toString());
+
                             addDialog.cancel();
                         }
                     }
@@ -154,6 +155,19 @@ public class GalleryFragment extends Fragment implements FragmentCallBacks, Mult
                     @Override
                     public void onClick(View v) {
                         addDialog.cancel();
+                    }
+                });
+                camera.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        addDialog.cancel();
+
+
+                        Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+//                        File f = new File(android.os.Environment.getExternalStorageDirectory(), "imagename.jpg");
+//                        cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(f));
+                        ((MainActivity) context).startActivityForResult(cameraIntent, 1125);
+
                     }
                 });
             }

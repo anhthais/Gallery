@@ -16,6 +16,8 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.media.ExifInterface;
 import android.media.MediaScannerConnection;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
@@ -327,20 +329,37 @@ public class ImageViewFragment extends Fragment implements ToolbarCallbacks {
 //
 
                 }
-                else if (id==R.id.btnAddLocation)
-                {
-                    Toast.makeText(context, R.string.loadGGMap, Toast.LENGTH_SHORT).show();
-                    Intent intent = new Intent(getContext(), GetLocationActivity.class);
-                    Image currentImage = images.get(imageViewPager2.getCurrentItem());
-                    if (currentImage.getLocation()!=null)
-                    {
-                        intent.putExtra("latitude",currentImage.getLocation().latitude);
-                        intent.putExtra("longitude",currentImage.getLocation().longitude);
-                    }
-                    int position = imageViewPager2.getCurrentItem();
+                else if (id==R.id.btnAddLocation) {
+//                    ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+//                    NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
+//                    if (networkInfo != null) {
+//                        if (networkInfo.isConnected())
+//                        {
+                            Toast.makeText(context, R.string.loadGGMap, Toast.LENGTH_SHORT).show();
+                            Intent intent = new Intent(getContext(), GetLocationActivity.class);
+                            Image currentImage = images.get(imageViewPager2.getCurrentItem());
+                            if (currentImage.getLocation()!=null)
+                            {
+                                intent.putExtra("latitude",currentImage.getLocation().latitude);
+                                intent.putExtra("longitude",currentImage.getLocation().longitude);
+                            }
+                            int position = imageViewPager2.getCurrentItem();
 
-                    intent.putExtra("curPos",position);
-                    ((ImageActivity)context).startActivityForResult(intent,4123);
+                            intent.putExtra("curPos",position);
+                            ((ImageActivity)context).startActivityForResult(intent,4123);
+//                        }
+//                        else
+//                        {
+//                            Toast.makeText(context, R.string.no_internet_found, Toast.LENGTH_SHORT).show();
+//                        }
+//
+//                    } else
+//                    {
+//                        Toast.makeText(context, R.string.no_internet_found, Toast.LENGTH_SHORT).show();
+//                    }
+
+
+
                 }
                 else if (id==R.id.btnQRCode)
                 {
@@ -621,18 +640,19 @@ public class ImageViewFragment extends Fragment implements ToolbarCallbacks {
         }
 
         try{
-            LatLng latLng = image.getLocation();
-            String check, value;
-            try {
-                check = GetLocationActivity.getAddressFromLatLng(context, latLng.latitude, latLng.longitude);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-            if (check==null) {
-                value = latLng.latitude + "," + latLng.longitude;
-            } else {
-                value = check;
-            }
+//            LatLng latLng = image.getLocation();
+//            String check, value;
+//            try {
+//                check = GetLocationActivity.getAddressFromLatLng(context, latLng.latitude, latLng.longitude);
+//            } catch (IOException e) {
+//                throw new RuntimeException(e);
+//            }
+//            if (check==null) {
+//                value = latLng.latitude + "," + latLng.longitude;
+//            } else {
+//                value = check;
+//            }
+            String value = image.getStringLocation();
             txtLocation.setText(value);
         }
         catch (Exception e){

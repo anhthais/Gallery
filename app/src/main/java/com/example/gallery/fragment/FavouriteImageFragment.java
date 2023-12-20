@@ -88,7 +88,7 @@ public class FavouriteImageFragment extends Fragment implements FragmentCallBack
         super.onDestroyView();
         ((MainActivity)context).getSupportActionBar().setTitle(R.string.app_name);
         ((MainActivity)context).getSupportActionBar().setDisplayHomeAsUpEnabled(false);
-        ((MainActivity)context).getMenu().findItem(R.id.btnAddNewAlbum).setVisible(true);
+//        ((MainActivity)context).getMenu().findItem(R.id.btnAddNewAlbum).setVisible(true);
     }
 
     @Override

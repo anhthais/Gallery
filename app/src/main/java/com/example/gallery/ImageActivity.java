@@ -41,6 +41,7 @@ import com.yalantis.ucrop.UCrop;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -200,33 +201,78 @@ public class ImageActivity extends AppCompatActivity implements MainCallBacks{
                 Double latitude = data.getDoubleExtra("latitude",-1.0);
                 Double longitude = data.getDoubleExtra("longitude",-1.0);
                 LatLng latLng = new LatLng(latitude,longitude);
-                images.get(curPos).setLocation(latLng);
+                String stringLocation = null;
+                try {
+                    stringLocation =GetLocationActivity.getAddressFromLatLng(getApplicationContext(), latLng.latitude, latLng.longitude);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+                if (stringLocation ==null)
+                {
+                    String value = latLng.latitude + "," + latLng.longitude;
+                    images.get(curPos).setLocation(latLng, value);
+                }
+                else {
+                    images.get(curPos).setLocation(latLng,stringLocation);
+                }
+
                 Toast.makeText(this, R.string.addLocationSuccess, Toast.LENGTH_SHORT).show();
                 if (!addLocation.contains(images.get(curPos).getIdInMediaStore()))
                 {
                     addLocation.add(images.get(curPos).getIdInMediaStore());
                 }
                 removeLocation.remove(Long.valueOf(images.get(curPos).getIdInMediaStore()));
+                intent.putExtra(images.get(curPos).getIdInMediaStore()+ "-STRINGLOCATION",images.get(curPos).getStringLocation());
                 intent.putExtra(images.get(curPos).getIdInMediaStore()+"-LATITUDE",images.get(curPos).getLocation().latitude);
                 intent.putExtra(images.get(curPos).getIdInMediaStore()+"-LONGITUDE",images.get(curPos).getLocation().longitude);
+
+                SharedPreferences myPref = getSharedPreferences("GALLERY", Activity.MODE_PRIVATE);
+                SharedPreferences.Editor editor = myPref.edit();
+                ArrayList<Long> imagesLocationList = new ArrayList<>();
+                for(int i = 0; i < images.size(); ++i){
+                    if(images.get(i).getLocation()!= null){
+                        imagesLocationList.add(Long.valueOf(images.get(i).getIdInMediaStore()));
+                    }
+                }
+                editor.putFloat(images.get(curPos).getIdInMediaStore() + "-LATITUDE", (float) images.get(curPos).getLocation().latitude);
+                editor.putFloat(images.get(curPos).getIdInMediaStore() + "-LONGITUDE", (float) images.get(curPos).getLocation().longitude);
+                editor.putString(images.get(curPos).getIdInMediaStore() + "-STRINGLOCATION",(String) images.get(curPos).getStringLocation());
+                editor.putString("IMAGES-ID-LOCATION", gson.toJson(imagesLocationList));
+                editor.apply();
+
             }
             else if (resultCode==RESULT_CANCELED)
             {
                 curPos = data.getIntExtra("curPos",-1);
-                images.get(curPos).setLocation(null);
+                images.get(curPos).setLocation(null,null);
                 Toast.makeText(this, R.string.onCancelLocation, Toast.LENGTH_SHORT).show();
                 if (!removeLocation.contains(images.get(curPos).getIdInMediaStore()))
                 {
                     removeLocation.add(images.get(curPos).getIdInMediaStore());
                 }
                 addLocation.remove(Long.valueOf(images.get(curPos).getIdInMediaStore()));
+                intent.removeExtra(images.get(curPos).getIdInMediaStore()+ "-STRINGLOCATION");
                 intent.removeExtra(images.get(curPos).getIdInMediaStore()+"-LATITUDE");
                 intent.removeExtra(images.get(curPos).getIdInMediaStore()+"-LONGITUDE");
+                SharedPreferences myPref = getSharedPreferences("GALLERY", Activity.MODE_PRIVATE);
+                SharedPreferences.Editor editor = myPref.edit();
+                ArrayList<Long> imagesLocationList = new ArrayList<>();
+                for(int i = 0; i < images.size(); ++i){
+                    if(images.get(i).getLocation()!= null){
+                        imagesLocationList.add(Long.valueOf(images.get(i).getIdInMediaStore()));
+                    }
+                }
+                editor.remove(images.get(curPos).getIdInMediaStore() + "-LATITUDE");
+                editor.remove(images.get(curPos).getIdInMediaStore() + "-LONGITUDE");
+                editor.remove(images.get(curPos).getIdInMediaStore() + "-STRINGLOCATION");
+                editor.putString("IMAGES-ID-LOCATION", gson.toJson(imagesLocationList));
+                editor.apply();
             } else if (resultCode==-2) {
                 //Nothing to do, just return image view
             }
             intent.putExtra("addLocation", gson.toJson(addLocation));
             intent.putExtra("removeLocation", gson.toJson(removeLocation));
+
             setResult(AppCompatActivity.RESULT_OK, intent);
         }
         else

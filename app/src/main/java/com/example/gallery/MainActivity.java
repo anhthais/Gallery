@@ -73,6 +73,7 @@ import com.example.gallery.fragment.HideFragment;
 import com.example.gallery.fragment.ImageFragment;
 import com.example.gallery.fragment.SettingFragment;
 import com.example.gallery.fragment.TrashFragment;
+import com.example.gallery.helper.AddImageFromCamera;
 import com.example.gallery.helper.DateConverter;
 import com.example.gallery.helper.ImageLoader;
 import com.example.gallery.helper.LocalStorageReader;
@@ -117,6 +118,7 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
     public ArrayList<TrashItem> trashItems;
     Menu menu;
     Fragment currentFragment = null;
+
     GalleryFragment gallery_fragment = null;
     AlbumFragment album_fragment = null;
     TrashFragment trashFragment = null;
@@ -129,6 +131,7 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
     ArrayList<Statistic> statisticListImage;
     public ArrayList<Album> album_list;
     public int curIdxAlbum;
+
     String onChooseAlbum = "";
     public boolean updateViewManually = false;
     public int sortOrder = SortUtil.TypeDESC;
@@ -715,6 +718,7 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
         }
         else{
             getSupportFragmentManager().popBackStackImmediate();
+
         }
         return super.onOptionsItemSelected(item);
     }
@@ -805,16 +809,17 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
                     for (int i = 0; i < addLocationId.size(); ++i) {
                         Double latitude = data.getDoubleExtra(addLocationId.get(i).toString()+ "-LATITUDE",-1.0);
                         Double longitude = data.getDoubleExtra(addLocationId.get(i).toString()+ "-LONGITUDE",-1.0);
+                        String stringLocation = data.getStringExtra(addLocationId.get(i).toString()+ "-STRINGLOCATION");
                         Image image = allImagesInMap.get(addLocationId.get(i));
                         LatLng latLng = new LatLng(latitude,longitude);
-                        image.setLocation(latLng);
+                        image.setLocation(latLng,stringLocation);
                         Log.d("CheckImg", String.valueOf(image.getLocation()));
                     }
                 }
                 if (removeLocationId != null) {
                     for (int i = 0; i < removeLocationId.size(); ++i) {
                         Image image = allImagesInMap.get(removeLocationId.get(i));
-                        image.setLocation(null);
+                        image.setLocation(null,null);
                     }
                 }
                 saveImagesLocation();
@@ -873,6 +878,14 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
                 }
             }
             Toast.makeText(this, R.string.delete_photo_success, Toast.LENGTH_SHORT).show();
+        }else if (requestCode==1125 && resultCode ==RESULT_OK)
+        {
+            Bitmap photo = (Bitmap) data.getExtras().get("data");
+            Toast.makeText(this, R.string.load_camera_img, Toast.LENGTH_SHORT).show();
+            try{
+                new AddImageFromCamera(getBaseContext()).execute(photo);
+            }catch (Exception e){
+            }
         }
     }
 
@@ -1134,6 +1147,7 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
                 imagesLocationList.add(Long.valueOf(allImages.get(i).getIdInMediaStore()));
                 editor.putFloat(allImages.get(i).getIdInMediaStore() + "-LATITUDE", (float) allImages.get(i).getLocation().latitude);
                 editor.putFloat(allImages.get(i).getIdInMediaStore() + "-LONGITUDE", (float) allImages.get(i).getLocation().longitude);
+                editor.putString(allImages.get(i).getIdInMediaStore() + "-STRINGLOCATION",(String) allImages.get(i).getStringLocation());
             }
         }
         editor.putString("IMAGES-ID-LOCATION", gson.toJson(imagesLocationList));
@@ -1150,8 +1164,10 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
                 if(allImagesInMap.get(id.get(i)) != null){
                     Float latitude = (float) myPref.getFloat(id.get(i)+"-LATITUDE",-1);
                     Float longitude = (float) myPref.getFloat(id.get(i)+"-LONGITUDE",-1);
+                    String stringLocation = (String) myPref.getString(id.get(i)+"-STRINGLOCATION","");
+                    Log.d("CheckImg",latitude+ "_"+stringLocation);
                     LatLng latLng = new LatLng(latitude,longitude);
-                    allImagesInMap.get(id.get(i)).setLocation(latLng);
+                    allImagesInMap.get(id.get(i)).setLocation(latLng,stringLocation);
 
                 }
             }

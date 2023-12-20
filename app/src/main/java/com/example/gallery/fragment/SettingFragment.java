@@ -4,11 +4,17 @@ import static android.content.Context.MODE_PRIVATE;
 import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.Configuration;
+import android.content.res.Resources;
 import android.os.Bundle;
 import android.os.ConditionVariable;
 import android.preference.PreferenceFragment;
+import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -19,6 +25,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.preference.ListPreference;
@@ -37,6 +44,8 @@ public class SettingFragment extends PreferenceFragmentCompat implements Fragmen
     TrashFragment trashFragment;
     FavouriteImageFragment favouriteImageFragment;
     HideFragment hideFragment;
+    ActionBar action_bar;
+    Menu menu;
     public  static SettingFragment getInstance()
     {
         return new SettingFragment();
@@ -45,23 +54,60 @@ public class SettingFragment extends PreferenceFragmentCompat implements Fragmen
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         try {
             context = getActivity(); // use this reference to invoke main callbacks
             main = (MainActivity) getActivity();
             trashFragment = main.getTrashFragment();
             favouriteImageFragment = main.getFavouriteImageFragment();
             hideFragment = main.getHideFragment();
+            action_bar = ((MainActivity) getActivity()).getSupportActionBar();
+            menu = main.getMenu();
+
         } catch (IllegalStateException e) {
             throw new IllegalStateException("MainActivity must implement callbacks");
         }
+        menu.findItem(R.id.btnFind).setVisible(false);
+        menu.findItem(R.id.btnChooseMulti).setVisible(false);
+        menu.findItem(R.id.btnSlideShow).setVisible(false);
+        menu.findItem(R.id.btnStatistic).setVisible(false);
+        menu.findItem(R.id.btnAddNewAlbum).setVisible(false);
+        menu.findItem(R.id.btnDeleteAlbum).setVisible(false);
+        menu.findItem(R.id.btnEvent).setVisible(false);
+        menu.findItem(R.id.btnSort).setVisible(false);
+
+
+
+        SharedPreferences pref=context.getSharedPreferences("GALLERY",MODE_PRIVATE) ;
+        String theme=pref.getString("THEME","LIGHT");
+        String themeSummary,languageSummary = null;
+        if(theme.equals("LIGHT")){
+            themeSummary = getResources().getString(R.string.light);;
+        }else if(theme.equals("DARK")){
+            themeSummary = getResources().getString(R.string.dark);
+        }else
+        {
+            themeSummary = getResources().getString(R.string.same_as_system);
+        }
+        String locale=pref.getString("LANGUAGE","en");
+        if (locale.equals("en"))
+        {
+            languageSummary = getResources().getString(R.string.english);
+        }
+        else if (locale.equals("vi"))
+        {
+            languageSummary = getResources().getString(R.string.vietnamese);
+        }
         addPreferencesFromResource(R.xml.preferences);
         Preference btnTheme = (Preference) findPreference("btnTheme");
-
         Preference btnLanguage = (Preference)findPreference("btnLanguage");
         Preference btnBackup = (Preference)findPreference("btnBackup");
         Preference btnHide = (Preference)findPreference("btnHide");
         Preference btnTrash= (Preference)findPreference("btnTrash");
         Preference btnFavourite = (Preference)findPreference("btnFavourite");
+        btnTheme.setSummary(themeSummary);
+        btnLanguage.setSummary(languageSummary);
+
         btnTheme.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
             @Override
             public boolean onPreferenceClick(@NonNull Preference preference) {
@@ -82,6 +128,8 @@ public class SettingFragment extends PreferenceFragmentCompat implements Fragmen
                             editor.putString("THEME","LIGHT").apply();
                             addDialog.cancel();
                             AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+                            Intent refresh = new Intent(context, MainActivity.class);
+                            startActivity(refresh);
 
                         }
                         else if (i==R.id.btnThemeDark)
@@ -92,6 +140,8 @@ public class SettingFragment extends PreferenceFragmentCompat implements Fragmen
                             editor.putString("THEME","DARK").apply();
                             addDialog.cancel();
                             AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
+                            Intent refresh = new Intent(context, MainActivity.class);
+                            startActivity(refresh);
 
                         }
 
@@ -103,7 +153,8 @@ public class SettingFragment extends PreferenceFragmentCompat implements Fragmen
                             editor.putString("THEME","SAME-AS-SYSTEM").apply();
                             addDialog.cancel();
                             AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM);
-
+                            Intent refresh = new Intent(context, MainActivity.class);
+                            startActivity(refresh);
                         }
 
                     }
@@ -155,6 +206,7 @@ public class SettingFragment extends PreferenceFragmentCompat implements Fragmen
         btnBackup.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
             @Override
             public boolean onPreferenceClick(@NonNull Preference preference) {
+                //TODO: handle backup here
                 return false;
             }
         });
@@ -226,90 +278,6 @@ public class SettingFragment extends PreferenceFragmentCompat implements Fragmen
     public void onMsgFromMainToFragment(String strValue) {
 
     }
-//    public void showHideFragmentDialog(){
-//        Dialog addDialog=new Dialog(context);
-//        addDialog.setContentView(R.layout.access_hidefragment_dialog);
-//        EditText editText=addDialog.findViewById(R.id.confirmPasswordEditText1);
-//        Button ok=addDialog.findViewById(R.id.btnOKConfirmPassword);
-//        Button cancel=addDialog.findViewById(R.id.btnCancelConfirmPassword);
-//        Button reset=addDialog.findViewById(R.id.btnResetPassword);
-//        addDialog.create();
-//        addDialog.show();
-//        ok.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                SharedPreferences hidePref=main.getSharedPreferences("GALLERY",MODE_PRIVATE);
-//                String pass=hidePref.getString("PASSWORD",null);
-//                if(pass.equals(editText.getText().toString())){
-//                    //show hide frag
-//                    main.showHideFragment();
-//                    addDialog.cancel();
-//                }else{
-//                    Toast.makeText(context, R.string.wrong_password, Toast.LENGTH_SHORT).show();
-//                }
-//            }
-//        });
-//        cancel.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                addDialog.cancel();
-//            }
-//        });
-//        reset.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                SharedPreferences hidePref=main.getSharedPreferences("GALLERY",MODE_PRIVATE);
-//                SharedPreferences.Editor editor=hidePref.edit();
-//                editor.putString("PASSWORD",null);
-//                Calendar calendar=Calendar.getInstance();
-//                int curr_date=calendar.get(Calendar.DATE);
-//                int curr_month=calendar.get(Calendar.MONTH);
-//                int curr_year=calendar.get(Calendar.YEAR);
-//                editor.putInt("OPEN-DATE",curr_date);
-//                editor.putInt("OPEN-MONTH",curr_month);
-//                editor.putInt("OPEN-YEAR",curr_year);
-//                editor.commit();
-//                addDialog.cancel();
-//            }
-//        });
-//    }
-//    public void createPasswordHideFragmentDialog(){
-//        Dialog addDialog=new Dialog(context);
-//        addDialog.setContentView(R.layout.create_password_hidefrag_dialog);
-//        EditText password=addDialog.findViewById(R.id.createPasswordEditText1);
-//        EditText confirmPass=addDialog.findViewById(R.id.createPasswordEditText2);
-//        Button ok=addDialog.findViewById(R.id.btnOKCreatePassword);
-//        Button cancel=addDialog.findViewById(R.id.btnCancelCreatePassword);
-//        addDialog.create();
-//        addDialog.show();
-//        ok.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                String pass=password.getText().toString();
-//                String confirm=confirmPass.getText().toString();
-//                if(!pass.equals(confirm)){
-//                    Toast.makeText(context, R.string.retype_password_not_match, Toast.LENGTH_SHORT).show();
-//                }
-//                else{
-//                    SharedPreferences hidePref=main.getSharedPreferences("GALLERY",MODE_PRIVATE);
-//                    SharedPreferences.Editor editor=hidePref.edit();
-//                    editor.putString("PASSWORD",pass);
-//                    editor.commit();
-//                    addDialog.cancel();
-//                    //show hide fragment
-//                    showHideFragment();
-//                }
-//            }
-//        });
-//        cancel.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                addDialog.cancel();
-//            }
-//        });
-//    }
-//    public void showHideFragment(){
-//        hideFragment= HideFragment.getInstance();
-//        main.getSupportFragmentManager().beginTransaction().replace(R.id.mainFragment,hideFragment).commit();
-//    }
+
+
 }

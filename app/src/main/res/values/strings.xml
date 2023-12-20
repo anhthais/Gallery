@@ -114,7 +114,7 @@
     <string name="addLocationSuccess">Add location success</string>
     <string name="onCancelLocation">Remove location success</string>
     <string name="QRCode">QR Scanner</string>
-    <string name="noQR">This photo does not have a QR code</string>
+    <string name="noQR">This photo does not have a QR code or QR code does not have content</string>
     <string name="noBitmap">This photo does not have bitmap</string>
     <string name="moveToTrash">Move photos to the trash bin…</string>
     <string name="restoreFromTrash">Restore photos from the trash bin…</string>
@@ -139,6 +139,9 @@
     <string name="sortByFileSizeIncrease">By file size (increase)</string>
     <string name="sortByFileSizeDecrease">By file size (decrease)</string>
     <string name="same_as_system">Same as system</string>
+    <string name="add_img_from_camera">Add image from camera</string>
+    <string name="no_internet_found">No Internet!</string>
+    <string name="load_camera_img">Saving image</string>
     <!-- Preference Titles -->
     <string name="messages_header">Messages</string>
     <string name="sync_header">Sync</string>

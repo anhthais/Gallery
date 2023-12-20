@@ -115,7 +115,7 @@
     <string name="addLocationSuccess">Thêm vị trí thành công</string>
     <string name="onCancelLocation">Hủy vị trí thành công</string>
     <string name ="QRCode">Quét mã QR</string>
-    <string name ="noQR">Ảnh này không tồn tại mã QR</string>
+    <string name ="noQR">Ảnh này không tồn tại mã QR hoặc mã QR không có nội dung</string>
     <string name ="noBitmap">Ảnh này không tồn tại Bitmap</string>
     <string name ="moveToTrash">Đang chuyển các ảnh vào thùng rác…</string>
     <string name ="restoreFromTrash">Khôi phục các ảnh từ thùng rác…</string>
@@ -140,4 +140,7 @@
     <string name ="sortByFileSizeIncrease">Theo kích thước file (tăng dần)</string>
     <string name ="sortByFileSizeDecrease">Theo kích thước file (giảm dần)</string>
     <string name="same_as_system">Theo hệ thống</string>
+    <string name="add_img_from_camera">Thêm ảnh từ camera</string>
+    <string name="no_internet_found">Không có kết nối Internet!</string>
+    <string name="load_camera_img">Đang lưu hình ảnh</string>
 </resources>
