@@ -25,6 +25,7 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.SeekBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.gallery.FragmentCallBacks;
@@ -56,7 +57,10 @@ public class EditImageFragment extends Fragment {
     Toolbar editTopBar;
     Toolbar topBar;
     ImageButton img_btn_save;
-    ImageButton img_btn_saveEdit;
+    ImageButton img_btn_cancel;
+
+    TextView tv_saveEdit;
+    TextView tv_cancelEdit;
     private  Bitmap currenBitmap;
 
     private  Bitmap editFinal;
@@ -101,8 +105,10 @@ public class EditImageFragment extends Fragment {
 
         img_btn_save = view.findViewById(R.id.check);
         img_btn_save.setClickable(false);
+        img_btn_cancel = view.findViewById(R.id.cancel);
 
-        img_btn_saveEdit = view.findViewById(R.id.checkEdit);
+        tv_saveEdit = view.findViewById(R.id.tv_CheckEdit);
+        tv_cancelEdit = view.findViewById(R.id.tv_CancelEdit);
 
         imageView.setImageURI(null);
         imageView.setImageBitmap(uCropEditedImage);
@@ -143,26 +149,29 @@ public class EditImageFragment extends Fragment {
             }
 
             else if (id == R.id.btnFilter){
-
+                if (callback != null) {
+                    currenBitmap = ((BitmapDrawable) imageView.getDrawable()).getBitmap();
+                    ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+                    currenBitmap.compress(Bitmap.CompressFormat.PNG, 100, byteArrayOutputStream);
+                    byte[] byteArray = byteArrayOutputStream .toByteArray();
+                    String encodedBitmap = Base64.encodeToString(byteArray, Base64.DEFAULT);
+                    callback.onMsgFromFragToMain("FILTER",encodedBitmap);
+                }
             }
-            else if (id == R.id.btnDraw){
 
-            }
 
 
             return true;
         });
 
         // handle topBar
-        topBar.setNavigationOnClickListener(new View.OnClickListener() {
+        img_btn_cancel.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View view) {
+            public void onClick(View v) {
                 if (callback != null) {
                     callback.onMsgFromFragToMain("RETURN-IMAGE-VIEW",curPos.toString());
                 }
             }
-
-
         });
         img_btn_save.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -181,7 +190,7 @@ public class EditImageFragment extends Fragment {
             }
         });
 
-        img_btn_saveEdit.setOnClickListener(new View.OnClickListener() {
+        tv_saveEdit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 editBrightnessBottomNav.setVisibility(View.INVISIBLE);
@@ -192,7 +201,7 @@ public class EditImageFragment extends Fragment {
                 imageView.setImageBitmap(editFinal);
             }
         });
-        editTopBar.setOnClickListener(new View.OnClickListener() {
+        tv_cancelEdit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 btnv.setVisibility(View.VISIBLE);
@@ -212,14 +221,10 @@ public class EditImageFragment extends Fragment {
             }
 
             @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {
-
-            }
+            public void onStartTrackingTouch(SeekBar seekBar) {}
 
             @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {
-
-            }
+            public void onStopTrackingTouch(SeekBar seekBar) {}
         });
 
         seekBarConstract.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
@@ -229,14 +234,10 @@ public class EditImageFragment extends Fragment {
             }
 
             @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {
-
-            }
+            public void onStartTrackingTouch(SeekBar seekBar) {}
 
             @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {
-
-            }
+            public void onStopTrackingTouch(SeekBar seekBar) {}
         });
 
 
@@ -298,17 +299,4 @@ public class EditImageFragment extends Fragment {
         editFinal = outputBitmap;
     }
 
-    private void toggleSeekBarVisibility() {
-        // Toggle visibility of the SeekBar
-        int visibility = seekBarBrightness.getVisibility() == View.VISIBLE ? View.GONE : View.VISIBLE;
-        seekBarBrightness.setVisibility(visibility);
-    }
-
-
-
-    public void onMsgFromMainToFragment(String strValue) {
-        byte [] decodedString = Base64.decode(strValue,Base64.DEFAULT);
-        editFinal = BitmapFactory.decodeByteArray(decodedString,0,decodedString.length);
-        imageView.setImageBitmap(editFinal);
-    }
 }

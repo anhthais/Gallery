@@ -23,9 +23,5 @@
         android:title="@string/filter"
         app:showAsAction="always"
         android:icon="@drawable/ic_filter"/>
-    <item
-        android:id="@+id/btnDraw"
-        android:title="@string/draw"
-        app:showAsAction="always"
-        android:icon="@drawable/ic_edit_24"/>
+
 </menu>

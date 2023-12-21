@@ -19,10 +19,10 @@
         app:showAsAction="never"
         android:title="@string/slideshow"/>
     <item
-        android:id="@+id/btnStatistic"
+        android:id="@+id/btnAI_Image"
         android:checked="true"
         app:showAsAction="never"
-        android:title="@string/statistic"/>
+        android:title="Text to image"/>
     <item
         android:id="@+id/btnAddNewAlbum"
         android:checked="true"

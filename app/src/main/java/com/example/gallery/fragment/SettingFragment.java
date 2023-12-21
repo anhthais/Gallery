@@ -34,6 +34,7 @@ import androidx.preference.PreferenceFragmentCompat;
 
 import com.example.gallery.FragmentCallBacks;
 import com.example.gallery.MainActivity;
+import com.example.gallery.MainCallBacks;
 import com.example.gallery.R;
 
 import java.util.Calendar;
@@ -45,10 +46,20 @@ public class SettingFragment extends PreferenceFragmentCompat implements Fragmen
     FavouriteImageFragment favouriteImageFragment;
     HideFragment hideFragment;
     ActionBar action_bar;
+    MainCallBacks callback;
     Menu menu;
     public  static SettingFragment getInstance()
     {
         return new SettingFragment();
+    }
+    @Override
+    public void onAttach(@NonNull Context context) {
+        super.onAttach(context);
+        if (context instanceof MainCallBacks) {
+            callback = (MainCallBacks) context;
+        } else {
+            throw new ClassCastException(context.toString() + " must implement MainCallBack");
+        }
     }
 
     @Override
@@ -70,7 +81,7 @@ public class SettingFragment extends PreferenceFragmentCompat implements Fragmen
         menu.findItem(R.id.btnFind).setVisible(false);
         menu.findItem(R.id.btnChooseMulti).setVisible(false);
         menu.findItem(R.id.btnSlideShow).setVisible(false);
-        menu.findItem(R.id.btnStatistic).setVisible(false);
+        menu.findItem(R.id.btnAI_Image).setVisible(false);
         menu.findItem(R.id.btnAddNewAlbum).setVisible(false);
         menu.findItem(R.id.btnDeleteAlbum).setVisible(false);
         menu.findItem(R.id.btnEvent).setVisible(false);
@@ -206,7 +217,7 @@ public class SettingFragment extends PreferenceFragmentCompat implements Fragmen
         btnBackup.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
             @Override
             public boolean onPreferenceClick(@NonNull Preference preference) {
-                //TODO: handle backup here
+                callback.onMsgFromFragToMain("SETTING","BACK-UP");
                 return false;
             }
         });

@@ -4,20 +4,34 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
-    <!--Phần này là view để user ghi đè lên/ chưa rõ view nào hỗ trợ phần này-->
+
 
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/topAppBar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="?attr/colorOnPrimary"
-        android:fitsSystemWindows="true"
-        app:navigationIcon="@drawable/ic_cancel">
+        android:layout_alignParentStart="true"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentTop="true">
+
+        <ImageButton
+            android:id="@+id/cancel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentStart="true"
+            android:layout_marginLeft="20dp"
+            android:layout_gravity="left"
+            android:src="@drawable/ic_cancel"
+            app:tint="@color/green" />
 
         <ImageButton
             android:id="@+id/check"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginRight="20dp"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentEnd="true"
             android:layout_gravity="right"
             android:src="@drawable/ic_check"
             app:tint="@color/green">
@@ -26,34 +40,48 @@
     </androidx.appcompat.widget.Toolbar>
 
     <androidx.appcompat.widget.Toolbar
+
         android:id="@+id/topEditBar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="?attr/colorOnPrimary"
-        android:fitsSystemWindows="true"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentEnd="true"
         android:visibility="gone"
-        app:navigationIcon="@drawable/ic_cancel">
+        android:layout_alignParentTop="true">
 
-        <ImageButton
-            android:id="@+id/checkEdit"
+        <TextView
+            android:id="@+id/tv_CancelEdit"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:text="Cancel"
+            android:layout_marginLeft="20dp"
+            android:layout_gravity="left"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:textColor="@color/green" />
+
+        <TextView
+            android:id="@+id/tv_CheckEdit"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Apply"
             android:layout_gravity="right"
-            android:src="@drawable/ic_check"
-            app:tint="@color/green">
+            android:layout_marginRight="20dp"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:textColor="@color/green" />
 
-        </ImageButton>
+
+
     </androidx.appcompat.widget.Toolbar>
-
-
 
 
     <ImageView
         android:id="@+id/imageViewEditPicture"
+        android:layout_marginTop="50dp"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginTop="50dp"
-        android:layout_marginBottom="60dp"/>
+        android:layout_marginBottom="60dp" />
 
     <LinearLayout
         android:id="@+id/layout_edit_brightness"

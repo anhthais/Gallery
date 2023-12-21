@@ -63,7 +63,7 @@ public class GalleryFragment extends Fragment implements FragmentCallBacks, Mult
     private RecyclerView recyclerView;
     private ImageGroupAdapter imageGroupAdapter;
     private ArrayList<ImageGroup> groupList;
-    private ArrayList<Statistic> statisticList;
+
     private Context context;
     private MainActivity main;
     private FloatingActionButton addImageFromLink;
@@ -72,17 +72,8 @@ public class GalleryFragment extends Fragment implements FragmentCallBacks, Mult
     public static GalleryFragment getInstance(){
         return new GalleryFragment();
     }
-    private MainCallBackObjectData callback;
 
-    @Override
-    public void onAttach(@NonNull Context context) {
-        super.onAttach(context);
-        if (context instanceof MainCallBackObjectData) {
-            callback = (MainCallBackObjectData) context;
-        } else {
-            throw new ClassCastException(context.toString() + " must implement MyCallback");
-        }
-    }
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -98,8 +89,7 @@ public class GalleryFragment extends Fragment implements FragmentCallBacks, Mult
         if(main != null){
             groupList = main.imageGroupsByDate;
             imageGroupAdapter.submitList(groupList);
-            statisticList = getStatisticGroupList(groupList);
-            passObjectToActivity(statisticList);
+
         }
     }
 
@@ -108,8 +98,7 @@ public class GalleryFragment extends Fragment implements FragmentCallBacks, Mult
             groupList = main.imageGroupsByDate;
             imageGroupAdapter = new ImageGroupAdapter(context, groupList);
             recyclerView.setAdapter(imageGroupAdapter);
-            statisticList = getStatisticGroupList(groupList);
-            passObjectToActivity(statisticList);
+
         }
     }
 
@@ -123,9 +112,8 @@ public class GalleryFragment extends Fragment implements FragmentCallBacks, Mult
         imageGroupAdapter = new ImageGroupAdapter(context, groupList);
         recyclerView.setAdapter(imageGroupAdapter);
         recyclerView.setLayoutManager(new WrapContentLinearLayoutManager(getContext(), RecyclerView.VERTICAL, false));
-        // Tính dung lượng và số lượng của mỗi group list,
-        statisticList = getStatisticGroupList(groupList);
-        passObjectToActivity(statisticList);
+
+
         addImageFromLink.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -176,40 +164,6 @@ public class GalleryFragment extends Fragment implements FragmentCallBacks, Mult
     }
 
     // TODO: delete and adjust the code below: statistic and delete
-    private  ArrayList<Statistic> getStatisticGroupList(ArrayList<ImageGroup> groupList) {
-        ArrayList<Statistic> result = new ArrayList<Statistic>();
-        int count=0;
-        if(groupList!=null){
-            count=groupList.size();
-        }
-        for(int i=0;i< count;i++){
-            Statistic temp = new Statistic();
-            Float sizeInDisk = 0f;
-            temp.setId(groupList.get(i).getId());
-            temp.setCount(groupList.get(i).getList().size());
-
-            // Tinh dung luong cua tung anh trong list
-            for(int j =0;j<groupList.get(i).getList().size();j++){
-                sizeInDisk += calculateImageSize(groupList.get(i).getList().get(j).getPath());
-            }
-            String formatSizeDisk  = String.format("%.2f MB",sizeInDisk);
-            temp.setWeight(formatSizeDisk);
-            result.add((temp));
-        }
-        return result;
-    }
-
-    private float calculateImageSize(String path) {
-        File file = new File(path);
-        // file.length() return Byte
-        float fileSizeInKB = file.length()/(1024f * 1024f);
-        return fileSizeInKB;
-    }
-    private void passObjectToActivity(ArrayList<Statistic> statistic) {
-        if (callback != null) {
-            callback.onObjectPassed(statistic);
-        }
-    }
 
     void DownloadImageFromLink(String ImageUrl) {
         //Asynctask to create a thread to download image in the background

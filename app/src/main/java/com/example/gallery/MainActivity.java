@@ -226,6 +226,7 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
             if(id==R.id.btnGallery){
                 menu.findItem(R.id.btnAddNewAlbum).setVisible(false);
                 menu.findItem(R.id.btnChooseMulti).setVisible(true);
+                menu.findItem(R.id.btnAI_Image).setVisible(true);
                 menu.findItem(R.id.btnDeleteAlbum).setVisible(false);
                 menu.findItem(R.id.btnSlideShow).setVisible(false);
                 getSupportFragmentManager().beginTransaction().replace(R.id.mainFragment,this.gallery_fragment).commit();
@@ -518,34 +519,11 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
             album_fragment.addNewAlbum();
         }
         // choose Statistic in ItemSelected
-        else if(id == R.id.btnStatistic) {
-            // Build alert dialog
-            AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setTitle(R.string.statistic);
-            // User titlebar_dialog layout to be title layout
-            LayoutInflater inflater = getLayoutInflater();
-            View view = inflater.inflate(R.layout.titlebar_dialog, null);
-            builder.setCustomTitle(view);
-
-            // ArrayAdapter with custom_dialog_view layout
-            final ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(this, R.layout.custom_dialog_view);
-
-            // Convert each element of statisticListImage to String and set it to arrayAdapter
-            for (int i = 0; i < statisticListImage.size(); i++) {
-                String temp = R.string.date+": " + statisticListImage.get(i).getId() + " " + statisticListImage.get(i).getCount().toString() + " "+R.string.images
-                        +R.string.capacity+": " + statisticListImage.get(i).getWeight().toString();
-                arrayAdapter.add(temp);
-            }
-
-           builder.setAdapter(arrayAdapter, new DialogInterface.OnClickListener() {
-               @Override
-               public void onClick(DialogInterface dialogInterface, int i) {
-
-               }
-           });
-
-            AlertDialog alert=builder.create();
-            alert.show();
+        else if(id == R.id.btnAI_Image) {
+            // change to TextToImageActivity
+            Intent intent = new Intent(MainActivity.this, TextToImageActivity.class);
+            startActivity(intent);
+            finish();
         }
         else if (id == R.id.btnDeleteAlbum)
         {
@@ -771,6 +749,14 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
             ft.replace(R.id.mainFragment, addImageToAlbumFragment);
             ft.addToBackStack("ALBUM-FRAG");
             ft.commit();
+        }
+        else if(sender.equals("SETTING")){
+            if(strValue.equals("BACK-UP")){
+                // change to TextToImageActivity
+                Intent intent = new Intent(MainActivity.this, ShowBackupActivity.class);
+                startActivity(intent);
+                finish();
+            }
         }
     }
 

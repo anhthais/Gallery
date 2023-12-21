@@ -27,6 +27,7 @@ import android.widget.Toast;
 
 import com.example.gallery.fragment.AddImageToAlbumFragment;
 import com.example.gallery.fragment.EditImageFragment;
+import com.example.gallery.fragment.FilterImageFragment;
 import com.example.gallery.fragment.HidePagerFragment;
 import com.example.gallery.fragment.ImageViewFragment;
 import com.example.gallery.helper.DateConverter;
@@ -58,7 +59,7 @@ public class ImageActivity extends AppCompatActivity implements MainCallBacks{
     Uri uri;
     public ArrayList<Long> addLocation;
     public ArrayList<Long> removeLocation;
-    private FragmentCallBacks callback;
+
     public ImageViewFragment imageViewFragment = null;
 
     private String dataSend;
@@ -136,6 +137,21 @@ public class ImageActivity extends AppCompatActivity implements MainCallBacks{
 
             }
 
+        }
+        else if(sender.equals("FILTER")){
+            ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+            byte[] decodedString = Base64.decode(strValue, Base64.DEFAULT);
+            Bitmap decodedBitmap = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
+            decodedBitmap.compress(Bitmap.CompressFormat.JPEG, 100,bytes);
+            FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+            FilterImageFragment filterImageFragment = new FilterImageFragment(ImageActivity.this,decodedBitmap);
+            ft.replace(R.id.pictureFragment,filterImageFragment); ft.commit();
+
+        }
+        else if(sender.equals("FILTER-RETURN")){
+            FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+            EditImageFragment editImageFragment = new EditImageFragment(ImageActivity.this,strValue,curPos);
+            ft.replace(R.id.pictureFragment, editImageFragment); ft.commit();
         }
         else if(sender.equals("RETURN-IMAGE-VIEW")){
             FragmentTransaction ft = getSupportFragmentManager().beginTransaction();

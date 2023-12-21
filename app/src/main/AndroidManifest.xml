@@ -28,6 +28,15 @@
         android:theme="@style/Theme.Gallery"
         android:usesCleartextTraffic="true"
         tools:targetApi="31">
+        <activity
+            android:name=".TextToImageActivity"
+            android:exported="false" />
+        <activity
+            android:name=".UploadFirebaseActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ShowBackupActivity"
+            android:exported="false" />
         <!--
              TODO: Before you run your application, you need a Google Maps API key.
 
