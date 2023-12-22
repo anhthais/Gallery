@@ -13,7 +13,7 @@ public class Image implements Parcelable {
     private String path;
     private long dateAdded;
     private boolean isFavorite;
-    private String tags;
+    private String tags ;
     private LatLng location;
     private Double latitude;
     private Double longitude;

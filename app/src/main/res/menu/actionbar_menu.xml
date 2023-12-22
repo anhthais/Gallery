@@ -9,6 +9,14 @@
         app:iconTint ="?attr/colorButtonNormal"
         android:title="Find" />
     <item
+        android:id="@+id/Search"
+        android:checked="true"
+        app:actionViewClass="android.widget.SearchView"
+        android:actionLayout="@layout/custom_searchview_layout"
+        app:showAsAction="always"
+        app:iconTint="?attr/colorButtonNormal"
+        android:title="Search bar "/>
+    <item
         android:id="@+id/btnChooseMulti"
         android:checked="true"
         app:showAsAction="never"
@@ -23,6 +31,11 @@
         android:checked="true"
         app:showAsAction="never"
         android:title="Text to image"/>
+    <item
+        android:id="@+id/btnDeleteDupicateImages"
+        android:checked="true"
+        app:showAsAction="never"
+        android:title="Delete Dupicate Images"/>
     <item
         android:id="@+id/btnAddNewAlbum"
         android:checked="true"

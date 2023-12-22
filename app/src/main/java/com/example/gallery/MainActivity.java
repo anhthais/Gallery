@@ -43,6 +43,7 @@ import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
@@ -51,6 +52,7 @@ import android.os.Environment;
 import android.os.FileObserver;
 import android.os.IBinder;
 import android.provider.MediaStore;
+import android.text.TextUtils;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.SparseBooleanArray;
@@ -63,6 +65,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
+import android.widget.SearchView;
 import android.widget.Toast;
 
 import com.example.gallery.fragment.AddImageToAlbumFragment;
@@ -71,10 +74,12 @@ import com.example.gallery.fragment.FavouriteImageFragment;
 import com.example.gallery.fragment.GalleryFragment;
 import com.example.gallery.fragment.HideFragment;
 import com.example.gallery.fragment.ImageFragment;
+import com.example.gallery.fragment.SearchingFragment;
 import com.example.gallery.fragment.SettingFragment;
 import com.example.gallery.fragment.TrashFragment;
 import com.example.gallery.helper.AddImageFromCamera;
 import com.example.gallery.helper.DateConverter;
+import com.example.gallery.helper.FileManager;
 import com.example.gallery.helper.ImageLoader;
 import com.example.gallery.helper.LocalStorageReader;
 import com.example.gallery.helper.Notification;
@@ -88,7 +93,11 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-
+import android.os.Handler;
+import android.app.ProgressDialog;
+import android.widget.ProgressBar;
+import com.example.gallery.adapter.TrashAdapter;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
@@ -99,15 +108,24 @@ import java.nio.file.Paths;
 import java.nio.file.WatchEvent;
 import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
-
+import android.graphics.Color;
+import android.text.TextUtils;
+import android.widget.SearchView;
+import com.example.gallery.fragment.SearchingFragment;
+import java.util.List;
+import java.io.Serializable;
 public class MainActivity extends AppCompatActivity implements MainCallBacks,MainCallBackObjectData, LoaderManager.LoaderCallbacks<ArrayList<Image>> {
     private static final int IMAGE_LOADER_ID = 1;
     private static final int PERMISSION_REQUEST_READ_CODE = 1;
@@ -131,10 +149,15 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
     ArrayList<Statistic> statisticListImage;
     public ArrayList<Album> album_list;
     public int curIdxAlbum;
-
+    private Handler handler;
+    private ProgressDialog progressDialog;
     String onChooseAlbum = "";
     public boolean updateViewManually = false;
     public int sortOrder = SortUtil.TypeDESC;
+    public ArrayList<Image> search_result_list = new ArrayList<>();
+    SearchingFragment searchFragment = null;
+    SearchView searchView = null ;
+    public boolean isSearchBarEmpty = true;
     public ArrayList<Album> getAlbum_list(){
         return album_list;
     }
@@ -144,7 +167,9 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
     public FavouriteImageFragment getFavouriteImageFragment() {
         return this.favouriteImageFragment;
     }
-
+    public ArrayList<TrashItem> getTrash_list(){
+        return this.trashItems;
+    }
     public TrashFragment getTrashFragment() {
         return this.trashFragment;
     }
@@ -169,6 +194,7 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
         conf.locale = myLocale;
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        handler = new Handler();
         // set widget view
         action_bar=getSupportActionBar();
         action_bar.setDisplayShowHomeEnabled(true);
@@ -218,12 +244,14 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
 
         menu.findItem(R.id.btnDeleteAlbum).setVisible(false);
         menu.findItem(R.id.btnSlideShow).setVisible(false);
+        menu.findItem(R.id.Search).setVisible(false);
         FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
         ft.replace(R.id.mainFragment, gallery_fragment); ft.commit(); // TODO: change to the latest fragment
         btnv=findViewById(R.id.navigationBar);
         btnv.setOnNavigationItemSelectedListener(item -> {
             int id=item.getItemId();
             if(id==R.id.btnGallery){
+                menu.findItem(R.id.btnFind).setVisible(true);
                 menu.findItem(R.id.btnAddNewAlbum).setVisible(false);
                 menu.findItem(R.id.btnChooseMulti).setVisible(true);
                 menu.findItem(R.id.btnAI_Image).setVisible(true);
@@ -236,6 +264,7 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
             else if (R.id.btnAlbum==id){
                 menu.findItem(R.id.btnAddNewAlbum).setVisible(true);
                 menu.findItem(R.id.btnChooseMulti).setVisible(false);
+                menu.findItem(R.id.btnFind).setVisible(false);
                 menu.findItem(R.id.btnAI_Image).setVisible(false);
                 menu.findItem(R.id.btnDeleteAlbum).setVisible(false);
                 menu.findItem(R.id.btnSlideShow).setVisible(false);
@@ -253,7 +282,7 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
                 menu.findItem(R.id.btnEvent).setVisible(false);
                 menu.findItem(R.id.btnSort).setVisible(false);
                 View v = findViewById(R.id.btnSettings);
-                getSupportFragmentManager().beginTransaction().replace(R.id.mainFragment,this.settingFragment).commit();
+        //        getSupportFragmentManager().beginTransaction().replace(R.id.mainFragment,this.settingFragment).commit();
 //                PopupMenu pm = new PopupMenu(this, v);
 //                pm.getMenuInflater().inflate(R.menu.settings_menu, pm.getMenu());
 //
@@ -374,10 +403,225 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
     public Menu getMenu(){
         return menu;
     }
+    public ArrayList<Image> getAllImages() {
+        return allImages;
+    }
+    public String getName(Image img ) {
+        File file = new File(img.getPath());
+        return file.getName();
+    }
+    private void performSearch(String query) {
+        this.search_result_list = filterArray(allImages, query);
+
+        SearchingFragment searchingFragment = new SearchingFragment(this, search_result_list);
+        this.searchFragment = searchingFragment;
+        getSupportFragmentManager().popBackStackImmediate();
+        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+        ft.replace(R.id.mainFragment, searchFragment);
+        ft.addToBackStack(null);
+        ft.commit();
+        if (search_result_list.size() == 0) {
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setTitle("No Results");
+            builder.setMessage("Sorry, no results were found.");
+
+            Button okButton = new Button(this);
+            okButton.setText("OK");
+            okButton.setTextColor(Color.GREEN);
+
+            builder.setPositiveButton(null, null); // Null to remove the default button
+            builder.setView(okButton);
+
+            AlertDialog dialog = builder.create();
+            dialog.show();
+            okButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+
+                    dialog.dismiss();
+                }
+            });}
+        Toast.makeText(this, "number of results " + search_result_list.size() , Toast.LENGTH_SHORT).show();
+
+    }
+    private ArrayList<Image> filterArray(List<Image> allImages, String query) {
+        if (TextUtils.isEmpty(query)) {
+            this.isSearchBarEmpty = true;
+            return new ArrayList<>();
+        }
+        this.isSearchBarEmpty = false;
+        ArrayList<Image> filteredList = new ArrayList<>();
+
+        for (Image item : allImages) {
+            if (getName(item).toLowerCase().contains(query.toLowerCase()) || (item.getTags() != null && item.getTags().toLowerCase().contains(query.toLowerCase()))) {
+                filteredList.add(item);
+            }
+        }
+
+        return filteredList;
+    }
+
+    private void performSearchOnTextChange(String query) {
+        this.search_result_list = filterArray(allImages, query);
+        this.searchView.requestFocus();
+        //  SearchingFragment searchingFragment = new SearchingFragment(this, search_result_list);
+        // this.searchFragment = searchingFragment;
+
+        this.searchFragment.updateData();
+//        getSupportFragmentManager().popBackStackImmediate();
+//        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+//        ft.replace(R.id.mainFragment, searchFragment);
+//        ft.addToBackStack(null);
+//        ft.commit();
+        this.searchView.requestFocus();
+    }
+
+    private void runRemoveDuplicateImages() {
+        progressDialog = new ProgressDialog(MainActivity.this);
+        progressDialog.setMessage("Removing Duplicate Images...");
+        progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+//       progressDialog.setMax(100);
+//       progressDialog.setProgress(0);
+        progressDialog.setProgressNumberFormat(null);
+        progressDialog.setCancelable(false);
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                removeDuplicateImages();
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        progressDialog.dismiss();
+                    }
+                });
+            }
+        }).start();
+
+        progressDialog.show();
+    }
+
+    private void removeDuplicateImages() {
+        Map<String, Image> imageMap = new HashMap<>();
+        Iterator<Image> iterator = allImages.iterator();
+
+        int totalImages = allImages.size();
+        int processedImages = 0;
+
+        while (iterator.hasNext()) {
+            Image image = iterator.next();
+            try {
+                String imageHash = calculateHash(new File(image.getPath()));
+
+                // Check if the hash is already in the map
+                if (imageMap.containsKey(imageHash)) {
+                    iterator.remove();
+                    // for moving file from source to trash
+                    DeLeteAImage(image);
+                } else {
+                    // Add the hash to the map along with the image
+                    imageMap.put(imageHash, image);
+                }
+            } catch (IOException | NoSuchAlgorithmException e) {
+                e.printStackTrace();
+            }
+
+            // Update progress
+            processedImages++;
+            final int progress = (int) ((processedImages / (float) totalImages) * 100);
+
+            // Send progress update to the UI thread
+            handler.post(new Runnable() {
+                @Override
+                public void run() {
+                    progressDialog.setProgress(progress);
+                    progressDialog.setMessage("Removing Duplicate Images... " + progress + "%");
+                }
+            });
+        }
+    }
+    private static String calculateHash(File file) throws IOException, NoSuchAlgorithmException {
+        Bitmap bitmap = BitmapFactory.decodeFile(file.getAbsolutePath());
+        return getBitmapHash(bitmap);
+    }
+
+    private static String getBitmapHash(Bitmap bitmap) throws NoSuchAlgorithmException {
+        MessageDigest md = MessageDigest.getInstance("MD5");
+
+        // Convert the bitmap to a byte array
+        byte[] byteArray;
+        try {
+            ByteArrayOutputStream stream = new ByteArrayOutputStream();
+            bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream);
+            byteArray = stream.toByteArray();
+            stream.close();
+        } catch (IOException e) {
+            throw new RuntimeException("Error converting bitmap to byte array", e);
+        }
+
+        // Update the digest with the byte array
+        md.update(byteArray);
+
+        // Convert the byte array to a hexadecimal string
+        StringBuilder result = new StringBuilder();
+        for (byte b : md.digest()) {
+            result.append(String.format("%02x", b));
+        }
+
+        return result.toString();
+    }
+
 
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         int id=item.getItemId();
+        if  (id ==R.id.btnFind)
+        {
+            MenuItem searchItem = menu.findItem(R.id.Search);
+            SearchView searchView = (SearchView) searchItem.getActionView();
+            searchView.setMaxWidth(Integer.MAX_VALUE);
+            this.searchView = searchView;
+        //    menu.findItem(R.id.btnAddImageAcTion).setVisible(false);
+            menu.findItem(R.id.btnDeleteAlbum).setVisible(false);
+       //     menu.findItem(R.id.btnStatistic).setVisible(false);
+            menu.findItem(R.id.btnFind).setVisible(false);
+            menu.findItem(R.id.Search).setVisible(true);
+            searchView.onActionViewExpanded();
+
+            searchView.setQueryHint("Search here");
+            SearchingFragment searchingFragment = new SearchingFragment(this,search_result_list);
+
+            this.searchFragment = searchingFragment;
+            FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+            ft.replace(R.id.mainFragment, searchFragment);
+            ft.addToBackStack(null);
+            ft.commit();
+            searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+                @Override
+                public boolean onQueryTextSubmit(String query) {
+                    //performSearch(query);
+                    return true;
+                }
+
+                @Override
+                public boolean onQueryTextChange(String newText) {
+                    performSearchOnTextChange(newText);
+                    searchView.requestFocus();
+                    return true;
+
+                }
+            });
+            searchView.setQuery("", false);
+            return true;
+
+        }
+
+        else if (id ==R.id.btnDeleteDupicateImages)
+        {
+            runRemoveDuplicateImages();
+            loadDeleteImage();
+        }
+        else
         if(id==R.id.btnEvent){
             SharedPreferences pref=getSharedPreferences("GALLERY",MODE_PRIVATE);
             String eventJSON=pref.getString(album_list.get(curIdxAlbum).getPath(),null);
@@ -994,6 +1238,28 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
             }
         }
         editor.apply();
+    }
+    public void DeLeteAImage(Image image)
+    {
+        File imageFile = new File(image.getPath());
+        Gson gson = new Gson();
+        String sourceFolderPath = imageFile.getParent();
+        String destinationFolderPath = "/storage/emulated/0/Android/data/com.example.gallery/files/Trash";   // path of trash
+        File file = new File(image.getPath());
+        String imageName = file.getName();
+        String sourceFilePath = sourceFolderPath + File.separator + imageName;
+        String destinationFilePath = destinationFolderPath + File.separator + imageName;
+        FileManager.moveFile(this,sourceFilePath,destinationFilePath,this.getApplicationContext());
+        SharedPreferences myPref = getSharedPreferences("TRASH", Activity.MODE_PRIVATE);
+        SharedPreferences.Editor editor = myPref.edit();
+        ArrayList<String> data = new ArrayList<>(2);
+        data.add(sourceFolderPath);
+        Date dateExpires = DateConverter.plusTime(new Date(), 30, Calendar.DATE);
+        data.add(DateConverter.longToString(dateExpires.getTime()));
+        editor.putString(destinationFilePath,gson.toJson(data));
+        editor.apply();
+        trashItems.add(new TrashItem(destinationFilePath, image.getPath(),DateConverter.plusTime(new Date(), 30, Calendar.DATE).getTime()));
+        return;
     }
 
     public void loadFavouriteImage() {
