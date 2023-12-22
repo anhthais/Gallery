@@ -60,7 +60,7 @@ public class TextResultImageActivity extends AppCompatActivity {
     public void  extractTextFromUri(Context context, Uri _uri) {
         TextRecognizer recognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS);
         try {
-            Log.d("CheckText", String.valueOf(context));
+
             InputImage image = InputImage.fromFilePath(getApplicationContext(), _uri);
 
             Task<Text> result =

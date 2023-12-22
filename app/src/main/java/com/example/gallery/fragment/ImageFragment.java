@@ -132,6 +132,13 @@ public class ImageFragment extends Fragment implements MultiSelectModeCallbacks 
         ((MainActivity)context).getSupportActionBar().setTitle(R.string.app_name);
         ((MainActivity)context).getSupportActionBar().setDisplayHomeAsUpEnabled(false);
         ((MainActivity)context).getMenu().findItem(R.id.btnAddNewAlbum).setVisible(true);
+        ((MainActivity)context).getMenu().findItem(R.id.btnChooseMulti).setVisible(false);
+        ((MainActivity)context).getMenu().findItem(R.id.btnSlideShow).setVisible(false);
+        ((MainActivity)context).getMenu().findItem(R.id.btnAI_Image).setVisible(false);
+        ((MainActivity)context).getMenu().findItem(R.id.btnDeleteAlbum).setVisible(false);
+        ((MainActivity)context).getMenu().findItem(R.id.btnEvent).setVisible(true);
+        ((MainActivity)context).getMenu().findItem(R.id.btnSort).setVisible(false);
+
     }
     public void beginSlideShow(){
         if(album.getAll_album_pictures()==null||album.getAll_album_pictures().size()==0){

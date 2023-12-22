@@ -143,4 +143,5 @@
     <string name="add_img_from_camera">Thêm ảnh từ camera</string>
     <string name="no_internet_found">Không có kết nối Internet!</string>
     <string name="load_camera_img">Đang lưu hình ảnh</string>
+    <string name="no_images">Không có ảnh nào được chọn</string>
 </resources>

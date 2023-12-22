@@ -229,16 +229,29 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
                 menu.findItem(R.id.btnAI_Image).setVisible(true);
                 menu.findItem(R.id.btnDeleteAlbum).setVisible(false);
                 menu.findItem(R.id.btnSlideShow).setVisible(false);
+                menu.findItem(R.id.btnEvent).setVisible(true);
+                menu.findItem(R.id.btnSort).setVisible(true);
                 getSupportFragmentManager().beginTransaction().replace(R.id.mainFragment,this.gallery_fragment).commit();
             }
             else if (R.id.btnAlbum==id){
                 menu.findItem(R.id.btnAddNewAlbum).setVisible(true);
                 menu.findItem(R.id.btnChooseMulti).setVisible(false);
+                menu.findItem(R.id.btnAI_Image).setVisible(false);
                 menu.findItem(R.id.btnDeleteAlbum).setVisible(false);
                 menu.findItem(R.id.btnSlideShow).setVisible(false);
+                menu.findItem(R.id.btnSort).setVisible(false);
+                menu.findItem(R.id.btnEvent).setVisible(true);
                 getSupportFragmentManager().beginTransaction().replace(R.id.mainFragment,this.album_fragment).commit();
             }
             else if (R.id.btnSettings==id) {
+                menu.findItem(R.id.btnFind).setVisible(false);
+                menu.findItem(R.id.btnChooseMulti).setVisible(false);
+                menu.findItem(R.id.btnSlideShow).setVisible(false);
+                menu.findItem(R.id.btnAI_Image).setVisible(false);
+                menu.findItem(R.id.btnAddNewAlbum).setVisible(false);
+                menu.findItem(R.id.btnDeleteAlbum).setVisible(false);
+                menu.findItem(R.id.btnEvent).setVisible(false);
+                menu.findItem(R.id.btnSort).setVisible(false);
                 View v = findViewById(R.id.btnSettings);
                 getSupportFragmentManager().beginTransaction().replace(R.id.mainFragment,this.settingFragment).commit();
 //                PopupMenu pm = new PopupMenu(this, v);

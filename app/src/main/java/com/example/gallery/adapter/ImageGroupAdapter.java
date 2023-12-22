@@ -213,17 +213,31 @@ public class ImageGroupAdapter extends ListAdapter<ImageGroup, ImageGroupAdapter
                     }
                 }
                 else if(id == R.id.btnAddMultiFromGalleryToAlbum){
-                    ArrayList<String> selectedPaths = new ArrayList<>();
-                    for(int i = 0; i < getSelectedItems().size(); ++i){
-                        selectedPaths.add(getSelectedItems().get(i).getPath());
+                    if (getSelectedItems().size()==0)
+                    {
+                        Toast.makeText(context, R.string.no_images, Toast.LENGTH_SHORT).show();
                     }
-                    Gson gson = new Gson();
-                    ((MainActivity)context).onMsgFromFragToMain("ADD-TO-ALBUM", gson.toJson(selectedPaths));
-                    mode.finish();
+                    else {
+                        ArrayList<String> selectedPaths = new ArrayList<>();
+                        for(int i = 0; i < getSelectedItems().size(); ++i){
+                            selectedPaths.add(getSelectedItems().get(i).getPath());
+                        }
+                        Gson gson = new Gson();
+                        ((MainActivity)context).onMsgFromFragToMain("ADD-TO-ALBUM", gson.toJson(selectedPaths));
+                        mode.finish();
+                    }
+                    
                 }
                 else if(id == R.id.btnDeleteMultiFromGallery){
-                    new DeleteTask(context).execute(getSelectedItems());
-                    mode.finish();
+                    if (getSelectedItems().size()==0)
+                    {
+                        Toast.makeText(context, R.string.no_images, Toast.LENGTH_SHORT).show();
+                    }
+                    else{
+                        new DeleteTask(context).execute(getSelectedItems());
+                        mode.finish();
+                    }
+
                 }
 
                 notifyDataSetChanged();
