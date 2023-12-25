@@ -11,11 +11,7 @@
         android:checked="true"
         android:title="@string/add_to_album"
         />
-    <item
-        android:id="@+id/btnChangeDescription"
-        android:checked="true"
-        android:title="@string/description"
-        />
+
     <item
         android:id="@+id/btnSetAsWall"
         android:checked="true"

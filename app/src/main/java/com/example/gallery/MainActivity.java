@@ -242,7 +242,7 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
         LoaderManager.getInstance(this).initLoader(IMAGE_LOADER_ID, null, this);
         loadDeleteImage();
 
-        menu.findItem(R.id.btnDeleteAlbum).setVisible(false);
+//        menu.findItem(R.id.btnDeleteAlbum).setVisible(false);
         menu.findItem(R.id.btnSlideShow).setVisible(false);
         menu.findItem(R.id.Search).setVisible(false);
         FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
@@ -256,7 +256,7 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
                 menu.findItem(R.id.btnAddNewAlbum).setVisible(false);
                 menu.findItem(R.id.btnChooseMulti).setVisible(true);
                 menu.findItem(R.id.btnAI_Image).setVisible(true);
-                menu.findItem(R.id.btnDeleteAlbum).setVisible(false);
+//                menu.findItem(R.id.btnDeleteAlbum).setVisible(false);
                 menu.findItem(R.id.btnSlideShow).setVisible(false);
                 menu.findItem(R.id.btnEvent).setVisible(true);
                 menu.findItem(R.id.btnSort).setVisible(true);
@@ -268,7 +268,7 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
                 menu.findItem(R.id.btnChooseMulti).setVisible(false);
                 menu.findItem(R.id.btnFind).setVisible(false);
                 menu.findItem(R.id.btnAI_Image).setVisible(false);
-                menu.findItem(R.id.btnDeleteAlbum).setVisible(false);
+//                menu.findItem(R.id.btnDeleteAlbum).setVisible(false);
                 menu.findItem(R.id.btnSlideShow).setVisible(false);
                 menu.findItem(R.id.btnSort).setVisible(false);
                 menu.findItem(R.id.btnEvent).setVisible(true);
@@ -281,7 +281,7 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
                 menu.findItem(R.id.btnSlideShow).setVisible(false);
                 menu.findItem(R.id.btnAI_Image).setVisible(false);
                 menu.findItem(R.id.btnAddNewAlbum).setVisible(false);
-                menu.findItem(R.id.btnDeleteAlbum).setVisible(false);
+//                menu.findItem(R.id.btnDeleteAlbum).setVisible(false);
                 menu.findItem(R.id.btnEvent).setVisible(false);
                 menu.findItem(R.id.btnSort).setVisible(false);
                 View v = findViewById(R.id.btnSettings);
@@ -311,7 +311,7 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
 //                                setLocale("vi");
 //                            }
 //                        }
-//                        else if(id==R.id.btnThemeDark){
+//                        else if(id==R.id.btnThemeDark){D
 //                            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
 //                            SharedPreferences myPref = getSharedPreferences("GALLERY", Activity.MODE_PRIVATE);
 //                            SharedPreferences.Editor editor = myPref.edit();
@@ -578,7 +578,7 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
             searchView.setMaxWidth(Integer.MAX_VALUE);
             this.searchView = searchView;
         //    menu.findItem(R.id.btnAddImageAcTion).setVisible(false);
-            menu.findItem(R.id.btnDeleteAlbum).setVisible(false);
+//            menu.findItem(R.id.btnDeleteAlbum).setVisible(false);
        //     menu.findItem(R.id.btnStatistic).setVisible(false);
             menu.findItem(R.id.btnFind).setVisible(false);
             menu.findItem(R.id.Search).setVisible(true);
@@ -778,14 +778,14 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
             startActivity(intent);
             finish();
         }
-        else if (id == R.id.btnDeleteAlbum)
-        {
-            if(album_fragment.deleteAlbum(onChooseAlbum)){
-                Toast.makeText(this, "Delete album successfully", Toast.LENGTH_SHORT).show();
-            } else {
-                Toast.makeText(this, "Cannot delete album", Toast.LENGTH_SHORT).show();
-            }
-        }
+//        else if (id == R.id.btnDeleteAlbum)
+//        {
+//            if(album_fragment.deleteAlbum(onChooseAlbum)){
+//                Toast.makeText(this, "Delete album successfully", Toast.LENGTH_SHORT).show();
+//            } else {
+//                Toast.makeText(this, "Cannot delete album", Toast.LENGTH_SHORT).show();
+//            }
+//        }
         else if(id==R.id.btnSlideShow){
             imageFragment.beginSlideShow();
         }
@@ -961,7 +961,7 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
             //get all Images in Album
             menu.findItem(R.id.btnAddNewAlbum).setVisible(false);
             menu.findItem(R.id.btnSort).setVisible(true);
-            menu.findItem(R.id.btnDeleteAlbum).setVisible(true);
+//            menu.findItem(R.id.btnDeleteAlbum).setVisible(true);
             menu.findItem(R.id.btnSlideShow).setVisible(true);
             menu.findItem(R.id.btnSort).setVisible(false);
             //2nd argument is album

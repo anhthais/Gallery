@@ -144,4 +144,14 @@
     <string name="no_internet_found">Không có kết nối Internet!</string>
     <string name="load_camera_img">Đang lưu hình ảnh</string>
     <string name="no_images">Không có ảnh nào được chọn</string>
+    <string name="APIKEY">AIzaSyCOluiC-bAA6BIizeAf5OgUd3JVqzdTn38</string>
+    <string name="text_to_image">Tạo ảnh từ mô tả</string>
+    <string name="delete_duplicate_image">Xóa ảnh trùng</string>
+    <string name="search_here">Tìm kiếm tại đây</string>
+    <string name="sync_title">Sync email periodically</string>
+    <string name="attachment_title">Download incoming attachments</string>
+    <string name="attachment_summary_on">Automatically download attachments for incoming emails</string>
+    <string name="attachment_summary_off">Only download attachments when manually requested</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

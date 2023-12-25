@@ -41,11 +41,11 @@
         android:checked="true"
         app:showAsAction="never"
         android:title="@string/new_album"/>
-    <item
-        android:id="@+id/btnDeleteAlbum"
-        android:checked="true"
-        app:showAsAction="never"
-        android:title="@string/delete_album"/>
+<!--    <item-->
+<!--        android:id="@+id/btnDeleteAlbum"-->
+<!--        android:checked="true"-->
+<!--        app:showAsAction="never"-->
+<!--        android:title="@string/delete_album"/>-->
     <item
         android:id="@+id/btnEvent"
         android:checked="true"

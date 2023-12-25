@@ -83,7 +83,6 @@ public class SettingFragment extends PreferenceFragmentCompat implements Fragmen
         menu.findItem(R.id.btnSlideShow).setVisible(false);
         menu.findItem(R.id.btnAI_Image).setVisible(false);
         menu.findItem(R.id.btnAddNewAlbum).setVisible(false);
-        menu.findItem(R.id.btnDeleteAlbum).setVisible(false);
         menu.findItem(R.id.btnEvent).setVisible(false);
         menu.findItem(R.id.btnSort).setVisible(false);
 

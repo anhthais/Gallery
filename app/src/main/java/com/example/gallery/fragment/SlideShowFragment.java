@@ -85,7 +85,7 @@ public class SlideShowFragment extends Fragment {
         topBar = view.findViewById(R.id.topAppBar);
         topBar.inflateMenu(R.menu.slide_show_menu);
         menu=topBar.getMenu();
-        menu.findItem(R.id.btnChangeDescription).setVisible(false);
+//        menu.findItem(R.id.btnChangeDescription).setVisible(false);
         menu.findItem(R.id.btnViewInfor).setVisible(false);
         menu.findItem(R.id.btnAddToAlbum).setVisible(false);
         menu.findItem(R.id.btnReadTextInImage).setVisible(false);

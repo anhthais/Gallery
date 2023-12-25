@@ -50,7 +50,7 @@
         -->
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value='AIzaSyCOluiC-bAA6BIizeAf5OgUd3JVqzdTn38' />
+            android:value='@string/APIKEY' />
         <meta-data
             android:name="com.google.android.gms.version"
             android:exported = "true"/>

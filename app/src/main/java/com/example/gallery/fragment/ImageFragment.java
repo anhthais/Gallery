@@ -135,7 +135,7 @@ public class ImageFragment extends Fragment implements MultiSelectModeCallbacks 
         ((MainActivity)context).getMenu().findItem(R.id.btnChooseMulti).setVisible(false);
         ((MainActivity)context).getMenu().findItem(R.id.btnSlideShow).setVisible(false);
         ((MainActivity)context).getMenu().findItem(R.id.btnAI_Image).setVisible(false);
-        ((MainActivity)context).getMenu().findItem(R.id.btnDeleteAlbum).setVisible(false);
+//        ((MainActivity)context).getMenu().findItem(R.id.btnDeleteAlbum).setVisible(false);
         ((MainActivity)context).getMenu().findItem(R.id.btnEvent).setVisible(true);
         ((MainActivity)context).getMenu().findItem(R.id.btnSort).setVisible(false);
 

@@ -330,11 +330,11 @@ public class ImageViewFragment extends Fragment implements ToolbarCallbacks {
 
                 }
                 else if (id==R.id.btnAddLocation) {
-//                    ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
-//                    NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
-//                    if (networkInfo != null) {
-//                        if (networkInfo.isConnected())
-//                        {
+                    ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+                    NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
+                    if (networkInfo != null) {
+                        if (networkInfo.isConnected())
+                        {
                             Toast.makeText(context, R.string.loadGGMap, Toast.LENGTH_SHORT).show();
                             Intent intent = new Intent(getContext(), GetLocationActivity.class);
                             Image currentImage = images.get(imageViewPager2.getCurrentItem());
@@ -347,16 +347,16 @@ public class ImageViewFragment extends Fragment implements ToolbarCallbacks {
 
                             intent.putExtra("curPos",position);
                             ((ImageActivity)context).startActivityForResult(intent,4123);
-//                        }
-//                        else
-//                        {
-//                            Toast.makeText(context, R.string.no_internet_found, Toast.LENGTH_SHORT).show();
-//                        }
-//
-//                    } else
-//                    {
-//                        Toast.makeText(context, R.string.no_internet_found, Toast.LENGTH_SHORT).show();
-//                    }
+                        }
+                        else
+                        {
+                            Toast.makeText(context, R.string.no_internet_found, Toast.LENGTH_SHORT).show();
+                        }
+
+                    } else
+                    {
+                        Toast.makeText(context, R.string.no_internet_found, Toast.LENGTH_SHORT).show();
+                    }
 
 
 
@@ -640,18 +640,7 @@ public class ImageViewFragment extends Fragment implements ToolbarCallbacks {
         }
 
         try{
-//            LatLng latLng = image.getLocation();
-//            String check, value;
-//            try {
-//                check = GetLocationActivity.getAddressFromLatLng(context, latLng.latitude, latLng.longitude);
-//            } catch (IOException e) {
-//                throw new RuntimeException(e);
-//            }
-//            if (check==null) {
-//                value = latLng.latitude + "," + latLng.longitude;
-//            } else {
-//                value = check;
-//            }
+
             String value = image.getStringLocation();
             txtLocation.setText(value);
         }
@@ -664,6 +653,7 @@ public class ImageViewFragment extends Fragment implements ToolbarCallbacks {
         txtDescription.setText(description);
 
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
+
         builder.setView(dialogBox)
                 .setTitle(R.string.InfoDialogTitle)
                 .setPositiveButton(R.string.dialog_close, null)
