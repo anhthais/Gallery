@@ -251,6 +251,7 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
         btnv.setOnNavigationItemSelectedListener(item -> {
             int id=item.getItemId();
             if(id==R.id.btnGallery){
+                menu.findItem(R.id.btnDeleteDupicateImages).setVisible(true);
                 menu.findItem(R.id.btnFind).setVisible(true);
                 menu.findItem(R.id.btnAddNewAlbum).setVisible(false);
                 menu.findItem(R.id.btnChooseMulti).setVisible(true);
@@ -262,6 +263,7 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
                 getSupportFragmentManager().beginTransaction().replace(R.id.mainFragment,this.gallery_fragment).commit();
             }
             else if (R.id.btnAlbum==id){
+                menu.findItem(R.id.btnDeleteDupicateImages).setVisible(false);
                 menu.findItem(R.id.btnAddNewAlbum).setVisible(true);
                 menu.findItem(R.id.btnChooseMulti).setVisible(false);
                 menu.findItem(R.id.btnFind).setVisible(false);
@@ -273,6 +275,7 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
                 getSupportFragmentManager().beginTransaction().replace(R.id.mainFragment,this.album_fragment).commit();
             }
             else if (R.id.btnSettings==id) {
+                menu.findItem(R.id.btnDeleteDupicateImages).setVisible(false);
                 menu.findItem(R.id.btnFind).setVisible(false);
                 menu.findItem(R.id.btnChooseMulti).setVisible(false);
                 menu.findItem(R.id.btnSlideShow).setVisible(false);
@@ -441,7 +444,7 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
                     dialog.dismiss();
                 }
             });}
-        Toast.makeText(this, "number of results " + search_result_list.size() , Toast.LENGTH_SHORT).show();
+      //   Toast.makeText(this, "number of results " + search_result_list.size() , Toast.LENGTH_SHORT).show();
 
     }
     private ArrayList<Image> filterArray(List<Image> allImages, String query) {
@@ -453,7 +456,8 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
         ArrayList<Image> filteredList = new ArrayList<>();
 
         for (Image item : allImages) {
-            if (getName(item).toLowerCase().contains(query.toLowerCase()) || (item.getTags() != null && item.getTags().toLowerCase().contains(query.toLowerCase()))) {
+            if (getName(item).toLowerCase().contains(query.toLowerCase())
+                    || (item.getTags() != null && item.getTags().toLowerCase().contains(query.toLowerCase()))) {
                 filteredList.add(item);
             }
         }
@@ -464,15 +468,7 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
     private void performSearchOnTextChange(String query) {
         this.search_result_list = filterArray(allImages, query);
         this.searchView.requestFocus();
-        //  SearchingFragment searchingFragment = new SearchingFragment(this, search_result_list);
-        // this.searchFragment = searchingFragment;
-
         this.searchFragment.updateData();
-//        getSupportFragmentManager().popBackStackImmediate();
-//        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-//        ft.replace(R.id.mainFragment, searchFragment);
-//        ft.addToBackStack(null);
-//        ft.commit();
         this.searchView.requestFocus();
     }
 
