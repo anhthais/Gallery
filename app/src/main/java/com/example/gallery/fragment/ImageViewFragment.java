@@ -651,6 +651,8 @@ public class ImageViewFragment extends Fragment implements ToolbarCallbacks {
         SharedPreferences myPref = context.getSharedPreferences("DESCRIPTION", Activity.MODE_PRIVATE);
         String description = myPref.getString(String.valueOf(image.getIdInMediaStore()), "");
         txtDescription.setText(description);
+        Button btnEdit = dialogBox.findViewById(R.id.btnEditInfo);
+        Button btnClose = dialogBox.findViewById(R.id.btnInfoClose);
 
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
 
@@ -667,6 +669,23 @@ public class ImageViewFragment extends Fragment implements ToolbarCallbacks {
                         transaction.commit();
                     }})
                 .show();
-
+//        btnEdit.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                EditPictureInformationFragment editFragment = new EditPictureInformationFragment(image);
+//                FragmentManager fragmentManager = requireActivity().getSupportFragmentManager();
+//                FragmentTransaction transaction = fragmentManager.beginTransaction();
+//                transaction.replace(R.id.pictureFragment, editFragment);
+//                transaction.addToBackStack("DETAIL");
+//                transaction.commit();
+//
+//            }
+//        });
+//        btnClose.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+////
+//            }
+//        });
     }
 }

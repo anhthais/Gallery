@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Thư viện ảnh</string>
+    <string name="app_name">Gallery</string>
     <string name="stop">Tạm dừng</string>
     <string name="continous">Tiếp tục</string>
     <string name="theme">Chủ đề</string>

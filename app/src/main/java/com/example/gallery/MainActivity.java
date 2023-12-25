@@ -187,6 +187,10 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
             AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM);
         }
         String locale=pref.getString("LANGUAGE","en");
+        if (!locale.equals("en") && !locale.equals("vi"))
+        {
+            locale="en";
+        }
         Locale myLocale = new Locale(locale);
         Resources res = getResources();
         DisplayMetrics dm = res.getDisplayMetrics();
