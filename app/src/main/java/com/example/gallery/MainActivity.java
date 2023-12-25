@@ -1211,6 +1211,9 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
         if(allEntries != null){
             for (Map.Entry<String, ?> entry : allEntries.entrySet ()) {
                 String key = entry.getKey();
+                if(key == null){
+                    continue;
+                }
                 String value = (String) entry.getValue();
                 ArrayList<String> dataFromJson = gson.fromJson(value, new TypeToken<ArrayList<String>>(){}.getType());
 
