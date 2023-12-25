@@ -30,12 +30,12 @@
         android:id="@+id/btnAI_Image"
         android:checked="true"
         app:showAsAction="never"
-        android:title="Text to image"/>
+        android:title="@string/text_to_image"/>
     <item
         android:id="@+id/btnDeleteDupicateImages"
         android:checked="true"
         app:showAsAction="never"
-        android:title="Delete Dupicate Images"/>
+        android:title="@string/delete_duplicate_image"/>
     <item
         android:id="@+id/btnAddNewAlbum"
         android:checked="true"
