@@ -290,91 +290,6 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
                 menu.findItem(R.id.btnSort).setVisible(false);
                 View v = findViewById(R.id.btnSettings);
                 getSupportFragmentManager().beginTransaction().replace(R.id.mainFragment,this.settingFragment).commit();
-//                PopupMenu pm = new PopupMenu(this, v);
-//                pm.getMenuInflater().inflate(R.menu.settings_menu, pm.getMenu());
-//
-//                pm.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
-//                    @Override
-//                    public boolean onMenuItemClick(MenuItem item) {
-//                        int id=item.getItemId();
-//                        if(id==R.id.btnEnglish){
-//                            if(!getResources().getConfiguration().getLocales().get(0).toString().equals("en")){
-//                                SharedPreferences pref=getSharedPreferences("GALLERY",MODE_PRIVATE);
-//                                SharedPreferences.Editor editor=pref.edit();
-//                                editor.putString("LANGUAGE","en");
-//                                editor.commit();
-//                                setLocale("en");
-//                            }
-//                        }
-//                        else if(id==R.id.btnVietnamese){
-//                            if(!getResources().getConfiguration().getLocales().get(0).toString().equals("vi")){
-//                                SharedPreferences pref=getSharedPreferences("GALLERY",MODE_PRIVATE);
-//                                SharedPreferences.Editor editor=pref.edit();
-//                                editor.putString("LANGUAGE","vi");
-//                                editor.commit();
-//                                setLocale("vi");
-//                            }
-//                        }
-//                        else if(id==R.id.btnThemeDark){D
-//                            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
-//                            SharedPreferences myPref = getSharedPreferences("GALLERY", Activity.MODE_PRIVATE);
-//                            SharedPreferences.Editor editor = myPref.edit();
-//                            editor.putString("THEME","DARK").apply();
-//                        }else if (id==R.id.btnThemeLight){
-//                            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
-//                            SharedPreferences myPref = getSharedPreferences("GALLERY", Activity.MODE_PRIVATE);
-//                            SharedPreferences.Editor editor = myPref.edit();
-//                            editor.putString("THEME","LIGHT").apply();
-//                        }else if (id == R.id.btnTrashbin)
-//                        {
-//                            menu.findItem(R.id.btnAddNewAlbum).setVisible(false);
-//                            menu.findItem(R.id.btnChooseMulti).setVisible(true);
-//                            FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-//                            ft.replace(R.id.mainFragment,trashFragment);
-//                            ft.addToBackStack("FRAG");
-//                            ft.commit();
-//                        }else if (id == R.id.btnFavouriteImg)
-//                        {
-//                            FragmentTransaction ft=getSupportFragmentManager().beginTransaction();
-//                            ft.replace(R.id.mainFragment, favouriteImageFragment);
-//                            ft.addToBackStack("FRAG");
-//                            ft.commit();
-//                        }else if(id==R.id.btnShowHideFrag){
-//                            SharedPreferences hidePref=getSharedPreferences("GALLERY",MODE_PRIVATE);
-//                            String password=hidePref.getString("PASSWORD",null);
-//                            if(password==null){
-//                                //show add new album frag
-//                                int opendate=hidePref.getInt("OPEN-DATE",0);
-//                                int openyear=hidePref.getInt("OPEN-YEAR",0);
-//                                int openmoth=hidePref.getInt("OPEN-MONTH",0);
-//                                Calendar calendar=Calendar.getInstance();
-//                                int curr_date=calendar.get(Calendar.DATE);
-//                                int curr_month=calendar.get(Calendar.MONTH);
-//                                int curr_year=calendar.get(Calendar.YEAR);
-//                                boolean firstVisit=true;
-//                                if(curr_year<openyear){
-//                                    firstVisit=false;
-//                                }else if(curr_year==openyear){
-//                                    if(curr_month<openmoth){
-//                                        firstVisit=false;
-//                                    }else if(curr_month==openmoth){
-//                                        if(curr_date<opendate){
-//                                            firstVisit=false;
-//                                        }
-//                                    }
-//                                }
-//                                if(firstVisit){
-//                                    createPasswordHideFragmentDialog();
-//                                }else{
-//                                    Toast.makeText(MainActivity.this, R.string.comebacklater, Toast.LENGTH_SHORT).show();
-//                                }
-//                            }else{
-//                                showHideFragmentDialog();
-//                            }
-//                        }
-//                        return true;
-//                    }
-//                }); pm.show();
             }
 
             return true;
@@ -448,8 +363,6 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
                     dialog.dismiss();
                 }
             });}
-      //   Toast.makeText(this, "number of results " + search_result_list.size() , Toast.LENGTH_SHORT).show();
-
     }
     private ArrayList<Image> filterArray(List<Image> allImages, String query) {
         if (TextUtils.isEmpty(query)) {
@@ -782,103 +695,9 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
             startActivity(intent);
             finish();
         }
-//        else if (id == R.id.btnDeleteAlbum)
-//        {
-//            if(album_fragment.deleteAlbum(onChooseAlbum)){
-//                Toast.makeText(this, "Delete album successfully", Toast.LENGTH_SHORT).show();
-//            } else {
-//                Toast.makeText(this, "Cannot delete album", Toast.LENGTH_SHORT).show();
-//            }
-//        }
         else if(id==R.id.btnSlideShow){
             imageFragment.beginSlideShow();
         }
-//        else if(id == R.id.btnSort){
-//            View v = findViewById(R.id.btnSort);
-//            PopupMenu pm = new PopupMenu(MainActivity.this, v);
-//            pm.getMenuInflater().inflate(R.menu.multi_select_menu_gallery, pm.getMenu());
-//            pm.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
-//                @Override
-//                public boolean onMenuItemClick(MenuItem item) {
-//                    int id1 = item.getItemId();
-//                    if(id1 == R.id.btnSortByDateIncrease){
-//                        Fragment frag = getSupportFragmentManager().findFragmentById(R.id.mainFragment);
-//                        if(frag instanceof GalleryFragment && frag.isVisible()){
-//                            updateAllListsInSort(SortUtil.CriterionDateAdded, SortUtil.TypeASC);
-//                            ((GalleryFragment) frag).updateView();
-//                        }
-//                        else if(frag instanceof ImageFragment && frag.isVisible()){
-//                            updateCurAlbumInSort(album_list.get(curIdxAlbum), SortUtil.CriterionDateAdded, SortUtil.TypeASC);
-//                            ((ImageFragment) frag).updateView();
-//                        }
-//                        Toast.makeText(getApplicationContext(), "sort date asc", Toast.LENGTH_SHORT).show();
-//                    }
-//                    else if(id1 == R.id.btnSortByDateDecrease){
-//                        Fragment frag = getSupportFragmentManager().findFragmentById(R.id.mainFragment);
-//                        if(frag instanceof GalleryFragment && frag.isVisible()){
-//                            updateAllListsInSort(SortUtil.CriterionDateAdded, SortUtil.TypeDESC);
-//                            ((GalleryFragment) frag).updateView();
-//                        }
-//                        else if(frag instanceof ImageFragment && frag.isVisible()){
-//                            updateCurAlbumInSort(album_list.get(curIdxAlbum), SortUtil.CriterionDateAdded, SortUtil.TypeDESC);
-//                            ((ImageFragment) frag).updateView();
-//                        }
-//                        Toast.makeText(getApplicationContext(), "sort date desc", Toast.LENGTH_SHORT).show();
-//                    }
-//                    else if(id1 == R.id.btnSortByNameIncrease){
-//                        Fragment frag = getSupportFragmentManager().findFragmentById(R.id.mainFragment);
-//                        if(frag instanceof GalleryFragment && frag.isVisible()){
-//                            updateListByEachGroupInSort(SortUtil.CriterionName, SortUtil.TypeASC);
-//                            ((GalleryFragment) frag).updateView();
-//                        }
-//                        else if(frag instanceof ImageFragment && frag.isVisible()){
-//                            updateCurAlbumInSort(album_list.get(curIdxAlbum), SortUtil.CriterionName, SortUtil.TypeASC);
-//                            ((ImageFragment) frag).updateView();
-//                        }
-//                        Toast.makeText(getApplicationContext(), "sort name asc", Toast.LENGTH_SHORT).show();
-//                    }
-//                    else if(id1 == R.id.btnSortByNameDecrease){
-//                        Fragment frag = getSupportFragmentManager().findFragmentById(R.id.mainFragment);
-//                        if(frag instanceof GalleryFragment && frag.isVisible()){
-//                            updateListByEachGroupInSort(SortUtil.CriterionName, SortUtil.TypeDESC);
-//                            ((GalleryFragment) frag).updateView();
-//                        }
-//                        else if(frag instanceof ImageFragment && frag.isVisible()){
-//                            updateCurAlbumInSort(album_list.get(curIdxAlbum), SortUtil.CriterionName, SortUtil.TypeDESC);
-//                            ((ImageFragment) frag).updateView();
-//                        }
-//                        Toast.makeText(getApplicationContext(), "sort name desc", Toast.LENGTH_SHORT).show();
-//                    }
-//                    else if(id1 == R.id.btnSortByFileSizeIncrease){
-//                        Fragment frag = getSupportFragmentManager().findFragmentById(R.id.mainFragment);
-//                        if(frag instanceof GalleryFragment && frag.isVisible()){
-//                            updateListByEachGroupInSort(SortUtil.CriterionFileSize, SortUtil.TypeASC);
-//                            ((GalleryFragment) frag).updateView();
-//                        }
-//                        else if(frag instanceof ImageFragment && frag.isVisible()){
-//                            updateCurAlbumInSort(album_list.get(curIdxAlbum), SortUtil.CriterionFileSize, SortUtil.TypeASC);
-//                            ((ImageFragment) frag).updateView();
-//                        }
-//                        Toast.makeText(getApplicationContext(), "sort file asc", Toast.LENGTH_SHORT).show();
-//                    }
-//                    else if(id1 == R.id.btnSortByFileSizeDecrease){
-//                        Fragment frag = getSupportFragmentManager().findFragmentById(R.id.mainFragment);
-//                        if(frag instanceof GalleryFragment && frag.isVisible()){
-//                            updateListByEachGroupInSort(SortUtil.CriterionFileSize, SortUtil.TypeDESC);
-//                            ((GalleryFragment) frag).updateView();
-//                        }
-//                        else if(frag instanceof ImageFragment && frag.isVisible()){
-//                            updateCurAlbumInSort(album_list.get(curIdxAlbum), SortUtil.CriterionFileSize, SortUtil.TypeDESC);
-//                            ((ImageFragment) frag).updateView();
-//                        }
-//                        Toast.makeText(getApplicationContext(), "sort file desc", Toast.LENGTH_SHORT).show();
-//                    }
-//                    pm.show();
-//                    return true;
-//                }
-//            });
-//        }
-        //special case: back-arrow on action bar
         else if(id == R.id.btnSortByDateIncrease){
             Fragment frag = getSupportFragmentManager().findFragmentById(R.id.mainFragment);
             if(frag instanceof GalleryFragment && frag.isVisible()){
@@ -889,7 +708,6 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
                 updateCurAlbumInSort(album_list.get(curIdxAlbum), SortUtil.CriterionDateAdded, SortUtil.TypeASC);
                 ((ImageFragment) frag).updateView();
             }
-            Toast.makeText(getApplicationContext(), "sort date asc", Toast.LENGTH_SHORT).show();
         }
         else if(id == R.id.btnSortByDateDecrease){
             Fragment frag = getSupportFragmentManager().findFragmentById(R.id.mainFragment);
@@ -901,7 +719,6 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
                 updateCurAlbumInSort(album_list.get(curIdxAlbum), SortUtil.CriterionDateAdded, SortUtil.TypeDESC);
                 ((ImageFragment) frag).updateView();
             }
-            Toast.makeText(getApplicationContext(), "sort date desc", Toast.LENGTH_SHORT).show();
         }
         else if(id == R.id.btnSortByNameIncrease){
             Fragment frag = getSupportFragmentManager().findFragmentById(R.id.mainFragment);
@@ -913,7 +730,6 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
                 updateCurAlbumInSort(album_list.get(curIdxAlbum), SortUtil.CriterionName, SortUtil.TypeASC);
                 ((ImageFragment) frag).updateView();
             }
-            Toast.makeText(getApplicationContext(), "sort name asc", Toast.LENGTH_SHORT).show();
         }
         else if(id == R.id.btnSortByNameDecrease){
             Fragment frag = getSupportFragmentManager().findFragmentById(R.id.mainFragment);
@@ -925,7 +741,6 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
                 updateCurAlbumInSort(album_list.get(curIdxAlbum), SortUtil.CriterionName, SortUtil.TypeDESC);
                 ((ImageFragment) frag).updateView();
             }
-            Toast.makeText(getApplicationContext(), "sort name desc", Toast.LENGTH_SHORT).show();
         }
         else if(id == R.id.btnSortByFileSizeIncrease){
             Fragment frag = getSupportFragmentManager().findFragmentById(R.id.mainFragment);
@@ -937,7 +752,6 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
                 updateCurAlbumInSort(album_list.get(curIdxAlbum), SortUtil.CriterionFileSize, SortUtil.TypeASC);
                 ((ImageFragment) frag).updateView();
             }
-            Toast.makeText(getApplicationContext(), "sort file asc", Toast.LENGTH_SHORT).show();
         }
         else if(id == R.id.btnSortByFileSizeDecrease){
             Fragment frag = getSupportFragmentManager().findFragmentById(R.id.mainFragment);
@@ -949,7 +763,6 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
                 updateCurAlbumInSort(album_list.get(curIdxAlbum), SortUtil.CriterionFileSize, SortUtil.TypeDESC);
                 ((ImageFragment) frag).updateView();
             }
-            Toast.makeText(getApplicationContext(), "sort file desc", Toast.LENGTH_SHORT).show();
         }
         else{
             getSupportFragmentManager().popBackStackImmediate();
@@ -1142,7 +955,7 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
             String r=   getString(R.string.download);
             album_list.add(new Album(r,Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).toString()));
 
-            Gson gson=new Gson();
+            Gson gson = new Gson();
             String picturePath = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).getAbsolutePath();
             File sdFile = new File(picturePath);
             final boolean[] rootExist = {false};
@@ -1463,6 +1276,8 @@ public class MainActivity extends AppCompatActivity implements MainCallBacks,Mai
         imageGroupsByDate = LocalStorageReader.getListImageGroupByDate(allImages);
         editor.putInt("SORT-CRITERION", criterion);
         editor.putInt("SORT-TYPE", type);
+        editor.putInt("SORT-GROUP-CRITERION", -1);
+        editor.putInt("SORT-GROUP-TYPE", -1);
         editor.apply();
     }
 

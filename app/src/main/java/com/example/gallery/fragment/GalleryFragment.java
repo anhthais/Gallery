@@ -68,11 +68,9 @@ public class GalleryFragment extends Fragment implements FragmentCallBacks, Mult
     private MainActivity main;
     private FloatingActionButton addImageFromLink;
 
-    // TODO: adjust to singleton
     public static GalleryFragment getInstance(){
         return new GalleryFragment();
     }
-
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -162,8 +160,6 @@ public class GalleryFragment extends Fragment implements FragmentCallBacks, Mult
         });
         return view;
     }
-
-    // TODO: delete and adjust the code below: statistic and delete
 
     void DownloadImageFromLink(String ImageUrl) {
         //Asynctask to create a thread to download image in the background
